@@ -12,7 +12,7 @@ yarn add saborter
 
 ## 🚀 Быстрый старт
 
-## Базовое использование
+### Базовое использование
 
 ```javascript
 import { Aborter } from 'saborter';
@@ -195,9 +195,7 @@ try {
 
 ```javascript
 class SearchAutocomplete {
-  constructor() {
-    this.aborter = new Aborter();
-  }
+  aborter = new Aborter();
 
   async search(query) {
     if (!query.trim()) return [];
@@ -210,9 +208,8 @@ class SearchAutocomplete {
 
       this.displayResults(results);
     } catch (error) {
-      if (!Aborter.isError(error)) {
-        console.error('Ошибка поиска:', error);
-      }
+      // Получаем любую ошибку, кроме AbortError
+      console.error('Ошибка поиска:', error);
     }
   }
 
@@ -236,26 +233,29 @@ class FileUploader {
     formData.append('file', file);
 
     try {
-      await this.aborter.try(async signal => {
-        const response = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData,
-          signal,
-        });
+      await this.aborter.try(
+        async signal => {
+          const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+            signal,
+          });
 
-        // Отслеживаем прогресс
-        const reader = response.body.getReader();
-        let receivedLength = 0;
-        const contentLength = +response.headers.get('Content-Length');
+          // Отслеживаем прогресс
+          const reader = response.body.getReader();
+          let receivedLength = 0;
+          const contentLength = +response.headers.get('Content-Length');
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
 
-          receivedLength += value.length;
-          this.progress = Math.round((receivedLength / contentLength) * 100);
-        }
-      });
+            receivedLength += value.length;
+            this.progress = Math.round((receivedLength / contentLength) * 100);
+          }
+        },
+        { isNativeBehavior: true },
+      );
 
       console.log('Файл успешно загружен');
     } catch (error) {
@@ -301,9 +301,7 @@ function DataFetcher({ url }) {
       });
       setData(result);
     } catch (error) {
-      if (!Aborter.isError(error)) {
-        console.error('Ошибка:', error);
-      }
+      // Обработка fetch ошибки
     } finally {
       setLoading(false);
     }
@@ -357,9 +355,7 @@ export default {
           return response.json();
         });
       } catch (error) {
-        if (!Aborter.isError(error)) {
-          console.error('Ошибка:', error);
-        }
+        // Обработка fetch ошибки
       } finally {
         this.loading = false;
       }
