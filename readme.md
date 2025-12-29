@@ -23,7 +23,7 @@ const aborter = new Aborter();
 // Используем для запроса
 async function fetchData() {
   try {
-    const result = await aborter.try(signal => fetch('/api/data', { signal }));
+    const result = await aborter.try(signal => fetch('/api/data', { signal }), { isNativeBehavior: true });
     console.log('Данные получены:', result);
   } catch (error) {
     if (error.name === 'AbortError') {
@@ -56,7 +56,7 @@ setTimeout(() => {
 
 ### 2. Автоматическая отмена предыдущих запросов
 
-При каждом новом вызове **Bold Text** предыдущий запрос автоматически отменяется:
+При каждом новом вызове **try** предыдущий запрос автоматически отменяется:
 
 ```javascript
 // При поиске с автодополнением
