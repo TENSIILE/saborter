@@ -1,6 +1,5 @@
-import * as Utils from './utils';
-import * as Constants from './constants';
-import * as Types from './types';
+import * as Shared from '../../shared';
+import * as Types from './aborter.types';
 
 export class Aborter {
   protected abortController = new AbortController();
@@ -9,7 +8,7 @@ export class Aborter {
    */
   public onAbort?: Types.AbortErrorCallback;
 
-  public static isError = Utils.isError;
+  public static isError = Shared.Lib.isError;
 
   constructor(options?: Types.AborterOptions) {
     this.onAbort = options?.onAbort;
@@ -28,7 +27,7 @@ export class Aborter {
   ): Promise<R> => {
     // На первой итерации создается переменная с присвоением promise, в котором мы ожидаем его выполнение.
     let promise: Promise<R> | null = new Promise<R>((resolve, reject) => {
-      this.abort();
+      this.abort(new Shared.Lib.AbortError('cancellation of the previous AbortController', { isCancelled: true }));
 
       this.abortController = new AbortController();
 
@@ -39,7 +38,7 @@ export class Aborter {
         .catch((err: Error) => {
           const error: Error = {
             ...err,
-            message: err?.message || Utils.get(err, Constants.ERROR_CAUSE_PATH_MESSAGE) || '',
+            message: err?.message || Shared.Lib.get(err, Shared.Constants.ERROR_CAUSE_PATH_MESSAGE) || '',
           };
 
           if (isErrorNativeBehavior || !Aborter.isError(err)) {
@@ -62,5 +61,5 @@ export class Aborter {
   /**
    * Вызов этого метода установить флаг AbortSignal этого объекта и сигнализирует всем наблюдателям, что связанное действие должно быть прервано.
    */
-  public abort = () => this.abortController.abort();
+  public abort = (reason?: any) => this.abortController.abort(reason);
 }

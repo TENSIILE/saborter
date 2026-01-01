@@ -1,8 +1,7 @@
-import { rejects } from 'assert';
 import { Aborter } from './aborter';
-import * as Utils from './utils';
+import * as Shared from '../../shared';
 
-jest.mock('./utils', () => ({
+jest.mock('../../shared/lib', () => ({
   isError: jest.fn(),
   get: jest.fn(),
 }));
@@ -91,8 +90,8 @@ describe('Aborter', () => {
           cause: { message: 'Cause error message' },
         };
         mockRequest.mockRejectedValue(error);
-        (Utils.isError as unknown as jest.Mock).mockReturnValue(false);
-        (Utils.get as jest.Mock).mockReturnValue('Cause error message');
+        (Shared.Lib.isError as unknown as jest.Mock).mockReturnValue(false);
+        (Shared.Lib.get as jest.Mock).mockReturnValue('Cause error message');
 
         await expect(aborter.try(mockRequest)).rejects.toEqual({
           ...error,
@@ -103,8 +102,8 @@ describe('Aborter', () => {
       it('должен возвращать пустую строку если нет сообщения об ошибке', async () => {
         const error = {};
         mockRequest.mockRejectedValue(error);
-        (Utils.isError as unknown as jest.Mock).mockReturnValue(false);
-        (Utils.get as jest.Mock).mockReturnValue(undefined);
+        (Shared.Lib.isError as unknown as jest.Mock).mockReturnValue(false);
+        (Shared.Lib.get as jest.Mock).mockReturnValue(undefined);
 
         await expect(aborter.try(mockRequest)).rejects.toEqual({
           ...error,
@@ -130,7 +129,7 @@ describe('Aborter', () => {
       it('не должен завершать промис при AbortError и isErrorNativeBehavior = false', async () => {
         const abortError = new DOMException('Aborted', 'AbortError');
         mockRequest.mockRejectedValue(abortError);
-        (Utils.isError as unknown as jest.Mock).mockReturnValue(true);
+        (Shared.Lib.isError as unknown as jest.Mock).mockReturnValue(true);
 
         const promise = aborter.try(mockRequest);
 
@@ -144,7 +143,7 @@ describe('Aborter', () => {
   describe('Статические методы', () => {
     it('isError должен делегировать вызов Utils.isError', () => {
       const testError = new Error('test');
-      const mockIsError = Utils.isError as unknown as jest.Mock;
+      const mockIsError = Shared.Lib.isError as unknown as jest.Mock;
       mockIsError.mockReturnValue(true);
 
       const result = Aborter.isError(testError);
@@ -159,7 +158,7 @@ describe('Aborter', () => {
       const fn = jest.fn();
       const abortError = new DOMException('Aborted', 'AbortError');
       mockRequest.mockRejectedValue(abortError);
-      (Utils.isError as unknown as jest.Mock).mockReturnValue(true);
+      (Shared.Lib.isError as unknown as jest.Mock).mockReturnValue(true);
 
       aborter = new Aborter({ onAbort: fn });
       mockAbortController = (aborter as any).abortController;
@@ -176,7 +175,7 @@ describe('Aborter', () => {
       const fn = jest.fn();
       const abortError = new DOMException('Aborted', 'AbortError');
       mockRequest.mockRejectedValue(abortError);
-      (Utils.isError as unknown as jest.Mock).mockReturnValue(true);
+      (Shared.Lib.isError as unknown as jest.Mock).mockReturnValue(true);
 
       const promise = aborter.try(mockRequest);
 

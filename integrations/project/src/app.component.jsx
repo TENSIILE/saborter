@@ -14,10 +14,10 @@ export const App = () => {
   const aborterRef = useRef(
     new Aborter({
       onAbort: e => {
+        // console.log(e);
+
         setLoading(false);
         setUsers([]);
-
-        console.log(e);
       },
     }),
   );
