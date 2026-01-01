@@ -12,7 +12,7 @@ const config = {
   },
   transformIgnorePatterns: ['node_modules'],
   testPathIgnorePatterns: ['/node_modules/', '/dist/'],
-  testRegex: '(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$',
+  testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.[jt]sx?$',
   moduleFileExtensions: ['ts', 'tsx', 'js'],
 };
 
