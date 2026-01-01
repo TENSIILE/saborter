@@ -126,7 +126,7 @@ describe('Aborter', () => {
         expect(mockAbortController.abort).toHaveBeenCalled();
       });
 
-      it('не должен завершать промис при AbortError и isNativeBehavior = false', async () => {
+      it('не должен завершать промис при AbortError и isErrorNativeBehavior = false', async () => {
         const abortError = new DOMException('Aborted', 'AbortError');
         mockRequest.mockRejectedValue(abortError);
         (Utils.isError as unknown as jest.Mock).mockReturnValue(true);

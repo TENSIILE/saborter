@@ -23,7 +23,7 @@ const aborter = new Aborter();
 // Используем для запроса
 async function fetchData() {
   try {
-    const result = await aborter.try(signal => fetch('/api/data', { signal }), { isNativeBehavior: true });
+    const result = await aborter.try(signal => fetch('/api/data', { signal }), { isErrorNativeBehavior: true });
     console.log('Данные получены:', result);
   } catch (error) {
     if (error.name === 'AbortError') {
@@ -132,7 +132,7 @@ fetch('/api/data', {
 
 - `request: (signal: AbortSignal) => Promise<T>` - функция, выполняющая запрос
 - `options: Object` (опционально)
-  - `isNativeBehavior: boolean` - флаг для управления обработкой ошибок
+  - `isErrorNativeBehavior: boolean` - флаг для управления обработкой ошибок
 
 **Возвращает:** `Promise<T>`
 
@@ -254,7 +254,7 @@ class FileUploader {
             this.progress = Math.round((receivedLength / contentLength) * 100);
           }
         },
-        { isNativeBehavior: true },
+        { isErrorNativeBehavior: true },
       );
 
       console.log('Файл успешно загружен');
@@ -373,12 +373,12 @@ export default {
 
 По умолчанию метод `try()` не отклоняет промис при `AbortError` (ошибке отмены). Это позволяет предотвратить вызов `catch` блока при отмене запроса.
 
-Если вам нужно стандартное поведение (чтобы промис отклонялся при любой ошибке), используйте опцию `isNativeBehavior`:
+Если вам нужно стандартное поведение (чтобы промис отклонялся при любой ошибке), используйте опцию `isErrorNativeBehavior`:
 
 ```javascript
 // Промис будет отклонен даже при AbortError
 const result = await aborter
-  .try(signal => fetch('/api/data', { signal }), { isNativeBehavior: true })
+  .try(signal => fetch('/api/data', { signal }), { isErrorNativeBehavior: true })
   .catch(error => {
     // Сюда попадут ВСЕ ошибки, включая отмену
     if (error.name === 'AbortError') {
