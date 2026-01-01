@@ -7,3 +7,9 @@ export interface FnTryOptions {
    */
   isErrorNativeBehavior?: boolean;
 }
+
+export type AbortErrorCallback = (error: Error) => void;
+
+export interface AborterOptions {
+  onAbort?: AbortErrorCallback;
+}

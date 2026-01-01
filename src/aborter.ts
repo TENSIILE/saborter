@@ -4,8 +4,16 @@ import * as Types from './types';
 
 export class Aborter {
   protected abortController = new AbortController();
+  /**
+   * Method called when an Aborter request is cancelled
+   */
+  public onAbort?: Types.AbortErrorCallback;
 
   public static isError = Utils.isError;
+
+  constructor(options?: Types.AborterOptions) {
+    this.onAbort = options?.onAbort;
+  }
 
   /**
    * Возвращает объект AbortSignal, связанный с этим объектом.
@@ -37,6 +45,8 @@ export class Aborter {
           if (isErrorNativeBehavior || !Aborter.isError(err)) {
             return reject(error);
           }
+
+          this.onAbort?.(error);
 
           /**
            * Во второй итерации, в случае отмены запроса, мы не завершаем promise, а обнуляем ссылку на него, для того, чтобы

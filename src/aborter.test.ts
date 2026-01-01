@@ -1,3 +1,4 @@
+import { rejects } from 'assert';
 import { Aborter } from './aborter';
 import * as Utils from './utils';
 
@@ -150,6 +151,44 @@ describe('Aborter', () => {
 
       expect(result).toBe(true);
       expect(mockIsError).toHaveBeenCalledWith(testError);
+    });
+  });
+
+  describe('onAbort property', () => {
+    it('Проверка исполнения коллбека onAbort при передаче через конструктор', async () => {
+      const fn = jest.fn();
+      const abortError = new DOMException('Aborted', 'AbortError');
+      mockRequest.mockRejectedValue(abortError);
+      (Utils.isError as unknown as jest.Mock).mockReturnValue(true);
+
+      aborter = new Aborter({ onAbort: fn });
+      mockAbortController = (aborter as any).abortController;
+
+      const promise = aborter.try(mockRequest);
+
+      await Promise.race([promise, new Promise(resolve => setTimeout(() => resolve('timeout'), 50))]);
+
+      expect(mockAbortController.abort).toHaveBeenCalled();
+      expect(fn).toHaveBeenCalled();
+    });
+
+    it('Проверка исполнения коллбека onAbort при переопределении свойства', async () => {
+      const fn = jest.fn();
+      const abortError = new DOMException('Aborted', 'AbortError');
+      mockRequest.mockRejectedValue(abortError);
+      (Utils.isError as unknown as jest.Mock).mockReturnValue(true);
+
+      const promise = aborter.try(mockRequest);
+
+      aborter.onAbort = error => {
+        fn();
+        expect(error.message).toBe(abortError.message);
+      };
+
+      await Promise.race([promise, new Promise(resolve => setTimeout(() => resolve('timeout'), 50))]);
+
+      expect(mockAbortController.abort).toHaveBeenCalled();
+      expect(fn).toHaveBeenCalled();
     });
   });
 });
