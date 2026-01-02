@@ -6,7 +6,7 @@ export class Aborter {
   protected abortController = new AbortController();
 
   /**
-   * The name of the error instance thrown by the AbortController.
+   * The name of the error instance thrown by the AbortSignal.
    * @readonly
    */
   public static readonly errorName = Constants.ABORT_ERROR_NAME;

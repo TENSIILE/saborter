@@ -160,7 +160,7 @@ const result = await aborter.try(async signal => {
 
 ```javascript
 // Запускаем запрос
-const requestPromise = aborter.try(signal => fetch('/api/data', { signal }));
+const requestPromise = aborter.try(signal => fetch('/api/data', { signal }), { isErrorNativeBehavior: true });
 
 // Отменяем
 aborter.abort();
@@ -179,7 +179,7 @@ requestPromise.catch(error => {
 
 ```javascript
 try {
-  await aborter.try(signal => fetch('/api/data', { signal }));
+  await aborter.try(signal => fetch('/api/data', { signal }), { isErrorNativeBehavior: true });
 } catch (error) {
   if (Aborter.isError(error)) {
     console.log('Это ошибка отмены');
@@ -187,6 +187,20 @@ try {
     console.log('Другая ошибка:', error);
   }
 }
+```
+
+`static errorName`
+
+Имя экземпляра ошибки `AbortError`, выбрашенное AbortSignal.
+
+```javascript
+const result = await aborter
+  .try(signal => fetch('/api/data', { signal }), { isErrorNativeBehavior: true })
+  .catch(error => {
+    if (error.name === Aborter.errorName) {
+      console.log('Отменено');
+    }
+  });
 ```
 
 ## 🎯 Примеры использования
