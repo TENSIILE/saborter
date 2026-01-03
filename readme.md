@@ -124,14 +124,14 @@ fetch('/api/data', {
 
 ### Методы
 
-`try(request, options)`
+`try(request, options?)`
 
 Выполняет асинхронный запрос с возможностью отмены.
 
 **Параметры:**
 
 - `request: (signal: AbortSignal) => Promise<T>` - функция, выполняющая запрос
-- `options: Object` (опционально)
+- `options?: Object` (опционально)
   - `isErrorNativeBehavior: boolean` - флаг для управления обработкой ошибок
 
 **Возвращает:** `Promise<T>`
@@ -154,7 +154,11 @@ const result = await aborter.try(async signal => {
 });
 ```
 
-`abort()`
+`abort(reason?)`
+
+**Параметры:**
+
+- `reason?: any` - причина прерывания запроса (опционально)
 
 Немедленно отменяет текущий выполняющийся запрос.
 
