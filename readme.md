@@ -1,4 +1,9 @@
-## Saborter
+# Saborter
+
+[![Static Badge](https://img.shields.io/badge/npm%20package-1.0.0-red)](https://www.npmjs.com/package/saborter)
+![Static Badge](https://img.shields.io/badge/coverage-100%25-orange)
+![Static Badge](https://img.shields.io/badge/license-MIT-blue)
+[![Static Badge](https://img.shields.io/badge/repository-github-color)](https://github.com/TENSIILE/saborter)
 
 Простая и эффективная библиотека для отмены асинхронных запросов с использованием AbortController.
 
@@ -164,7 +169,7 @@ const result = await aborter.try(async signal => {
 
 ```javascript
 // Запускаем запрос
-const requestPromise = aborter.try(signal => fetch('/api/data', { signal }));
+const requestPromise = aborter.try(signal => fetch('/api/data', { signal }), { isErrorNativeBehavior: true });
 
 // Отменяем
 aborter.abort();
@@ -183,7 +188,7 @@ requestPromise.catch(error => {
 
 ```javascript
 try {
-  await aborter.try(signal => fetch('/api/data', { signal }));
+  await aborter.try(signal => fetch('/api/data', { signal }), { isErrorNativeBehavior: true });
 } catch (error) {
   if (Aborter.isError(error)) {
     console.log('Это ошибка отмены');
@@ -191,6 +196,20 @@ try {
     console.log('Другая ошибка:', error);
   }
 }
+```
+
+`static errorName`
+
+Имя экземпляра ошибки `AbortError`, выбрашенное AbortSignal.
+
+```javascript
+const result = await aborter
+  .try(signal => fetch('/api/data', { signal }), { isErrorNativeBehavior: true })
+  .catch(error => {
+    if (error.name === Aborter.errorName) {
+      console.log('Отменено');
+    }
+  });
 ```
 
 ## 🎯 Примеры использования
