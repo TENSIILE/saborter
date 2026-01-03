@@ -52,5 +52,5 @@ export class Aborter {
   /**
    * Вызов этого метода установить флаг AbortSignal этого объекта и сигнализирует всем наблюдателям, что связанное действие должно быть прервано.
    */
-  public abort = () => this.abortController.abort();
+  public abort = (reason?: any) => this.abortController.abort(reason);
 }
