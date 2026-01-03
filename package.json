@@ -7,6 +7,10 @@
   "types": "./dist/index.d.ts",
   "license": "MIT",
   "author": "Laptev Vladislav",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TENSIILE/saborter"
+  },
   "keywords": [
     "ts",
     "abort",
