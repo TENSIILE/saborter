@@ -24,6 +24,9 @@ jobs:
       - name: Run tests
         run: npm test
 
+      - name: Run build
+        run: npm run build
+
       - name: Publish to npm
         run: npm publish
         env:
