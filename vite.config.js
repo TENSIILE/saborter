@@ -17,6 +17,7 @@ export default defineConfig({
       formatOut: data => {
         if (!Object.entries(data).length) return {};
 
+        // eslint-disable-next-line no-console
         console.log('\n\r');
 
         Object.entries(data).forEach(([key, dependencies]) => {
@@ -27,6 +28,7 @@ export default defineConfig({
               .concat(join(__dirname, key))
               .join('\n\r => ');
 
+            // eslint-disable-next-line no-console
             console.log(`[Dependency] -> ${message}`);
           }
         });

@@ -3,7 +3,15 @@
   "env": { "browser": true, "es2020": true, "jest": true },
   "extends": ["eslint:recommended", "airbnb", "plugin:import/typescript", "plugin:prettier/recommended"],
   "parser": "@typescript-eslint/parser",
-  "ignorePatterns": ["**/dist/", "**/node_modules/", "**/*.json", "**/*.html", "/**/coverage/"],
+  "ignorePatterns": [
+    "**/dist/",
+    "**/node_modules/",
+    "**/*.json",
+    "**/*.html",
+    "/**/coverage/",
+    "**/integrations/**/",
+    "./vite.config.js"
+  ],
   "plugins": ["@typescript-eslint", "prettier"],
   "rules": {
     "no-continue": "off",

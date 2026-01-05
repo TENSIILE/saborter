@@ -41,6 +41,7 @@
     "typecheck": "tsc --pretty --noEmit --skipLibCheck",
     "verify:prettier": "npx prettier . --check",
     "verify:eslint": "npx eslint \"./**/*.{js,jsx,ts,tsx}\" --max-warnings=0",
+    "verify": "npm run typecheck && npm run verify:prettier && npm run verify:eslint",
     "fix:eslint": "npx eslint \"./**/*.{js,jsx,ts,tsx}\" --fix",
     "fix:prettier": "npx prettier --write .",
     "test": "jest --colors --coverage test --passWithNoTests"
