@@ -28,14 +28,10 @@ const aborter = new Aborter();
 // Use for the request
 async function fetchData() {
   try {
-    const result = await aborter.try(signal => fetch('/api/data', { signal }), { isErrorNativeBehavior: true });
+    const result = await aborter.try(signal => fetch('/api/data', { signal }));
     console.log('Data received:', result);
   } catch (error) {
-    if (error.name === 'AbortError') {
-      console.log('The request was canceled');
-    } else {
-      console.error('Request error:', error);
-    }
+    console.error('Request error:', error);
   }
 }
 ```
@@ -127,6 +123,20 @@ fetch('/api/data', {
 });
 ```
 
+`static errorName`
+
+Name of the `AbortError` error instance thrown by AbortSignal.
+
+```javascript
+const result = await aborter
+  .try(signal => fetch('/api/data', { signal }), { isErrorNativeBehavior: true })
+  .catch(error => {
+    if (error.name === Aborter.errorName) {
+      console.log('Canceled');
+    }
+  });
+```
+
 ### Methods
 
 `try(request, options?)`
@@ -198,18 +208,41 @@ try {
 }
 ```
 
-`static errorName`
+## ⚠️ Important Features
 
-Name of the `AbortError` error instance thrown by AbortSignal.
+### Error Handling
+
+By default, the `try()` method does not reject the promise on `AbortError` (cancellation error). This prevents the `catch` block from being called when the request is canceled.
+
+If you want the default behavior (the promise to be rejected on any error), use the `isErrorNativeBehavior` option:
 
 ```javascript
+// The promise will be rejected even if an AbortError occurs
 const result = await aborter
   .try(signal => fetch('/api/data', { signal }), { isErrorNativeBehavior: true })
   .catch(error => {
-    if (error.name === Aborter.errorName) {
-      console.log('Canceled');
+    // ALL errors, including cancellations, will go here
+    if (error.name === 'AbortError') {
+      console.log('Cancelled');
     }
   });
+```
+
+### Resource Cleanup
+
+Always abort requests when unmounting components or closing pages:
+
+```javascript
+// In React
+useEffect(() => {
+  const aborter = new Aborter();
+
+  // Make requests
+
+  return () => {
+    aborter.abort(); // Clean up on unmount
+  };
+}, []);
 ```
 
 ## 🎯 Usage Examples
@@ -389,43 +422,6 @@ export default {
     }
   }
 };
-```
-
-## ⚠️ Important Features
-
-### Error Handling
-
-By default, the `try()` method does not reject the promise on `AbortError` (cancellation error). This prevents the `catch` block from being called when the request is canceled.
-
-If you want the default behavior (the promise to be rejected on any error), use the `isErrorNativeBehavior` option:
-
-```javascript
-// The promise will be rejected even if an AbortError occurs
-const result = await aborter
-  .try(signal => fetch('/api/data', { signal }), { isErrorNativeBehavior: true })
-  .catch(error => {
-    // ALL errors, including cancellations, will go here
-    if (error.name === 'AbortError') {
-      console.log('Cancelled');
-    }
-  });
-```
-
-### Resource Cleanup
-
-Always abort requests when unmounting components or closing pages:
-
-```javascript
-// In React
-useEffect(() => {
-  const aborter = new Aborter();
-
-  // Make requests
-
-  return () => {
-    aborter.abort(); // Clean up on unmount
-  };
-}, []);
 ```
 
 ## 💻 Compatibility
