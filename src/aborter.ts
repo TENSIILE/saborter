@@ -16,7 +16,7 @@ export class Aborter {
 
   public try = <R>(
     request: Types.AbortRequest<R>,
-    { isErrorNativeBehavior = false }: Types.FnTryOptions = {},
+    { isErrorNativeBehavior = false }: Types.FnTryOptions = {}
   ): Promise<R> => {
     // На первой итерации создается переменная с присвоением promise, в котором мы ожидаем его выполнение.
     let promise: Promise<R> | null = new Promise<R>((resolve, reject) => {
@@ -31,7 +31,7 @@ export class Aborter {
         .catch((err: Error) => {
           const error: Error = {
             ...err,
-            message: err?.message || Utils.get(err, Constants.ERROR_CAUSE_PATH_MESSAGE) || '',
+            message: err?.message || Utils.get(err, Constants.ERROR_CAUSE_PATH_MESSAGE) || ''
           };
 
           if (isErrorNativeBehavior || !Aborter.isError(err)) {

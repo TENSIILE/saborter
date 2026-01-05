@@ -3,7 +3,7 @@ import * as Utils from './utils';
 
 jest.mock('./utils', () => ({
   isError: jest.fn(),
-  get: jest.fn(),
+  get: jest.fn()
 }));
 
 describe('Aborter', () => {
@@ -24,8 +24,8 @@ describe('Aborter', () => {
         removeEventListener: jest.fn(),
         dispatchEvent: jest.fn(),
         onabort: null,
-        throwIfAborted: jest.fn(),
-      } as unknown as AbortSignal,
+        throwIfAborted: jest.fn()
+      } as unknown as AbortSignal
     })) as any;
 
     aborter = new Aborter();
@@ -87,7 +87,7 @@ describe('Aborter', () => {
     describe('при ошибках', () => {
       it('должен использовать cause.message если основное сообщение отсутствует', async () => {
         const error = {
-          cause: { message: 'Cause error message' },
+          cause: { message: 'Cause error message' }
         };
         mockRequest.mockRejectedValue(error);
         (Utils.isError as unknown as jest.Mock).mockReturnValue(false);
@@ -95,7 +95,7 @@ describe('Aborter', () => {
 
         await expect(aborter.try(mockRequest)).rejects.toEqual({
           ...error,
-          message: 'Cause error message',
+          message: 'Cause error message'
         });
       });
 
@@ -107,7 +107,7 @@ describe('Aborter', () => {
 
         await expect(aborter.try(mockRequest)).rejects.toEqual({
           ...error,
-          message: '',
+          message: ''
         });
       });
 

@@ -118,7 +118,7 @@ const aborter = new Aborter();
 
 // Используем signal в запросе
 fetch('/api/data', {
-  signal: aborter.signal,
+  signal: aborter.signal
 });
 ```
 
@@ -238,7 +238,7 @@ class FileUploader {
           const response = await fetch('/api/upload', {
             method: 'POST',
             body: formData,
-            signal,
+            signal
           });
 
           // Отслеживаем прогресс
@@ -254,7 +254,7 @@ class FileUploader {
             this.progress = Math.round((receivedLength / contentLength) * 100);
           }
         },
-        { isErrorNativeBehavior: true },
+        { isErrorNativeBehavior: true }
       );
 
       console.log('Файл успешно загружен');
@@ -337,7 +337,7 @@ export default {
     return {
       aborter: null,
       data: null,
-      loading: false,
+      loading: false
     };
   },
   created() {
@@ -362,8 +362,8 @@ export default {
     },
     cancelRequest() {
       this.aborter.abort();
-    },
-  },
+    }
+  }
 };
 ```
 
