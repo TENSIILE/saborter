@@ -1,0 +1,29 @@
+name: Unpublish Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to unpublish (or "all")'
+        required: true
+        type: string
+
+jobs:
+  unpublish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org/'
+
+      - run: |
+          if [ "${{ github.event.inputs.version }}" == "all" ]; then
+            echo "Attempting to unpublish entire package"
+            npm unpublish saborter --force || echo "Failed to unpublish"
+          else
+            echo "Unpublishing version ${{ github.event.inputs.version }}"
+            npm unpublish saborter@${{ github.event.inputs.version }} || echo "Failed to unpublish"
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -3,5 +3,4 @@ npm-debug.log*
 .DS_Store
 coverage/
 .env
-dist/
 integrations
