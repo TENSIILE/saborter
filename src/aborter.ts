@@ -10,6 +10,7 @@ export class Aborter {
    * @readonly
    */
   public static readonly errorName = Constants.ABORT_ERROR_NAME;
+
   /**
    * Method of checking whether an error is an error AbortError.
    * @returns boolean
