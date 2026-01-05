@@ -46,7 +46,7 @@ describe('Aborter', () => {
 
   describe('signal', () => {
     it('должен возвращать signal от внутреннего AbortController', () => {
-      const signal = aborter.signal;
+      const { signal } = aborter;
       expect(signal).toBe(mockAbortController.signal);
     });
   });
@@ -112,9 +112,12 @@ describe('Aborter', () => {
       });
 
       it('должен отменять предыдущий запрос при новом вызове try', async () => {
-        const firstRequest = jest
-          .fn()
-          .mockImplementationOnce(() => new Promise(resolve => setTimeout(() => resolve('first'), 100)));
+        const firstRequest = jest.fn().mockImplementationOnce(
+          () =>
+            new Promise(resolve => {
+              setTimeout(() => resolve('first'), 100);
+            })
+        );
         const secondRequest = jest.fn().mockResolvedValue('second');
 
         const firstPromise = aborter.try(firstRequest);
@@ -133,7 +136,12 @@ describe('Aborter', () => {
 
         const promise = aborter.try(mockRequest);
 
-        await Promise.race([promise, new Promise(resolve => setTimeout(() => resolve('timeout'), 50))]);
+        await Promise.race([
+          promise,
+          new Promise(resolve => {
+            setTimeout(() => resolve('timeout'), 50);
+          })
+        ]);
 
         expect(mockAbortController.abort).toHaveBeenCalled();
       });
