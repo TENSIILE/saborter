@@ -1,6 +1,6 @@
 # Saborter
 
-[![Npm package](https://img.shields.io/badge/npm%20package-1.1.0-red)](https://www.npmjs.com/package/saborter)
+[![Npm package](https://img.shields.io/badge/npm%20package-1.2.0-red)](https://www.npmjs.com/package/saborter)
 ![Static Badge](https://img.shields.io/badge/coverage-100%25-orange)
 ![Static Badge](https://img.shields.io/badge/license-MIT-blue)
 [![Github](https://img.shields.io/badge/repository-github-color)](https://github.com/TENSIILE/saborter)

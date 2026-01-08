@@ -1,15 +1,15 @@
 {
   "name": "saborter",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "A simple and efficient library for canceling asynchronous requests using AbortController",
-  "main": "./dist/index.cjs.js",
-  "module": "./dist/index.es.js",
-  "types": "./dist/index.d.ts",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.es.js",
+  "types": "dist/index.d.ts",
   "license": "MIT",
   "author": "Laptev Vladislav",
   "repository": {
     "type": "git",
-    "url": "https://github.com/TENSIILE/saborter"
+    "url": "git+https://github.com/TENSIILE/saborter.git"
   },
   "keywords": [
     "ts",
@@ -36,6 +36,7 @@
     "dist"
   ],
   "scripts": {
+    "prepublishOnly": "npm run build",
     "build": "tsc && vite build",
     "test": "jest --colors --coverage test --passWithNoTests"
   },
