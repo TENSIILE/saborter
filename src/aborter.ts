@@ -65,6 +65,14 @@ export class Aborter {
    */
   public abort = (reason?: any) => {
     this.abortController.abort(reason);
+  };
+
+  /**
+   * Calling this method sets the AbortSignal flag of this object and signals all observers that the associated action should be aborted.
+   * After aborting, it restores the AbortSignal, resetting the isAborted property, and interaction with the signal property becomes available again.
+   */
+  public abortWithRecovery = (reason?: any) => {
+    this.abort(reason);
     this.abortController = new AbortController();
   };
 }
