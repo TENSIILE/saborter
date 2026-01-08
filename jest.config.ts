@@ -8,12 +8,12 @@ const config = {
   verbose: true,
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
-    '^.+\\.ts?$': 'ts-jest',
+    '^.+\\.ts?$': 'ts-jest'
   },
   transformIgnorePatterns: ['node_modules'],
   testPathIgnorePatterns: ['/node_modules/', '/dist/'],
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.[jt]sx?$',
-  moduleFileExtensions: ['ts', 'tsx', 'js'],
+  moduleFileExtensions: ['ts', 'tsx', 'js']
 };
 
 module.exports = config;

@@ -2,7 +2,7 @@ import {
   ABORT_ERROR_MESSAGES,
   ABORT_ERROR_NAME,
   ERROR_CAUSE_PATH_MESSAGE,
-  ERROR_CAUSE_PATH_NAME,
+  ERROR_CAUSE_PATH_NAME
 } from './abort-error.constants';
 import { AbortError } from './abort-error';
 import { Utils } from '../../shared';

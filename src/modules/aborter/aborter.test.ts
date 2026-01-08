@@ -1,15 +1,15 @@
 import { Aborter } from './aborter';
 import { get } from '../../shared/utils';
-import { isError, getCauseMessage } from '../../features/abort-error';
+import { isError, getCauseMessage, AbortError } from '../../features/abort-error';
 
 jest.mock('../../shared/utils', () => ({
-  get: jest.fn(),
+  get: jest.fn()
 }));
 
 jest.mock('../../features/abort-error', () => ({
   isError: jest.fn(),
   AbortError: jest.fn(),
-  getCauseMessage: jest.fn(),
+  getCauseMessage: jest.fn()
 }));
 
 describe('Aborter', () => {
@@ -30,8 +30,8 @@ describe('Aborter', () => {
         removeEventListener: jest.fn(),
         dispatchEvent: jest.fn(),
         onabort: null,
-        throwIfAborted: jest.fn(),
-      } as unknown as AbortSignal,
+        throwIfAborted: jest.fn()
+      } as unknown as AbortSignal
     })) as any;
 
     aborter = new Aborter();
@@ -52,7 +52,7 @@ describe('Aborter', () => {
 
   describe('signal', () => {
     it('должен возвращать signal от внутреннего AbortController', () => {
-      const signal = aborter.signal;
+      const { signal } = aborter;
       expect(signal).toBe(mockAbortController.signal);
     });
   });
@@ -92,7 +92,9 @@ describe('Aborter', () => {
 
     describe('при ошибках', () => {
       it('должен использовать cause.message если основное сообщение отсутствует', async () => {
-        const error = { cause: { message: 'Cause error message' } };
+        const error = {
+          cause: { message: 'Cause error message' }
+        };
         mockRequest.mockRejectedValue(error);
         (isError as unknown as jest.Mock).mockReturnValue(false);
         (get as jest.Mock).mockReturnValue(error.cause.message);
@@ -100,7 +102,7 @@ describe('Aborter', () => {
 
         await expect(aborter.try(mockRequest)).rejects.toEqual({
           ...error,
-          message: error.cause.message,
+          message: error.cause.message
         });
       });
 
@@ -113,14 +115,17 @@ describe('Aborter', () => {
 
         await expect(aborter.try(mockRequest)).rejects.toEqual({
           ...error,
-          message: '',
+          message: ''
         });
       });
 
       it('должен отменять предыдущий запрос при новом вызове try', async () => {
-        const firstRequest = jest
-          .fn()
-          .mockImplementationOnce(() => new Promise(resolve => setTimeout(() => resolve('first'), 100)));
+        const firstRequest = jest.fn().mockImplementationOnce(
+          () =>
+            new Promise(resolve => {
+              setTimeout(() => resolve('first'), 100);
+            })
+        );
         const secondRequest = jest.fn().mockResolvedValue('second');
 
         const firstPromise = aborter.try(firstRequest);
@@ -139,7 +144,12 @@ describe('Aborter', () => {
 
         const promise = aborter.try(mockRequest);
 
-        await Promise.race([promise, new Promise(resolve => setTimeout(() => resolve('timeout'), 50))]);
+        await Promise.race([
+          promise,
+          new Promise(resolve => {
+            setTimeout(() => resolve('timeout'), 50);
+          })
+        ]);
 
         expect(mockAbortController.abort).toHaveBeenCalled();
       });
@@ -171,7 +181,12 @@ describe('Aborter', () => {
 
       const promise = aborter.try(mockRequest);
 
-      await Promise.race([promise, new Promise(resolve => setTimeout(() => resolve('timeout'), 50))]);
+      await Promise.race([
+        promise,
+        new Promise(resolve => {
+          setTimeout(() => resolve('timeout'), 50);
+        })
+      ]);
 
       expect(mockAbortController.abort).toHaveBeenCalled();
       expect(fn).toHaveBeenCalled();
@@ -179,7 +194,7 @@ describe('Aborter', () => {
 
     it('Проверка исполнения коллбека onAbort при переопределении свойства', async () => {
       const fn = jest.fn();
-      const abortError = new DOMException('Aborted', 'AbortError');
+      const abortError = new AbortError('Aborted');
       mockRequest.mockRejectedValue(abortError);
       (isError as unknown as jest.Mock).mockReturnValue(true);
 
@@ -190,7 +205,12 @@ describe('Aborter', () => {
         expect(error.message).toBe(abortError.message);
       };
 
-      await Promise.race([promise, new Promise(resolve => setTimeout(() => resolve('timeout'), 50))]);
+      await Promise.race([
+        promise,
+        new Promise(resolve => {
+          setTimeout(() => resolve('timeout'), 50);
+        })
+      ]);
 
       expect(mockAbortController.abort).toHaveBeenCalled();
       expect(fn).toHaveBeenCalled();

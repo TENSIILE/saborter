@@ -1,28 +1,43 @@
-import { AbortError, getCauseMessage, isError } from '../../features/abort-error';
+import { AbortError, getCauseMessage, isError, ABORT_ERROR_NAME } from '../../features/abort-error';
 import { EventListener } from './event-listener';
 import * as Types from './aborter.types';
 
 export class Aborter extends EventListener {
   protected abortController = new AbortController();
 
-  public static isError = isError;
-
   constructor(options?: Types.AborterOptions) {
     super({ onabort: options?.onabort });
   }
 
   /**
-   * Возвращает объект AbortSignal, связанный с этим объектом.
+   * The name of the error instance thrown by the AbortSignal.
+   * @readonly
+   */
+  public static readonly errorName = ABORT_ERROR_NAME;
+
+  /**
+   * Method of checking whether an error is an error AbortError.
+   * @returns boolean
+   */
+  public static isError = isError;
+
+  /**
+   * Returns the AbortSignal object associated with this object.
    */
   public get signal(): AbortSignal {
     return this.abortController.signal;
   }
 
+  /**
+   * Performs an asynchronous request with cancellation of the previous request, preventing the call of the catch block when the request is canceled and the subsequent finally block.
+   * @param request callback function
+   * @param options an object that receives a set of settings for performing a request attempt
+   * @returns Promise
+   */
   public try = <R>(
     request: Types.AbortRequest<R>,
-    { isErrorNativeBehavior = false }: Types.FnTryOptions = {},
+    { isErrorNativeBehavior = false }: Types.FnTryOptions = {}
   ): Promise<R> => {
-    // На первой итерации создается переменная с присвоением promise, в котором мы ожидаем его выполнение.
     let promise: Promise<R> | null = new Promise<R>((resolve, reject) => {
       this.abort(new AbortError('cancellation of the previous AbortController', { isCancelled: true }));
 
@@ -35,7 +50,7 @@ export class Aborter extends EventListener {
         .catch((err: Error) => {
           const error: Error = {
             ...err,
-            message: err?.message || getCauseMessage(err) || '',
+            message: err?.message || getCauseMessage(err) || ''
           };
 
           if (isErrorNativeBehavior || !Aborter.isError(err)) {
@@ -46,10 +61,6 @@ export class Aborter extends EventListener {
 
           this.emitEvent('abort', abortError);
 
-          /**
-           * Во второй итерации, в случае отмены запроса, мы не завершаем promise, а обнуляем ссылку на него, для того, чтобы
-           * garbage collector удалил не завершившийся promise из памяти. После обнуления следующий вызов метода try создает новый promise. При таком подходе наружный блок finally вызовется только при успешном завершении последнего promise или же при получении любой ошибки кроме AbortError.
-           */
           promise = null;
         });
     });
@@ -58,7 +69,9 @@ export class Aborter extends EventListener {
   };
 
   /**
-   * Вызов этого метода установить флаг AbortSignal этого объекта и сигнализирует всем наблюдателям, что связанное действие должно быть прервано.
+   * Calling this method sets the AbortSignal flag of this object and signals all observers that the associated action should be aborted.
    */
-  public abort = (reason?: any) => this.abortController.abort(reason);
+  public abort = (reason?: any) => {
+    this.abortController.abort(reason);
+  };
 }

@@ -14,7 +14,7 @@ export class EventListener {
 
   private getListenersByType = <K extends Types.EventListenerType>(type: K): Set<(event: Types.EventMap[K]) => any> => {
     const listeners: Record<Types.EventListenerType, Set<(event: Types.EventMap[K]) => any>> = {
-      abort: this.abortListeners,
+      abort: this.abortListeners
     };
 
     return listeners[type];
@@ -25,7 +25,7 @@ export class EventListener {
    */
   public addEventListener = <K extends Types.EventListenerType>(
     type: K,
-    listener: (event: Types.EventMap[K]) => any,
+    listener: (event: Types.EventMap[K]) => any
   ): void => {
     this.getListenersByType(type).add(listener);
   };
@@ -35,7 +35,7 @@ export class EventListener {
    */
   public removeEventListener = <K extends Types.EventListenerType>(
     type: K,
-    listener: (event: Types.EventMap[K]) => any,
+    listener: (event: Types.EventMap[K]) => any
   ): void => {
     this.getListenersByType(type).delete(listener);
   };

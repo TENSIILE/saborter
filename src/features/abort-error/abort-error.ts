@@ -6,6 +6,7 @@ interface AbortErrorOptions {
 
 export class AbortError extends Error {
   public code: number;
+
   public isCancelled: boolean;
 
   constructor(message: string, options?: AbortErrorOptions) {
