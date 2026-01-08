@@ -1,1 +1,1 @@
-export * from './aborter';
+export * from './abort-error';

@@ -1,3 +1,5 @@
+import { EventListenerOptions } from './event-listener/event-listener.types';
+
 export type AbortRequest<T> = (signal: AbortSignal) => Promise<T>;
 
 export interface FnTryOptions {
@@ -8,8 +10,4 @@ export interface FnTryOptions {
   isErrorNativeBehavior?: boolean;
 }
 
-export type AbortErrorCallback = (error: Error) => void;
-
-export interface AborterOptions {
-  onAbort?: AbortErrorCallback;
-}
+export interface AborterOptions extends Pick<EventListenerOptions, 'onabort'> {}

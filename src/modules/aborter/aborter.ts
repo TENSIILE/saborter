@@ -1,17 +1,14 @@
-import * as Shared from '../../shared';
+import { AbortError, getCauseMessage, isError } from '../../features/abort-error';
+import { EventListener } from './event-listener';
 import * as Types from './aborter.types';
 
-export class Aborter {
+export class Aborter extends EventListener {
   protected abortController = new AbortController();
-  /**
-   * Method called when an Aborter request is cancelled
-   */
-  public onAbort?: Types.AbortErrorCallback;
 
-  public static isError = Shared.Lib.isError;
+  public static isError = isError;
 
   constructor(options?: Types.AborterOptions) {
-    this.onAbort = options?.onAbort;
+    super({ onabort: options?.onabort });
   }
 
   /**
@@ -27,7 +24,7 @@ export class Aborter {
   ): Promise<R> => {
     // На первой итерации создается переменная с присвоением promise, в котором мы ожидаем его выполнение.
     let promise: Promise<R> | null = new Promise<R>((resolve, reject) => {
-      this.abort(new Shared.Lib.AbortError('cancellation of the previous AbortController', { isCancelled: true }));
+      this.abort(new AbortError('cancellation of the previous AbortController', { isCancelled: true }));
 
       this.abortController = new AbortController();
 
@@ -38,14 +35,16 @@ export class Aborter {
         .catch((err: Error) => {
           const error: Error = {
             ...err,
-            message: err?.message || Shared.Lib.get(err, Shared.Constants.ERROR_CAUSE_PATH_MESSAGE) || '',
+            message: err?.message || getCauseMessage(err) || '',
           };
 
           if (isErrorNativeBehavior || !Aborter.isError(err)) {
             return reject(error);
           }
 
-          this.onAbort?.(error);
+          const abortError = new AbortError(error.message);
+
+          this.emitEvent('abort', abortError);
 
           /**
            * Во второй итерации, в случае отмены запроса, мы не завершаем promise, а обнуляем ссылку на него, для того, чтобы

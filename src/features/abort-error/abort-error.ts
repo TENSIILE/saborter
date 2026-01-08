@@ -1,10 +1,14 @@
-import { ABORT_ERROR_NAME } from '../constants';
+import { ABORT_ERROR_NAME } from './abort-error.constants';
+
+interface AbortErrorOptions {
+  isCancelled: boolean;
+}
 
 export class AbortError extends Error {
   public code: number;
   public isCancelled: boolean;
 
-  constructor(message: string, options?: { isCancelled: boolean }) {
+  constructor(message: string, options?: AbortErrorOptions) {
     super(message);
 
     const abortErrorInstance = new DOMException(message, ABORT_ERROR_NAME);
