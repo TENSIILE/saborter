@@ -10,6 +10,7 @@ export class Aborter {
    * @readonly
    */
   public static readonly errorName = Constants.ABORT_ERROR_NAME;
+
   /**
    * Method of checking whether an error is an error AbortError.
    * @returns boolean
@@ -31,7 +32,7 @@ export class Aborter {
    */
   public try = <R>(
     request: Types.AbortRequest<R>,
-    { isErrorNativeBehavior = false }: Types.FnTryOptions = {},
+    { isErrorNativeBehavior = false }: Types.FnTryOptions = {}
   ): Promise<R> => {
     let promise: Promise<R> | null = new Promise<R>((resolve, reject) => {
       this.abort();
@@ -45,7 +46,7 @@ export class Aborter {
         .catch((err: Error) => {
           const error: Error = {
             ...err,
-            message: err?.message || Utils.get(err, Constants.ERROR_CAUSE_PATH_MESSAGE) || '',
+            message: err?.message || Utils.get(err, Constants.ERROR_CAUSE_PATH_MESSAGE) || ''
           };
 
           if (isErrorNativeBehavior || !Aborter.isError(err)) {

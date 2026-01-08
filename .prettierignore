@@ -2,3 +2,4 @@ dist
 coverage
 **/.git
 **/node_modules
+integrations
