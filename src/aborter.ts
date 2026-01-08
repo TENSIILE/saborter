@@ -63,5 +63,8 @@ export class Aborter {
   /**
    * Calling this method sets the AbortSignal flag of this object and signals all observers that the associated action should be aborted.
    */
-  public abort = (reason?: any) => this.abortController.abort(reason);
+  public abort = (reason?: any) => {
+    this.abortController.abort(reason);
+    this.abortController = new AbortController();
+  };
 }
