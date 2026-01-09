@@ -13,7 +13,7 @@ export const App = () => {
 
   const aborterRef = useRef(
     new Aborter({
-      onAbort: e => {
+      onabort: e => {
         console.log(e);
         if (e.isCancelled) {
           return;
