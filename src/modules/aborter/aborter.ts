@@ -42,7 +42,7 @@ export class Aborter {
   ): Promise<R> => {
     let promise: Promise<R> | null = new Promise<R>((resolve, reject) => {
       const cancelledAbortError = new AbortError('cancellation of the previous AbortController', {
-        reasonType: 'cancelled'
+        type: 'cancelled'
       });
       this.listeners.dispatchEvent('cancelled', cancelledAbortError);
       this.abort(cancelledAbortError);
