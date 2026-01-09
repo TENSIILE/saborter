@@ -102,11 +102,23 @@ function cancelUserRequests() {
 
 ### Constructor
 
-```javascript
-new Aborter();
+```typescript
+const aborter = new Aborter(options?: AborterOptions);
 ```
 
-Creates a new `Aborter` instance. Takes no parameters.
+### Constructor Parameters
+
+| Parameter | Type             | Description                   | Required |
+| --------- | ---------------- | ----------------------------- | -------- |
+| `options` | `AborterOptions` | Aborter configuration options | No       |
+
+**AborterOptions:**
+
+```typescript
+{
+  onabort?: OnAbortCallback; // Callback function for abort events
+}
+```
 
 ### Properties
 
@@ -122,6 +134,12 @@ fetch('/api/data', {
   signal: aborter.signal
 });
 ```
+
+`listeners`
+
+Returns an `EventListener` object to listen for `Aborter` events.
+
+[Detailed documentation here](./docs/event-listener.md)
 
 `static errorName`
 
@@ -192,6 +210,40 @@ requestPromise.catch(error => {
 });
 ```
 
+`abortWithRecovery(reason?)`
+
+Immediately cancels the currently executing request.
+After aborting, it restores the `AbortSignal`, resetting the `isAborted` property, and interaction with the `signal` property becomes available again.
+
+**Parameters:**
+
+- `reason?: any` - the reason for aborting the request (optional)
+
+**Returns:** `AbortController`
+
+```javascript
+// Create an Aborter instance
+const aborter = new Aborter();
+
+async function fetching() {
+  try {
+    const data = fetch('/api/data', { signal: aborter.signal });
+  } catch (error) {
+    // ALL errors, including AbortError, will go here
+    console.log(error);
+  }
+}
+
+// Calling a function with a request
+fetching();
+
+// We interrupt the request and then restore the signal
+aborter.abortWithRecovery();
+
+// Call the function again
+fetching();
+```
+
 `static isError(error)`
 
 Static method for checking if an object is an `AbortError` error.
@@ -227,6 +279,39 @@ const result = await aborter
     }
   });
 ```
+
+### Finally block
+
+By ignoring AbortError errors, the `finally` block will only be executed if other errors are received or if the request is successful.
+
+```javascript
+const result = await aborter
+  .try(signal => fetch('/api/data', { signal }))
+  .catch(error => {
+    // ALL errors, including cancellations, will go here
+    console.log(error);
+  })
+  .finally(() => {
+    // The request was successfully completed or we caught a "throw"
+  });
+```
+
+Everything will also work if you use the `try-catch` syntax.
+
+```javascript
+try {
+  const result = await aborter.try(signal => fetch('/api/data', { signal }));
+} catch (error) {
+  // ALL errors, including cancellations, will go here
+  console.log(error);
+} finally {
+  // The request was successfully completed or we caught a "throw"
+}
+```
+
+<span style="color: #000; background-color: rgb(255,193,7); border-radius: 0.375rem; padding: 0.35em 0.65em; font-size: 0.85em; font-weight: 700;">Attention!</span>
+
+With the `isErrorNativeBehavior` flag enabled, the `finally` block will also be executed.
 
 ### Resource Cleanup
 
