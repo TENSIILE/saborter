@@ -2,11 +2,13 @@ import { AbortError, getCauseMessage, isError, ABORT_ERROR_NAME } from '../../fe
 import { EventListener } from './event-listener';
 import * as Types from './aborter.types';
 
-export class Aborter extends EventListener {
+export class Aborter {
   protected abortController = new AbortController();
 
+  public listeners: EventListener;
+
   constructor(options?: Types.AborterOptions) {
-    super({ onabort: options?.onabort });
+    this.listeners = new EventListener({ onabort: options?.onabort });
   }
 
   /**
@@ -39,7 +41,11 @@ export class Aborter extends EventListener {
     { isErrorNativeBehavior = false }: Types.FnTryOptions = {}
   ): Promise<R> => {
     let promise: Promise<R> | null = new Promise<R>((resolve, reject) => {
-      this.abort(new AbortError('cancellation of the previous AbortController', { isCancelled: true }));
+      const cancelledAbortError = new AbortError('cancellation of the previous AbortController', {
+        reasonType: 'cancelled'
+      });
+      this.listeners.dispatchEvent('cancelled', cancelledAbortError);
+      this.abort(cancelledAbortError);
 
       this.abortController = new AbortController();
 
@@ -57,9 +63,7 @@ export class Aborter extends EventListener {
             return reject(error);
           }
 
-          const abortError = new AbortError(error.message);
-
-          this.emitEvent('abort', abortError);
+          this.listeners.dispatchEvent('aborted', new AbortError(error.message));
 
           promise = null;
         });
@@ -71,7 +75,7 @@ export class Aborter extends EventListener {
   /**
    * Calling this method sets the AbortSignal flag of this object and signals all observers that the associated action should be aborted.
    */
-  public abort = (reason?: any) => {
+  public abort = (reason?: any): void => {
     this.abortController.abort(reason);
   };
 
@@ -79,8 +83,10 @@ export class Aborter extends EventListener {
    * Calling this method sets the AbortSignal flag of this object and signals all observers that the associated action should be aborted.
    * After aborting, it restores the AbortSignal, resetting the isAborted property, and interaction with the signal property becomes available again.
    */
-  public abortWithRecovery = (reason?: any) => {
+  public abortWithRecovery = (reason?: any): AbortController => {
     this.abort(reason);
     this.abortController = new AbortController();
+
+    return this.abortController;
   };
 }

@@ -1,10 +1,9 @@
 import * as Types from './event-listener.types';
 
 export class EventListener {
-  private abortListeners = new Set<Types.EventCallback<'abort'>>();
-
-  private listeners: Record<Types.EventListenerType, Set<Types.EventCallback<Types.EventListenerType>>> = {
-    abort: this.abortListeners
+  private listeners: Record<Types.EventListenerType, Set<Types.EventCallback<any>>> = {
+    aborted: new Set<Types.EventCallback<'aborted'>>(),
+    cancelled: new Set<Types.EventCallback<'cancelled'>>()
   };
 
   /**
@@ -12,30 +11,38 @@ export class EventListener {
    */
   public onabort?: Types.OnAbortCallback;
 
-  constructor(options: Types.EventListenerOptions) {
-    this.onabort = options.onabort;
+  constructor(options?: Types.EventListenerOptions) {
+    this.onabort = options?.onabort;
   }
 
-  private getListenersByType = <K extends Types.EventListenerType>(type: K): Set<Types.EventCallback<K>> => {
-    return this.listeners[type];
+  private getListenersByType = <T extends Types.EventListenerType>(type: T): Set<Types.EventCallback<T>> => {
+    return this.listeners[type] as Set<Types.EventCallback<T>>;
   };
 
   /**
    * Appends an event listener for events whose type attribute value is type. The callback argument sets the callback that will be invoked when the event is dispatched.
    */
-  public addEventListener = <K extends Types.EventListenerType>(type: K, listener: Types.EventCallback<K>): void => {
+  public addEventListener = <T extends Types.EventListenerType, L extends Types.EventCallback<T>>(
+    type: T,
+    listener: L
+  ): (() => void) => {
     this.getListenersByType(type).add(listener);
+
+    return () => this.removeEventListener(type, listener);
   };
 
   /**
    * Removes the event listener in target's event listener list with the same type, callback, and options.
    */
-  public removeEventListener = <K extends Types.EventListenerType>(type: K, listener: Types.EventCallback<K>): void => {
+  public removeEventListener = <T extends Types.EventListenerType, L extends Types.EventCallback<T>>(
+    type: T,
+    listener: L
+  ): void => {
     this.getListenersByType(type).delete(listener);
   };
 
-  protected emitEvent = <K extends Types.EventListenerType>(type: K, event: Types.EventMap[K]): void => {
-    if (type === 'abort') {
+  public dispatchEvent = <T extends Types.EventListenerType, E extends Types.EventMap[T]>(type: T, event: E): void => {
+    if (type === 'aborted' || type === 'cancelled') {
       this.onabort?.(event);
     }
     this.getListenersByType(type).forEach(listener => listener(event));

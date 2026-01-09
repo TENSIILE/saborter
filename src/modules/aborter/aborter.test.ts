@@ -200,7 +200,7 @@ describe('Aborter', () => {
 
       const promise = aborter.try(mockRequest);
 
-      aborter.onabort = error => {
+      aborter.listeners.onabort = error => {
         fn();
         expect(error.message).toBe(abortError.message);
       };
