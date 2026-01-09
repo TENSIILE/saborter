@@ -1,21 +1,25 @@
-import * as Utils from './utils';
-import * as Constants from './constants';
-import * as Types from './types';
+import { AbortError, getCauseMessage, isError, ABORT_ERROR_NAME } from '../../features/abort-error';
+import { EventListener } from './event-listener';
+import * as Types from './aborter.types';
 
-export class Aborter {
+export class Aborter extends EventListener {
   protected abortController = new AbortController();
+
+  constructor(options?: Types.AborterOptions) {
+    super({ onabort: options?.onabort });
+  }
 
   /**
    * The name of the error instance thrown by the AbortSignal.
    * @readonly
    */
-  public static readonly errorName = Constants.ABORT_ERROR_NAME;
+  public static readonly errorName = ABORT_ERROR_NAME;
 
   /**
    * Method of checking whether an error is an error AbortError.
    * @returns boolean
    */
-  public static isError = Utils.isError;
+  public static isError = isError;
 
   /**
    * Returns the AbortSignal object associated with this object.
@@ -35,7 +39,7 @@ export class Aborter {
     { isErrorNativeBehavior = false }: Types.FnTryOptions = {}
   ): Promise<R> => {
     let promise: Promise<R> | null = new Promise<R>((resolve, reject) => {
-      this.abort();
+      this.abort(new AbortError('cancellation of the previous AbortController', { isCancelled: true }));
 
       this.abortController = new AbortController();
 
@@ -46,12 +50,16 @@ export class Aborter {
         .catch((err: Error) => {
           const error: Error = {
             ...err,
-            message: err?.message || Utils.get(err, Constants.ERROR_CAUSE_PATH_MESSAGE) || ''
+            message: err?.message || getCauseMessage(err) || ''
           };
 
           if (isErrorNativeBehavior || !Aborter.isError(err)) {
             return reject(error);
           }
+
+          const abortError = new AbortError(error.message);
+
+          this.emitEvent('abort', abortError);
 
           promise = null;
         });

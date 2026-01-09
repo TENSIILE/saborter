@@ -54,7 +54,7 @@ export default defineConfig({
         globals: {}
       }
     },
-    sourcemap: true,
+    sourcemap: false,
     minify: false,
     target: 'es2020'
   }

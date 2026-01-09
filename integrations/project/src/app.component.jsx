@@ -10,7 +10,20 @@ const getUsers = async signal => {
 export const App = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
-  const aborterRef = useRef(new Aborter());
+
+  const aborterRef = useRef(
+    new Aborter({
+      onabort: e => {
+        console.log(e);
+        if (e.isCancelled) {
+          return;
+        }
+
+        setLoading(false);
+        setUsers([]);
+      },
+    }),
+  );
 
   const handleLoad = async () => {
     setLoading(true);
@@ -22,11 +35,7 @@ export const App = () => {
     setUsers(data.data);
   };
 
-  const handleCancel = () => {
-    aborterRef.current.abort();
-    setLoading(false);
-    setUsers([]);
-  };
+  const handleCancel = () => aborterRef.current.abort();
 
   return (
     <>
