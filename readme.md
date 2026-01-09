@@ -1,4 +1,4 @@
-# Saborter
+![Logo](./assets/logo.png)
 
 [![Npm package](https://img.shields.io/badge/npm%20package-1.2.0-red)](https://www.npmjs.com/package/saborter)
 ![Static Badge](https://img.shields.io/badge/coverage-100%25-orange)
