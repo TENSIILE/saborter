@@ -6,6 +6,8 @@ export interface EventMap {
 
 export type EventListenerType = keyof EventMap;
 
+export type EventCallback<T extends EventListenerType> = (event: EventMap[T]) => any;
+
 export type OnAbortCallback = (error: AbortError) => void;
 
 export interface EventListenerOptions {

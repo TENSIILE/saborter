@@ -1,7 +1,11 @@
 import * as Types from './event-listener.types';
 
 export class EventListener {
-  private abortListeners = new Set<(event: Types.EventMap['abort']) => any>();
+  private abortListeners = new Set<Types.EventCallback<'abort'>>();
+
+  private listeners: Record<Types.EventListenerType, Set<Types.EventCallback<Types.EventListenerType>>> = {
+    abort: this.abortListeners
+  };
 
   /**
    * Method called when an Aborter request is cancelled
@@ -12,31 +16,21 @@ export class EventListener {
     this.onabort = options.onabort;
   }
 
-  private getListenersByType = <K extends Types.EventListenerType>(type: K): Set<(event: Types.EventMap[K]) => any> => {
-    const listeners: Record<Types.EventListenerType, Set<(event: Types.EventMap[K]) => any>> = {
-      abort: this.abortListeners
-    };
-
-    return listeners[type];
+  private getListenersByType = <K extends Types.EventListenerType>(type: K): Set<Types.EventCallback<K>> => {
+    return this.listeners[type];
   };
 
   /**
    * Appends an event listener for events whose type attribute value is type. The callback argument sets the callback that will be invoked when the event is dispatched.
    */
-  public addEventListener = <K extends Types.EventListenerType>(
-    type: K,
-    listener: (event: Types.EventMap[K]) => any
-  ): void => {
+  public addEventListener = <K extends Types.EventListenerType>(type: K, listener: Types.EventCallback<K>): void => {
     this.getListenersByType(type).add(listener);
   };
 
   /**
    * Removes the event listener in target's event listener list with the same type, callback, and options.
    */
-  public removeEventListener = <K extends Types.EventListenerType>(
-    type: K,
-    listener: (event: Types.EventMap[K]) => any
-  ): void => {
+  public removeEventListener = <K extends Types.EventListenerType>(type: K, listener: Types.EventCallback<K>): void => {
     this.getListenersByType(type).delete(listener);
   };
 
