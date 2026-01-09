@@ -57,7 +57,7 @@ setTimeout(() => {
 
 ### 2. Automatically canceling previous requests
 
-Each time **try** is called, the previous request is automatically canceled:
+Each time `try()` is called, the previous request is automatically canceled:
 
 ```javascript
 // When searching with autocomplete
@@ -282,7 +282,7 @@ const result = await aborter
 
 ### Finally block
 
-By ignoring AbortError errors, the `finally` block will only be executed if other errors are received or if the request is successful.
+By ignoring `AbortError` errors, the `finally` block will only be executed if other errors are received or if the request is successful.
 
 ```javascript
 const result = await aborter
@@ -309,7 +309,7 @@ try {
 }
 ```
 
-<span style="color: #000; background-color: rgb(255,193,7); border-radius: 0.375rem; padding: 0.35em 0.65em; font-size: 0.85em; font-weight: 700;">Attention!</span>
+#### ⚠️ Attention!
 
 With the `isErrorNativeBehavior` flag enabled, the `finally` block will also be executed.
 

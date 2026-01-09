@@ -15,7 +15,7 @@ Two event types are supported:
 
 ### Methods
 
-### `addEventListener<T extends EventListenerType, L extends EventCallback<T>>(type: T, listener: L): () => void`
+#### `addEventListener<T extends EventListenerType, L extends EventCallback<T>>(type: T, listener: L): () => void`
 
 Adds an event listener for the specified event type.
 
@@ -37,7 +37,7 @@ const unsubscribe = listener.addEventListener('aborted', event => {
 unsubscribe();
 ```
 
-### `removeEventListener<T extends EventListenerType, L extends EventCallback<T>>(type: T, listener: L): void`
+#### `removeEventListener<T extends EventListenerType, L extends EventCallback<T>>(type: T, listener: L): void`
 
 Removes an event listener for the specified event type.
 
@@ -46,7 +46,7 @@ Removes an event listener for the specified event type.
 - `type` - event type
 - `listener` - event handler function to remove
 
-### `dispatchEvent<T extends EventListenerType, E extends EventMap<T>>(type: K, event: E): void`
+#### `dispatchEvent<T extends EventListenerType, E extends EventMap<T>>(type: K, event: E): void`
 
 Dispatches an event of the specified type, calling all registered handlers.
 
@@ -59,7 +59,7 @@ Dispatches an event of the specified type, calling all registered handlers.
 
 ### Properties
 
-### `onabort?: OnAbortCallback`
+#### `onabort?: OnAbortCallback`
 
 Global handler called for any abort event (`aborted` or `cancelled`).
 
@@ -76,7 +76,7 @@ aborter.listeners.onabort = event => {
 ### Basic Usage
 
 ```typescript
-import { Aborter } from 'saborter';
+import { Aborter, AbortError } from 'saborter';
 
 // Create Aborter instance with global handler
 const aborter = new Aborter({
