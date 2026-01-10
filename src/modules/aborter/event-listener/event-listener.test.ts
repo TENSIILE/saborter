@@ -1,17 +1,11 @@
 import { EventListener } from './event-listener';
 import * as Types from './event-listener.types';
 
-class TestableEventListener extends EventListener {
-  public emitEventPublic<K extends Types.EventListenerType>(type: K, event: Types.EventMap[K]): void {
-    this.emitEvent(type, event);
-  }
-}
-
 describe('EventListener', () => {
   describe('constructor', () => {
     it('инициализация должна осуществляться с помощью коллбека onabort', () => {
       const mockOnAbort = jest.fn();
-      const options: Types.EventListenerOptions = { onabort: mockOnAbort };
+      const options: Types.EventListenerOptions = { onAbort: mockOnAbort };
 
       const eventListener = new EventListener(options);
 
@@ -33,11 +27,10 @@ describe('EventListener', () => {
         const eventListener = new EventListener({});
         const mockListener = jest.fn();
 
-        eventListener.addEventListener('abort', mockListener);
+        eventListener.addEventListener('aborted', mockListener);
 
-        const testableListener = eventListener as any;
-        const event = { type: 'abort' } as unknown as Types.EventMap['abort'];
-        testableListener.emitEvent('abort', event);
+        const event = { type: 'aborted' } as unknown as Types.EventMap['aborted'];
+        eventListener.dispatchEvent('aborted', event);
 
         expect(mockListener).toHaveBeenCalledWith(event);
         expect(mockListener).toHaveBeenCalledTimes(1);
@@ -48,12 +41,11 @@ describe('EventListener', () => {
         const mockListener1 = jest.fn();
         const mockListener2 = jest.fn();
 
-        eventListener.addEventListener('abort', mockListener1);
-        eventListener.addEventListener('abort', mockListener2);
+        eventListener.addEventListener('aborted', mockListener1);
+        eventListener.addEventListener('aborted', mockListener2);
 
-        const testableListener = eventListener as any;
-        const event = { type: 'abort' } as unknown as Types.EventMap['abort'];
-        testableListener.emitEvent('abort', event);
+        const event = { type: 'abort' } as unknown as Types.EventMap['aborted'];
+        eventListener.dispatchEvent('aborted', event);
 
         expect(mockListener1).toHaveBeenCalledWith(event);
         expect(mockListener2).toHaveBeenCalledWith(event);
@@ -63,12 +55,11 @@ describe('EventListener', () => {
         const eventListener = new EventListener({});
         const mockListener = jest.fn();
 
-        eventListener.addEventListener('abort', mockListener);
-        eventListener.addEventListener('abort', mockListener);
+        eventListener.addEventListener('aborted', mockListener);
+        eventListener.addEventListener('aborted', mockListener);
 
-        const testableListener = eventListener as any;
-        const event = { type: 'abort' } as unknown as Types.EventMap['abort'];
-        testableListener.emitEvent('abort', event);
+        const event = { type: 'abort' } as unknown as Types.EventMap['aborted'];
+        eventListener.dispatchEvent('aborted', event);
 
         expect(mockListener).toHaveBeenCalledTimes(1);
       });
@@ -79,12 +70,11 @@ describe('EventListener', () => {
         const eventListener = new EventListener({});
         const mockListener = jest.fn();
 
-        eventListener.addEventListener('abort', mockListener);
-        eventListener.removeEventListener('abort', mockListener);
+        eventListener.addEventListener('aborted', mockListener);
+        eventListener.removeEventListener('aborted', mockListener);
 
-        const testableListener = eventListener as any;
-        const event = { type: 'abort' } as unknown as Types.EventMap['abort'];
-        testableListener.emitEvent('abort', event);
+        const event = { type: 'abort' } as unknown as Types.EventMap['aborted'];
+        eventListener.dispatchEvent('aborted', event);
 
         expect(mockListener).not.toHaveBeenCalled();
       });
@@ -94,7 +84,7 @@ describe('EventListener', () => {
         const mockListener = jest.fn();
 
         expect(() => {
-          eventListener.removeEventListener('abort', mockListener);
+          eventListener.removeEventListener('aborted', mockListener);
         }).not.toThrow();
       });
 
@@ -104,15 +94,14 @@ describe('EventListener', () => {
         const mockListener2 = jest.fn();
         const mockListener3 = jest.fn();
 
-        eventListener.addEventListener('abort', mockListener1);
-        eventListener.addEventListener('abort', mockListener2);
-        eventListener.addEventListener('abort', mockListener3);
+        eventListener.addEventListener('aborted', mockListener1);
+        eventListener.addEventListener('aborted', mockListener2);
+        eventListener.addEventListener('aborted', mockListener3);
 
-        eventListener.removeEventListener('abort', mockListener2);
+        eventListener.removeEventListener('aborted', mockListener2);
 
-        const testableListener = eventListener as any;
-        const event = { type: 'abort' } as unknown as Types.EventMap['abort'];
-        testableListener.emitEvent('abort', event);
+        const event = { type: 'abort' } as unknown as Types.EventMap['aborted'];
+        eventListener.dispatchEvent('aborted', event);
 
         expect(mockListener1).toHaveBeenCalled();
         expect(mockListener2).not.toHaveBeenCalled();
@@ -120,19 +109,19 @@ describe('EventListener', () => {
       });
     });
 
-    describe('emitEvent', () => {
+    describe('dispatchEvent', () => {
       it('необходимо вызвать всех зарегистрированных слушателей для abort события', () => {
-        const listener = new TestableEventListener({});
+        const listener = new EventListener({});
         const mockListener1 = jest.fn();
         const mockListener2 = jest.fn();
         const mockListener3 = jest.fn();
 
-        listener.addEventListener('abort', mockListener1);
-        listener.addEventListener('abort', mockListener2);
-        listener.addEventListener('abort', mockListener3);
+        listener.addEventListener('aborted', mockListener1);
+        listener.addEventListener('aborted', mockListener2);
+        listener.addEventListener('aborted', mockListener3);
 
-        const event = { type: 'abort', reason: 'test' } as unknown as Types.EventMap['abort'];
-        listener.emitEventPublic('abort', event);
+        const event = { type: 'abort', reason: 'test' } as unknown as Types.EventMap['aborted'];
+        listener.dispatchEvent('aborted', event);
 
         expect(mockListener1).toHaveBeenCalledWith(event);
         expect(mockListener2).toHaveBeenCalledWith(event);
@@ -141,25 +130,25 @@ describe('EventListener', () => {
 
       it('должен вызывать коллбек onabort при генерации события', () => {
         const mockOnAbort = jest.fn();
-        const listener = new TestableEventListener({ onabort: mockOnAbort });
+        const listener = new EventListener({ onAbort: mockOnAbort });
         const eventListener = jest.fn();
 
-        listener.addEventListener('abort', eventListener);
+        listener.addEventListener('aborted', eventListener);
 
-        const event = { type: 'abort' } as unknown as Types.EventMap['abort'];
-        listener.emitEventPublic('abort', event);
+        const event = { type: 'abort' } as unknown as Types.EventMap['aborted'];
+        listener.dispatchEvent('aborted', event);
 
         expect(eventListener).toHaveBeenCalledWith(event);
         expect(mockOnAbort).toHaveBeenCalled();
       });
 
       it('должен обработать пустой массив слушателей', () => {
-        const listener = new TestableEventListener({});
+        const listener = new EventListener({});
 
-        const event = { type: 'abort' } as unknown as Types.EventMap['abort'];
+        const event = { type: 'abort' } as unknown as Types.EventMap['aborted'];
 
         expect(() => {
-          listener.emitEventPublic('abort', event);
+          listener.dispatchEvent('aborted', event);
         }).not.toThrow();
       });
     });
@@ -172,12 +161,11 @@ describe('EventListener', () => {
         const mockListener1 = jest.fn();
         const mockListener2 = jest.fn();
 
-        listener1.addEventListener('abort', mockListener1);
-        listener2.addEventListener('abort', mockListener2);
+        listener1.addEventListener('aborted', mockListener1);
+        listener2.addEventListener('aborted', mockListener2);
 
-        const testableListener1 = listener1 as any;
-        const event = { type: 'abort' } as unknown as Types.EventMap['abort'];
-        testableListener1.emitEvent('abort', event);
+        const event = { type: 'abort' } as unknown as Types.EventMap['aborted'];
+        listener1.dispatchEvent('aborted', event);
 
         expect(mockListener1).toHaveBeenCalled();
         expect(mockListener2).not.toHaveBeenCalled();

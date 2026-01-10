@@ -122,7 +122,7 @@ describe('Aborter', () => {
       it('должен отменять предыдущий запрос при новом вызове try', async () => {
         const firstRequest = jest.fn().mockImplementationOnce(
           () =>
-            new Promise(resolve => {
+            new Promise((resolve) => {
               setTimeout(() => resolve('first'), 100);
             })
         );
@@ -146,7 +146,7 @@ describe('Aborter', () => {
 
         await Promise.race([
           promise,
-          new Promise(resolve => {
+          new Promise((resolve) => {
             setTimeout(() => resolve('timeout'), 50);
           })
         ]);
@@ -176,14 +176,14 @@ describe('Aborter', () => {
       mockRequest.mockRejectedValue(abortError);
       (isError as unknown as jest.Mock).mockReturnValue(true);
 
-      aborter = new Aborter({ onabort: fn });
+      aborter = new Aborter({ onAbort: fn });
       mockAbortController = (aborter as any).abortController;
 
       const promise = aborter.try(mockRequest);
 
       await Promise.race([
         promise,
-        new Promise(resolve => {
+        new Promise((resolve) => {
           setTimeout(() => resolve('timeout'), 50);
         })
       ]);
@@ -200,14 +200,14 @@ describe('Aborter', () => {
 
       const promise = aborter.try(mockRequest);
 
-      aborter.onabort = error => {
+      aborter.listeners.onabort = (error) => {
         fn();
         expect(error.message).toBe(abortError.message);
       };
 
       await Promise.race([
         promise,
-        new Promise(resolve => {
+        new Promise((resolve) => {
           setTimeout(() => resolve('timeout'), 50);
         })
       ]);
