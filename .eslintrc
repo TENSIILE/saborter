@@ -1,0 +1,50 @@
+{
+  "root": true,
+  "env": { "browser": true, "es2020": true, "jest": true },
+  "extends": ["eslint:recommended", "airbnb", "plugin:import/typescript", "plugin:prettier/recommended"],
+  "parser": "@typescript-eslint/parser",
+  "ignorePatterns": [
+    "**/dist/",
+    "**/node_modules/",
+    "**/*.json",
+    "**/*.html",
+    "/**/coverage/",
+    "**/integrations/**/",
+    "./vite.config.js"
+  ],
+  "plugins": ["@typescript-eslint", "prettier"],
+  "rules": {
+    "no-continue": "off",
+    "quotes": "off",
+    "import/prefer-default-export": ["off"],
+    "class-methods-use-this": ["off"],
+    "func-names": ["off"],
+    "no-plusplus": ["error"],
+    "prefer-spread": ["off"],
+    "consistent-return": ["off"],
+    "default-case": ["off"],
+    "comma-dangle": ["off"],
+    "import/extensions": ["off"],
+    "max-len": ["off"],
+    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    "@typescript-eslint/lines-between-class-members": ["off", {}],
+    "import/no-extraneous-dependencies": ["off"],
+    "@typescript-eslint/no-unused-vars": ["off", {}],
+    "no-unused-vars": ["off"],
+    "prettier/prettier": [
+      "error",
+      {
+        "arrowParens": "always",
+        "endOfLine": "auto"
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx"],
+      "rules": {
+        "no-undef": "off"
+      }
+    }
+  ]
+}

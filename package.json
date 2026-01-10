@@ -1,6 +1,6 @@
 {
   "name": "saborter",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "A simple and efficient library for canceling asynchronous requests using AbortController",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
@@ -37,23 +37,48 @@
   ],
   "scripts": {
     "prepublishOnly": "npm run build",
-    "build": "tsc && vite build",
-    "test": "jest --colors --coverage test --passWithNoTests"
+    "build": "npm run clean:dist && tsc && vite build",
+    "clean:dist": "rimraf dist",
+    "typecheck": "tsc --pretty --noEmit --skipLibCheck",
+    "verify:prettier": "npx prettier . --check",
+    "verify:eslint": "npx eslint \"./**/*.{js,jsx,ts,tsx}\" --max-warnings=0",
+    "verify": "npm run typecheck && npm run verify:prettier && npm run verify:eslint",
+    "fix:eslint": "npx eslint \"./**/*.{js,jsx,ts,tsx}\" --fix",
+    "fix:prettier": "npx prettier --write .",
+    "fix": "npm run fix:eslint && npm run fix:prettier",
+    "test": "jest --colors --coverage test --passWithNoTests",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
     "@types/node": "^25.0.3",
     "@typescript-eslint/eslint-plugin": "^8.50.1",
     "@typescript-eslint/parser": "^8.50.1",
-    "eslint": "^9.39.2",
+    "eslint": "^8.11.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-prettier": "^5.5.4",
+    "husky": "^9.1.7",
     "jest": "^30.2.0",
     "jest-environment-jsdom": "^30.2.0",
+    "lint-staged": "^16.2.7",
     "prettier": "^3.7.4",
+    "rimraf": "^6.1.2",
     "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
     "vite": "^7.3.0",
+    "vite-plugin-circular-dependency": "^0.5.0",
     "vite-plugin-clean": "^2.0.1",
     "vite-plugin-dts": "^4.5.4"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "npm run fix:prettier"
+    ],
+    "*.{json,md}": [
+      "npm run fix:prettier"
+    ]
   }
 }

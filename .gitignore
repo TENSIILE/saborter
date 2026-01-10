@@ -12,6 +12,8 @@ coverage
 dist
 dist-ssr
 *.local
+*.txt
+unreleased-packages/saborter-*.*.*-test.tgz
 
 # Editor directories and files
 .vscode/*

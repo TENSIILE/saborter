@@ -1,9 +1,15 @@
 import { Aborter } from './aborter';
-import * as Utils from './utils';
+import { get } from '../../shared/utils';
+import { isError, getCauseMessage, AbortError } from '../../features/abort-error';
 
-jest.mock('./utils', () => ({
+jest.mock('../../shared/utils', () => ({
+  get: jest.fn()
+}));
+
+jest.mock('../../features/abort-error', () => ({
   isError: jest.fn(),
-  get: jest.fn(),
+  AbortError: jest.fn(),
+  getCauseMessage: jest.fn()
 }));
 
 describe('Aborter', () => {
@@ -24,8 +30,8 @@ describe('Aborter', () => {
         removeEventListener: jest.fn(),
         dispatchEvent: jest.fn(),
         onabort: null,
-        throwIfAborted: jest.fn(),
-      } as unknown as AbortSignal,
+        throwIfAborted: jest.fn()
+      } as unknown as AbortSignal
     })) as any;
 
     aborter = new Aborter();
@@ -46,7 +52,7 @@ describe('Aborter', () => {
 
   describe('signal', () => {
     it('должен возвращать signal от внутреннего AbortController', () => {
-      const signal = aborter.signal;
+      const { signal } = aborter;
       expect(signal).toBe(mockAbortController.signal);
     });
   });
@@ -87,34 +93,39 @@ describe('Aborter', () => {
     describe('при ошибках', () => {
       it('должен использовать cause.message если основное сообщение отсутствует', async () => {
         const error = {
-          cause: { message: 'Cause error message' },
+          cause: { message: 'Cause error message' }
         };
         mockRequest.mockRejectedValue(error);
-        (Utils.isError as unknown as jest.Mock).mockReturnValue(false);
-        (Utils.get as jest.Mock).mockReturnValue('Cause error message');
+        (isError as unknown as jest.Mock).mockReturnValue(false);
+        (get as jest.Mock).mockReturnValue(error.cause.message);
+        (getCauseMessage as jest.Mock).mockReturnValue(error.cause.message);
 
         await expect(aborter.try(mockRequest)).rejects.toEqual({
           ...error,
-          message: 'Cause error message',
+          message: error.cause.message
         });
       });
 
       it('должен возвращать пустую строку если нет сообщения об ошибке', async () => {
         const error = {};
         mockRequest.mockRejectedValue(error);
-        (Utils.isError as unknown as jest.Mock).mockReturnValue(false);
-        (Utils.get as jest.Mock).mockReturnValue(undefined);
+        (isError as unknown as jest.Mock).mockReturnValue(false);
+        (get as jest.Mock).mockReturnValue(undefined);
+        (getCauseMessage as jest.Mock).mockReturnValue(undefined);
 
         await expect(aborter.try(mockRequest)).rejects.toEqual({
           ...error,
-          message: '',
+          message: ''
         });
       });
 
       it('должен отменять предыдущий запрос при новом вызове try', async () => {
-        const firstRequest = jest
-          .fn()
-          .mockImplementationOnce(() => new Promise(resolve => setTimeout(() => resolve('first'), 100)));
+        const firstRequest = jest.fn().mockImplementationOnce(
+          () =>
+            new Promise((resolve) => {
+              setTimeout(() => resolve('first'), 100);
+            })
+        );
         const secondRequest = jest.fn().mockResolvedValue('second');
 
         const firstPromise = aborter.try(firstRequest);
@@ -129,11 +140,16 @@ describe('Aborter', () => {
       it('не должен завершать промис при AbortError и isErrorNativeBehavior = false', async () => {
         const abortError = new DOMException('Aborted', 'AbortError');
         mockRequest.mockRejectedValue(abortError);
-        (Utils.isError as unknown as jest.Mock).mockReturnValue(true);
+        (isError as unknown as jest.Mock).mockReturnValue(true);
 
         const promise = aborter.try(mockRequest);
 
-        await Promise.race([promise, new Promise(resolve => setTimeout(() => resolve('timeout'), 50))]);
+        await Promise.race([
+          promise,
+          new Promise((resolve) => {
+            setTimeout(() => resolve('timeout'), 50);
+          })
+        ]);
 
         expect(mockAbortController.abort).toHaveBeenCalled();
       });
@@ -143,13 +159,61 @@ describe('Aborter', () => {
   describe('Статические методы', () => {
     it('isError должен делегировать вызов Utils.isError', () => {
       const testError = new Error('test');
-      const mockIsError = Utils.isError as unknown as jest.Mock;
+      const mockIsError = isError as unknown as jest.Mock;
       mockIsError.mockReturnValue(true);
 
       const result = Aborter.isError(testError);
 
       expect(result).toBe(true);
       expect(mockIsError).toHaveBeenCalledWith(testError);
+    });
+  });
+
+  describe('onAbort property', () => {
+    it('Проверка исполнения коллбека onAbort при передаче через конструктор', async () => {
+      const fn = jest.fn();
+      const abortError = new DOMException('Aborted', 'AbortError');
+      mockRequest.mockRejectedValue(abortError);
+      (isError as unknown as jest.Mock).mockReturnValue(true);
+
+      aborter = new Aborter({ onAbort: fn });
+      mockAbortController = (aborter as any).abortController;
+
+      const promise = aborter.try(mockRequest);
+
+      await Promise.race([
+        promise,
+        new Promise((resolve) => {
+          setTimeout(() => resolve('timeout'), 50);
+        })
+      ]);
+
+      expect(mockAbortController.abort).toHaveBeenCalled();
+      expect(fn).toHaveBeenCalled();
+    });
+
+    it('Проверка исполнения коллбека onAbort при переопределении свойства', async () => {
+      const fn = jest.fn();
+      const abortError = new AbortError('Aborted');
+      mockRequest.mockRejectedValue(abortError);
+      (isError as unknown as jest.Mock).mockReturnValue(true);
+
+      const promise = aborter.try(mockRequest);
+
+      aborter.listeners.onabort = (error) => {
+        fn();
+        expect(error.message).toBe(abortError.message);
+      };
+
+      await Promise.race([
+        promise,
+        new Promise((resolve) => {
+          setTimeout(() => resolve('timeout'), 50);
+        })
+      ]);
+
+      expect(mockAbortController.abort).toHaveBeenCalled();
+      expect(fn).toHaveBeenCalled();
     });
   });
 });
