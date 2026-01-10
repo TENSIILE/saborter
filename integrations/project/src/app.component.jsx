@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
-import { Aborter } from 'saborter';
+import { useState, useRef, useEffect } from 'react';
+import { Aborter, AbortError } from 'saborter';
 
 const getUsers = async signal => {
   const response = await fetch('https://apimocker.com/users?_delay=3000', { signal });
@@ -13,29 +13,30 @@ export const App = () => {
 
   const aborterRef = useRef(
     new Aborter({
-      onabort: e => {
-        console.log(e);
-        if (e.isCancelled) {
-          return;
-        }
+      onAbort: (e) => {
+        if (e.type === 'aborted') return;
 
-        setLoading(false);
+        setLoading(true);
         setUsers([]);
       },
     }),
   );
 
-  const handleLoad = async () => {
-    setLoading(true);
-    setUsers([]);
+  useEffect(() => {
+    return aborterRef.current.listeners.addEventListener('aborted', (e) => {
+      setLoading(false);
+      setUsers([]);
+    }); 
+  }, [])
 
+  const handleLoad = async () => {
     const data = await aborterRef.current.try(getUsers);
 
     setLoading(false);
     setUsers(data.data);
   };
 
-  const handleCancel = () => aborterRef.current.abort();
+  const handleCancel = () => aborterRef.current.abort(new AbortError('non message', { reason: { userId: 1 } }));
 
   return (
     <>
