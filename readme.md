@@ -225,23 +225,24 @@ After aborting, it restores the `AbortSignal`, resetting the `isAborted` propert
 // Create an Aborter instance
 const aborter = new Aborter();
 
-async function fetching() {
+// Data retrieval function
+async function fetchData() {
   try {
-    const data = fetch('/api/data', { signal: aborter.signal });
+    const data = await fetch('/api/data', { signal: aborter.signal });
   } catch (error) {
-    // ALL errors, including AbortError, will go here
+    // Any error, except AbortError, will go here
     console.log(error);
   }
 }
 
 // Calling a function with a request
-fetching();
+fetchData();
 
 // We interrupt the request and then restore the signal
 aborter.abortWithRecovery();
 
 // Call the function again
-fetching();
+fetchData();
 ```
 
 `static isError(error)`
@@ -288,7 +289,7 @@ By ignoring `AbortError` errors, the `finally` block will only be executed if ot
 const result = await aborter
   .try(signal => fetch('/api/data', { signal }))
   .catch(error => {
-    // ALL errors, including cancellations, will go here
+    // Any error, except AbortError, will go here
     console.log(error);
   })
   .finally(() => {
@@ -302,7 +303,7 @@ Everything will also work if you use the `try-catch` syntax.
 try {
   const result = await aborter.try(signal => fetch('/api/data', { signal }));
 } catch (error) {
-  // ALL errors, including cancellations, will go here
+  // Any error, except AbortError, will go here
   console.log(error);
 } finally {
   // The request was successfully completed or we caught a "throw"
