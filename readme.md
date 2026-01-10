@@ -1,6 +1,6 @@
 ![Logo](./assets/logo.png)
 
-[![Npm package](https://img.shields.io/badge/npm%20package-1.2.0-red)](https://www.npmjs.com/package/saborter)
+[![Npm package](https://img.shields.io/badge/npm%20package-1.3.0-red)](https://www.npmjs.com/package/saborter)
 ![Static Badge](https://img.shields.io/badge/coverage-100%25-orange)
 ![Static Badge](https://img.shields.io/badge/license-MIT-blue)
 [![Github](https://img.shields.io/badge/repository-github-color)](https://github.com/TENSIILE/saborter)
@@ -146,7 +146,9 @@ Returns an `EventListener` object to listen for `Aborter` events.
 
 [Detailed documentation here](./docs/event-listener.md)
 
-`static errorName`
+⚠️ `static errorName`
+
+⚠️ `[DEPRECATED]:` Use `AbortError.name`.
 
 Name of the `AbortError` error instance thrown by AbortSignal.
 
@@ -154,7 +156,7 @@ Name of the `AbortError` error instance thrown by AbortSignal.
 const result = await aborter
   .try((signal) => fetch('/api/data', { signal }), { isErrorNativeBehavior: true })
   .catch((error) => {
-    if (error.name === Aborter.errorName) {
+    if (error.name === AbortError.name) {
       console.log('Canceled');
     }
   });
