@@ -18,6 +18,7 @@ export class Aborter {
   /**
    * The name of the error instance thrown by the AbortSignal.
    * @readonly
+   * @deprecated use AbortError.name
    */
   public static readonly errorName = ABORT_ERROR_NAME;
 

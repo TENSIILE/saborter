@@ -17,6 +17,16 @@ import { AbortError } from 'saborter';
 - **Type:** `number`
 - **Description:** Interrupt error code.
 
+`name`
+
+- **Type:** `'AbortError'` (const string)
+- **Description:** Interrupt error name.
+
+`message`
+
+- **Type:** `string`
+- **Description:** Interrupt error message.
+
 `type`
 
 - **Type:** `'cancelled' | 'aborted'`
