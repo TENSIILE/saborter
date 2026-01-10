@@ -80,7 +80,7 @@ import { Aborter, AbortError } from 'saborter';
 
 // Create Aborter instance with global handler
 const aborter = new Aborter({
-  onabort: (event) => {
+  onAbort: (event) => {
     console.log('Global abort detected:', event);
   }
 });
