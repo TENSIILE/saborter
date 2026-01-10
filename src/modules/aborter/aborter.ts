@@ -1,5 +1,6 @@
 import { AbortError, getCauseMessage, isError, ABORT_ERROR_NAME } from '../../features/abort-error';
 import { EventListener } from './event-listener';
+import { Utils } from '../../shared';
 import * as Types from './aborter.types';
 
 export class Aborter {
@@ -11,7 +12,7 @@ export class Aborter {
   public listeners: EventListener;
 
   constructor(options?: Types.AborterOptions) {
-    this.listeners = new EventListener({ onabort: options?.onabort });
+    this.listeners = new EventListener({ onAbort: options?.onAbort });
   }
 
   /**
@@ -48,6 +49,7 @@ export class Aborter {
         type: 'cancelled',
         signal: this.signal
       });
+
       this.listeners.dispatchEvent('cancelled', cancelledAbortError);
       const { signal } = this.abortWithRecovery(cancelledAbortError);
 
@@ -63,7 +65,15 @@ export class Aborter {
             return reject(error);
           }
 
-          this.listeners.dispatchEvent('aborted', new AbortError(error.message));
+          if ((error as AbortError)?.type !== 'cancelled') {
+            this.listeners.dispatchEvent(
+              'aborted',
+              new AbortError(error.message, {
+                signal: this.signal,
+                reason: Utils.get(error, 'reason') || this.signal.reason
+              })
+            );
+          }
 
           promise = null;
         });

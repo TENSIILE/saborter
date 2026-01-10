@@ -14,5 +14,5 @@ export type EventCallback<T extends EventListenerType> = EventMap[T] extends und
 export type OnAbortCallback = (error: AbortError) => void;
 
 export interface EventListenerOptions {
-  onabort?: OnAbortCallback;
+  onAbort?: OnAbortCallback;
 }

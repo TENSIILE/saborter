@@ -12,7 +12,7 @@ export class EventListener {
   public onabort?: Types.OnAbortCallback;
 
   constructor(options?: Types.EventListenerOptions) {
-    this.onabort = options?.onabort;
+    this.onabort = options?.onAbort;
   }
 
   private getListenersByType = <T extends Types.EventListenerType>(type: T): Set<Types.EventCallback<T>> => {
@@ -32,7 +32,7 @@ export class EventListener {
   };
 
   /**
-   * Removes the event listener in target's event listener list with the same type, callback, and options.
+   * Removes the event listener in target's event listener list with the same type and callback.
    */
   public removeEventListener = <T extends Types.EventListenerType, L extends Types.EventCallback<T>>(
     type: T,

@@ -119,8 +119,9 @@ const aborter = new Aborter(options?: AborterOptions);
   /*
     Callback function for abort events.
     Associated with EventListener.onabort.
+    It can be overridden via `aborter.listeners.onabort`
   */
-  onabort?: OnAbortCallback;
+  onAbort?: OnAbortCallback;
 }
 ```
 

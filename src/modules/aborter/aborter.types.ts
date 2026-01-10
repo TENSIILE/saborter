@@ -10,4 +10,4 @@ export interface FnTryOptions {
   isErrorNativeBehavior?: boolean;
 }
 
-export interface AborterOptions extends Pick<EventListenerOptions, 'onabort'> {}
+export interface AborterOptions extends Pick<EventListenerOptions, 'onAbort'> {}

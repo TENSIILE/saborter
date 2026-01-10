@@ -5,7 +5,7 @@ describe('EventListener', () => {
   describe('constructor', () => {
     it('инициализация должна осуществляться с помощью коллбека onabort', () => {
       const mockOnAbort = jest.fn();
-      const options: Types.EventListenerOptions = { onabort: mockOnAbort };
+      const options: Types.EventListenerOptions = { onAbort: mockOnAbort };
 
       const eventListener = new EventListener(options);
 
@@ -130,7 +130,7 @@ describe('EventListener', () => {
 
       it('должен вызывать коллбек onabort при генерации события', () => {
         const mockOnAbort = jest.fn();
-        const listener = new EventListener({ onabort: mockOnAbort });
+        const listener = new EventListener({ onAbort: mockOnAbort });
         const eventListener = jest.fn();
 
         listener.addEventListener('aborted', eventListener);

@@ -176,7 +176,7 @@ describe('Aborter', () => {
       mockRequest.mockRejectedValue(abortError);
       (isError as unknown as jest.Mock).mockReturnValue(true);
 
-      aborter = new Aborter({ onabort: fn });
+      aborter = new Aborter({ onAbort: fn });
       mockAbortController = (aborter as any).abortController;
 
       const promise = aborter.try(mockRequest);
