@@ -25,7 +25,7 @@ export class EventListener {
   public addEventListener = <T extends Types.EventListenerType, L extends Types.EventCallback<T>>(
     type: T,
     listener: L
-  ): (() => void) => {
+  ): VoidFunction => {
     this.getListenersByType(type).add(listener);
 
     return () => this.removeEventListener(type, listener);
@@ -45,6 +45,6 @@ export class EventListener {
     if (type === 'aborted' || type === 'cancelled') {
       this.onabort?.(event);
     }
-    this.getListenersByType(type).forEach(listener => listener(event));
+    this.getListenersByType(type).forEach((listener) => listener(event));
   };
 }

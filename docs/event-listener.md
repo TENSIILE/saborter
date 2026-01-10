@@ -29,7 +29,7 @@ Adds an event listener for the specified event type.
 **Example:**
 
 ```typescript
-const unsubscribe = listener.addEventListener('aborted', event => {
+const unsubscribe = listener.addEventListener('aborted', (event) => {
   console.log('Operation aborted:', event);
 });
 
@@ -66,7 +66,7 @@ Global handler called for any abort event (`aborted` or `cancelled`).
 **Example:**
 
 ```typescript
-aborter.listeners.onabort = event => {
+aborter.listeners.onabort = (event) => {
   console.log('Global abort handler:', event);
 };
 ```
@@ -80,17 +80,17 @@ import { Aborter, AbortError } from 'saborter';
 
 // Create Aborter instance with global handler
 const aborter = new Aborter({
-  onabort: event => {
+  onabort: (event) => {
     console.log('Global abort detected:', event);
   }
 });
 
 // Add specific event handlers
-const removeAbortedHandler = aborter.listeners.addEventListener('aborted', event => {
+const removeAbortedHandler = aborter.listeners.addEventListener('aborted', (event) => {
   console.log('Aborted event:', event);
 });
 
-const removeCancelledHandler = aborter.listeners.addEventListener('cancelled', event => {
+const removeCancelledHandler = aborter.listeners.addEventListener('cancelled', (event) => {
   console.log('Cancelled event:', event);
 });
 
