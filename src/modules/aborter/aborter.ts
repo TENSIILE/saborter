@@ -5,6 +5,9 @@ import * as Types from './aborter.types';
 export class Aborter {
   protected abortController = new AbortController();
 
+  /**
+   * Returns an `EventListener` instance to listen for `Aborter` events.
+   */
   public listeners: EventListener;
 
   constructor(options?: Types.AborterOptions) {
@@ -42,14 +45,11 @@ export class Aborter {
   ): Promise<R> => {
     let promise: Promise<R> | null = new Promise<R>((resolve, reject) => {
       const cancelledAbortError = new AbortError('cancellation of the previous AbortController', {
-        type: 'cancelled'
+        type: 'cancelled',
+        signal: this.signal
       });
       this.listeners.dispatchEvent('cancelled', cancelledAbortError);
-      this.abort(cancelledAbortError);
-
-      this.abortController = new AbortController();
-
-      const { signal } = this.abortController;
+      const { signal } = this.abortWithRecovery(cancelledAbortError);
 
       request(signal)
         .then(resolve)
