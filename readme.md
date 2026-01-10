@@ -116,7 +116,11 @@ const aborter = new Aborter(options?: AborterOptions);
 
 ```typescript
 {
-  onabort?: OnAbortCallback; // Callback function for abort events
+  /*
+    Callback function for abort events.
+    Associated with EventListener.onabort.
+  */
+  onabort?: OnAbortCallback;
 }
 ```
 
@@ -165,7 +169,7 @@ Executes an asynchronous request with the ability to cancel.
 
 - `request: (signal: AbortSignal) => Promise<T>` - the function that fulfills the request
 - `options?: Object` (optional)
-- `isErrorNativeBehavior: boolean` - a flag for controlling error handling
+  - `isErrorNativeBehavior?: boolean` - a flag for controlling error handling. Default is `false`
 
 **Returns:** `Promise<T>`
 
@@ -260,6 +264,10 @@ try {
   }
 }
 ```
+
+## 🔌 Additional APIs
+
+- [**AbortError**](./docs/abort-error.md) - Custom error for working with Aborter.
 
 ## ⚠️ Important Features
 

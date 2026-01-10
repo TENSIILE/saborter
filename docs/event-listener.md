@@ -15,14 +15,14 @@ Two event types are supported:
 
 ### Methods
 
-#### `addEventListener<T extends EventListenerType, L extends EventCallback<T>>(type: T, listener: L): () => void`
+`addEventListener(type, listener): VoidFunction`
 
 Adds an event listener for the specified event type.
 
 **Parameters:**
 
-- `type` - event type (`'aborted'` | `'cancelled'`)
-- `listener` - event handler function
+- `type: 'aborted' | 'cancelled'` - event type
+- `listener: (error: AbortError): void` - event handler function
 
 **Returns:** A function to remove the event listener (unsubscribe)
 
@@ -37,29 +37,29 @@ const unsubscribe = listener.addEventListener('aborted', (event) => {
 unsubscribe();
 ```
 
-#### `removeEventListener<T extends EventListenerType, L extends EventCallback<T>>(type: T, listener: L): void`
+`removeEventListener(type, listener): void`
 
 Removes an event listener for the specified event type.
 
 **Parameters:**
 
-- `type` - event type
-- `listener` - event handler function to remove
+- `type: 'aborted' | 'cancelled'` - event type
+- `listener: (error: AbortError): void` - event handler function to remove
 
-#### `dispatchEvent<T extends EventListenerType, E extends EventMap<T>>(type: K, event: E): void`
+`dispatchEvent(type, event): void`
 
 Dispatches an event of the specified type, calling all registered handlers.
 
 **Parameters:**
 
-- `type` - event type to dispatch
-- `event` - event data passed to handlers
+- `type: 'aborted' | 'cancelled'` - event type to dispatch
+- `event: AbortError` - event data passed to handlers
 
 **Special Note:** When dispatching `'aborted'` or `'cancelled'` events, the global `onabort` handler is also called.
 
 ### Properties
 
-#### `onabort?: OnAbortCallback`
+`onabort?: OnAbortCallback`
 
 Global handler called for any abort event (`aborted` or `cancelled`).
 
