@@ -13,7 +13,7 @@ const checkErrorCause = (error: unknown) =>
 
 export const isError = (error: any): error is Error =>
   error instanceof AbortError ||
-  (Utils.isObject(error) && 'name' in error && error.name === ABORT_ERROR_NAME) ||
+  ('name' in error && error.name === ABORT_ERROR_NAME) ||
   ABORT_ERROR_MESSAGES.includes((error as Error | undefined)?.message ?? '') ||
   checkErrorCause(error);
 

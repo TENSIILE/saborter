@@ -1,13 +1,10 @@
 import { AbortError, getCauseMessage, isError, ABORT_ERROR_NAME } from '../../features/abort-error';
-import { Timeout, TimeoutError } from '../../features/timeout';
 import { EventListener } from './event-listener';
 import { Utils } from '../../shared';
 import * as Types from './aborter.types';
 
 export class Aborter {
   protected abortController = new AbortController();
-
-  protected timeout = new Timeout();
 
   /**
    * Returns an `EventListener` instance to listen for `Aborter` events.
@@ -46,7 +43,7 @@ export class Aborter {
    */
   public try = <R>(
     request: Types.AbortRequest<R>,
-    { isErrorNativeBehavior = false, timeout }: Types.FnTryOptions = {}
+    { isErrorNativeBehavior = false }: Types.FnTryOptions = {}
   ): Promise<R> => {
     let promise: Promise<R> | null = new Promise<R>((resolve, reject) => {
       const cancelledAbortError = new AbortError('cancellation of the previous AbortController', {
@@ -57,10 +54,6 @@ export class Aborter {
       this.listeners.dispatchEvent('cancelled', cancelledAbortError);
       const { signal } = this.abortWithRecovery(cancelledAbortError);
 
-      this.timeout.setTimeout(timeout?.ms, () => {
-        this.abort(new TimeoutError('the request timed out and an automatic abort occurred', timeout));
-      });
-
       request(signal)
         .then(resolve)
         .catch((err: Error) => {
@@ -69,7 +62,7 @@ export class Aborter {
             message: err?.message || getCauseMessage(err) || ''
           };
 
-          if (isErrorNativeBehavior || !Aborter.isError(err) || (err instanceof TimeoutError && err.hasThrow)) {
+          if (isErrorNativeBehavior || !Aborter.isError(err)) {
             return reject(error);
           }
 
@@ -95,7 +88,6 @@ export class Aborter {
    */
   public abort = (reason?: any): void => {
     this.abortController.abort(reason);
-    this.timeout.clearTimeout();
   };
 
   /**
