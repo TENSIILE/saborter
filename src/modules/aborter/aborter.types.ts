@@ -8,6 +8,13 @@ export interface FnTryOptions {
    * @default false
    */
   isErrorNativeBehavior?: boolean;
+  /**
+   *
+   */
+  timeout?: {
+    hasThrow?: boolean;
+    ms: number;
+  };
 }
 
 export interface AborterOptions extends Pick<EventListenerOptions, 'onAbort'> {}
