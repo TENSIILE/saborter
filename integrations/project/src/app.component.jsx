@@ -1,8 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
-import { Aborter, AbortError } from 'saborter';
+import { Aborter, AbortError, AbortByTimeoutError } from 'saborter';
 
-const getUsers = async signal => {
+const getUsers = async (signal) => {
   const response = await fetch('https://apimocker.com/users?_delay=3000', { signal });
+
+  return response.json();
+};
+
+const getPosts = async (signal) => {
+  const response = await fetch('https://apimocker.com/posts?_delay=3000', { signal });
 
   return response.json();
 };
@@ -14,29 +20,42 @@ export const App = () => {
   const aborterRef = useRef(
     new Aborter({
       onAbort: (e) => {
-        if (e.type === 'aborted') return;
+        if (e.type === 'aborted') return console.log('onAbort', e);
 
         setLoading(true);
         setUsers([]);
-      },
-    }),
+      }
+    })
   );
 
   useEffect(() => {
     return aborterRef.current.listeners.addEventListener('aborted', (e) => {
+      console.log('aborted', e);
       setLoading(false);
       setUsers([]);
-    }); 
-  }, [])
+    });
+  }, []);
 
   const handleLoad = async () => {
-    const data = await aborterRef.current.try(getUsers);
+    try {
+      const users = await aborterRef.current.try(getUsers);
+      const posts = await aborterRef.current.try(getPosts);
 
-    setLoading(false);
-    setUsers(data.data);
+      setLoading(false);
+      setUsers(users.data);
+    } catch (error) {
+      console.log('error', error);
+    }
   };
 
-  const handleCancel = () => aborterRef.current.abort(new AbortError('non message', { reason: { userId: 1 } }));
+  // const handleCancel = () =>
+  //   aborterRef.current.abort({ reason: new AbortError('non message', { reason: { userId: 1 } }) });
+
+  const handleCancel = () =>
+    aborterRef.current.abort({
+      // reason: new AbortError('non message', { reason: { userId: 1 } }),
+      abortByName: 'getPosts'
+    });
 
   return (
     <>
@@ -49,7 +68,7 @@ export const App = () => {
 
         {loading && <p>Loading...</p>}
         <ul>
-          {users?.map(user => {
+          {users?.map((user) => {
             return <li key={user.id}>{user.name}</li>;
           })}
         </ul>

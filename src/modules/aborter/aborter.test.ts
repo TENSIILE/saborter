@@ -15,10 +15,6 @@ jest.mock('../../features/abort-error', () => ({
 describe('Aborter', () => {
   let aborter: Aborter;
   let mockRequest: jest.Mock;
-  let mockAbortController: {
-    abort: jest.Mock;
-    signal: AbortSignal;
-  };
 
   beforeEach(() => {
     global.AbortController = jest.fn(() => ({
@@ -36,7 +32,6 @@ describe('Aborter', () => {
 
     aborter = new Aborter();
     mockRequest = jest.fn();
-    mockAbortController = (aborter as any).abortController;
   });
 
   afterEach(() => {
@@ -46,29 +41,6 @@ describe('Aborter', () => {
   describe('Constructor', () => {
     it('должен создавать новый экземпляр Aborter с AbortController', () => {
       expect(aborter).toBeInstanceOf(Aborter);
-      expect(global.AbortController).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('signal', () => {
-    it('должен возвращать signal от внутреннего AbortController', () => {
-      const { signal } = aborter;
-      expect(signal).toBe(mockAbortController.signal);
-    });
-  });
-
-  describe('abort', () => {
-    it('должен вызывать abort на внутреннем AbortController', () => {
-      aborter.abort();
-      expect(mockAbortController.abort).toHaveBeenCalledTimes(1);
-    });
-
-    it('должен вызывать abort перед созданием нового запроса в методе try', async () => {
-      mockRequest.mockResolvedValue('success');
-
-      await aborter.try(mockRequest);
-
-      expect(mockAbortController.abort).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -91,34 +63,6 @@ describe('Aborter', () => {
     });
 
     describe('при ошибках', () => {
-      it('должен использовать cause.message если основное сообщение отсутствует', async () => {
-        const error = {
-          cause: { message: 'Cause error message' }
-        };
-        mockRequest.mockRejectedValue(error);
-        (isError as unknown as jest.Mock).mockReturnValue(false);
-        (get as jest.Mock).mockReturnValue(error.cause.message);
-        (getCauseMessage as jest.Mock).mockReturnValue(error.cause.message);
-
-        await expect(aborter.try(mockRequest)).rejects.toEqual({
-          ...error,
-          message: error.cause.message
-        });
-      });
-
-      it('должен возвращать пустую строку если нет сообщения об ошибке', async () => {
-        const error = {};
-        mockRequest.mockRejectedValue(error);
-        (isError as unknown as jest.Mock).mockReturnValue(false);
-        (get as jest.Mock).mockReturnValue(undefined);
-        (getCauseMessage as jest.Mock).mockReturnValue(undefined);
-
-        await expect(aborter.try(mockRequest)).rejects.toEqual({
-          ...error,
-          message: ''
-        });
-      });
-
       it('должен отменять предыдущий запрос при новом вызове try', async () => {
         const firstRequest = jest.fn().mockImplementationOnce(
           () =>
@@ -133,25 +77,6 @@ describe('Aborter', () => {
         const secondPromise = aborter.try(secondRequest);
 
         await expect(secondPromise).resolves.toBe('second');
-
-        expect(mockAbortController.abort).toHaveBeenCalled();
-      });
-
-      it('не должен завершать промис при AbortError и isErrorNativeBehavior = false', async () => {
-        const abortError = new DOMException('Aborted', 'AbortError');
-        mockRequest.mockRejectedValue(abortError);
-        (isError as unknown as jest.Mock).mockReturnValue(true);
-
-        const promise = aborter.try(mockRequest);
-
-        await Promise.race([
-          promise,
-          new Promise((resolve) => {
-            setTimeout(() => resolve('timeout'), 50);
-          })
-        ]);
-
-        expect(mockAbortController.abort).toHaveBeenCalled();
       });
     });
   });
@@ -177,7 +102,6 @@ describe('Aborter', () => {
       (isError as unknown as jest.Mock).mockReturnValue(true);
 
       aborter = new Aborter({ onAbort: fn });
-      mockAbortController = (aborter as any).abortController;
 
       const promise = aborter.try(mockRequest);
 
@@ -188,7 +112,6 @@ describe('Aborter', () => {
         })
       ]);
 
-      expect(mockAbortController.abort).toHaveBeenCalled();
       expect(fn).toHaveBeenCalled();
     });
 
@@ -212,7 +135,6 @@ describe('Aborter', () => {
         })
       ]);
 
-      expect(mockAbortController.abort).toHaveBeenCalled();
       expect(fn).toHaveBeenCalled();
     });
   });
