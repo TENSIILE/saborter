@@ -19,6 +19,14 @@ describe('EventListener', () => {
 
       expect(eventListener.onabort).toBeUndefined();
     });
+
+    it('поле state.onstatechange должно являться коллбеком onStateChange', () => {
+      const fn = jest.fn();
+
+      const eventListener = new EventListener({ onStateChange: fn });
+
+      expect(eventListener.state.onstatechange).toBe(fn);
+    });
   });
 
   describe('abort event', () => {
