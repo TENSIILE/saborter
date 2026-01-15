@@ -15,7 +15,7 @@ export class Aborter {
   public listeners: EventListener;
 
   constructor(options?: Types.AborterOptions) {
-    this.listeners = new EventListener({ onAbort: options?.onAbort });
+    this.listeners = new EventListener({ onAbort: options?.onAbort, onStateChange: options?.onStateChange });
   }
 
   /**
@@ -54,6 +54,7 @@ export class Aborter {
         signal: this.signal
       });
 
+      this.listeners.state.emit('cancelled');
       this.listeners.dispatchEvent('cancelled', cancelledAbortError);
       const { signal } = this.abortWithRecovery(cancelledAbortError);
 
@@ -61,8 +62,13 @@ export class Aborter {
         this.abort(new TimeoutError('the request timed out and an automatic abort occurred', timeout));
       });
 
+      this.listeners.state.emit('pending');
+
       request(signal)
-        .then(resolve)
+        .then((response) => {
+          this.listeners.state.emit('fulfilled');
+          resolve(response);
+        })
         .catch((err: Error) => {
           const error: Error = {
             ...err,
@@ -70,10 +76,13 @@ export class Aborter {
           };
 
           if (isErrorNativeBehavior || !Aborter.isError(err) || (err instanceof TimeoutError && err.hasThrow)) {
+            this.listeners.state.emit('rejected');
+
             return reject(error);
           }
 
           if ((error as AbortError)?.type !== 'cancelled') {
+            this.listeners.state.emit('aborted');
             this.listeners.dispatchEvent(
               'aborted',
               new AbortError(error.message, {

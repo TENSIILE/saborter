@@ -15,4 +15,4 @@ export interface FnTryOptions {
   timeout?: TimeoutOptions;
 }
 
-export interface AborterOptions extends Pick<EventListenerOptions, 'onAbort'> {}
+export interface AborterOptions extends Pick<EventListenerOptions, 'onAbort' | 'onStateChange'> {}
