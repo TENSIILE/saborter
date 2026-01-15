@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Aborter, AbortError } from 'saborter';
 
-const getUsers = async signal => {
+const getUsers = async (signal) => {
   const response = await fetch('https://apimocker.com/users?_delay=3000', { signal });
 
   return response.json();
@@ -18,16 +18,16 @@ export const App = () => {
 
         setLoading(true);
         setUsers([]);
-      },
-    }),
+      }
+    })
   );
 
   useEffect(() => {
     return aborterRef.current.listeners.addEventListener('aborted', (e) => {
       setLoading(false);
       setUsers([]);
-    }); 
-  }, [])
+    });
+  }, []);
 
   const handleLoad = async () => {
     const data = await aborterRef.current.try(getUsers);
@@ -49,7 +49,7 @@ export const App = () => {
 
         {loading && <p>Loading...</p>}
         <ul>
-          {users?.map(user => {
+          {users?.map((user) => {
             return <li key={user.id}>{user.name}</li>;
           })}
         </ul>
