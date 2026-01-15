@@ -1,4 +1,4 @@
-import { AbortError } from '../../../features/abort-error';
+import { AbortError } from '../abort-error';
 
 export interface EventMap {
   aborted: AbortError;

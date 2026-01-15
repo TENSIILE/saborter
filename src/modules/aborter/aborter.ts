@@ -1,6 +1,6 @@
 import { AbortError, getCauseMessage, isError, ABORT_ERROR_NAME } from '../../features/abort-error';
 import { Timeout, TimeoutError } from '../../features/timeout';
-import { EventListener } from './event-listener';
+import { EventListener } from '../../features/event-listener';
 import { Utils } from '../../shared';
 import * as Types from './aborter.types';
 
