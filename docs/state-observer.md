@@ -47,20 +47,6 @@ aborter.listeners.state.subscribe(callback);
 aborter.listeners.state.unsubscribe(callback);
 ```
 
-`emit(state): void`
-
-Sets new state and notifies all subscribers.
-
-**Parameters:**
-
-- `state: RequestState` - New state value
-
-**Example:**
-
-```typescript
-aborter.listeners.state.emit('rejected');
-```
-
 ### Properties
 
 `value?: RequestState`
@@ -103,9 +89,6 @@ const aborter = new Aborter({
 const unsubscribe = aborter.listeners.state.subscribe((state) => {
   console.log('Subscriber 1:', state);
 });
-
-// Change state
-aborter.listeners.state.emit('fulfilled');
 
 // Unsubscribe
 unsubscribe();

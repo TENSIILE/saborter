@@ -1,10 +1,12 @@
 import * as Types from './state-observer.types';
 
+const EMIT_SYMBOL = Symbol('STATE-OBSERVER:MTD_EMIT');
+
 export class StateObserver {
   /**
    * Current state value.
    */
-  public value?: Types.State;
+  public value?: Types.RequestState;
 
   /**
    * Callback triggered on state change.
@@ -12,6 +14,10 @@ export class StateObserver {
   public onstatechange?: Types.OnStateChangeCallback;
 
   private subscribers = new Set<Types.OnStateChangeCallback>();
+
+  public static emit = (instance: StateObserver, state: Types.RequestState) => {
+    instance[EMIT_SYMBOL](state);
+  };
 
   constructor(options?: Types.StateListenerOptions) {
     this.onstatechange = options?.onStateChange;
@@ -42,7 +48,7 @@ export class StateObserver {
    * @param state - New state
    * @returns {void}
    */
-  public emit = (state: Types.State): void => {
+  public [EMIT_SYMBOL] = (state: Types.RequestState): void => {
     this.value = state;
 
     this.subscribers.forEach((subscribe) => {
