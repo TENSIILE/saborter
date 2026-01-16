@@ -38,7 +38,7 @@ describe('StateObserver', () => {
     it('должен добавлять callback в подписчики', () => {
       observer.subscribe(mockCallback1);
 
-      observer.emit('fulfilled');
+      StateObserver.emit(observer, 'fulfilled');
 
       expect(mockCallback1).toHaveBeenCalledWith('fulfilled');
     });
@@ -52,7 +52,7 @@ describe('StateObserver', () => {
       observer.subscribe(mockCallback1);
       observer.subscribe(mockCallback2);
 
-      observer.emit('fulfilled');
+      StateObserver.emit(observer, 'fulfilled');
 
       expect(mockCallback1).toHaveBeenCalledWith('fulfilled');
       expect(mockCallback2).toHaveBeenCalledWith('fulfilled');
@@ -64,7 +64,7 @@ describe('StateObserver', () => {
       observer.subscribe(mockCallback1);
       observer.unsubscribe(mockCallback1);
 
-      observer.emit('fulfilled');
+      StateObserver.emit(observer, 'fulfilled');
 
       expect(mockCallback1).not.toHaveBeenCalled();
     });
@@ -78,7 +78,7 @@ describe('StateObserver', () => {
 
   describe('Метод emit', () => {
     it('должен обновлять значение состояния', () => {
-      observer.emit('fulfilled');
+      StateObserver.emit(observer, 'fulfilled');
       expect(observer.value).toBe('fulfilled');
     });
 
@@ -86,7 +86,7 @@ describe('StateObserver', () => {
       observer.subscribe(mockCallback1);
       observer.subscribe(mockCallback2);
 
-      observer.emit('fulfilled');
+      StateObserver.emit(observer, 'fulfilled');
 
       expect(mockCallback1).toHaveBeenCalledTimes(1);
       expect(mockCallback1).toHaveBeenCalledWith('fulfilled');
@@ -99,14 +99,14 @@ describe('StateObserver', () => {
         onStateChange: mockOnStateChange
       });
 
-      observerWithCallback.emit('fulfilled');
+      StateObserver.emit(observerWithCallback, 'fulfilled');
 
       expect(mockOnStateChange).toHaveBeenCalledTimes(1);
       expect(mockOnStateChange).toHaveBeenCalledWith('fulfilled');
     });
 
     it('не должен вызывать onstatechange если он не задан', () => {
-      observer.emit('fulfilled');
+      StateObserver.emit(observer, 'fulfilled');
 
       expect(mockCallback1).not.toHaveBeenCalled();
     });
@@ -114,9 +114,9 @@ describe('StateObserver', () => {
     it('должен корректно обрабатывать множественные вызовы emit', () => {
       observer.subscribe(mockCallback1);
 
-      observer.emit('cancelled');
-      observer.emit('pending');
-      observer.emit('fulfilled');
+      StateObserver.emit(observer, 'cancelled');
+      StateObserver.emit(observer, 'pending');
+      StateObserver.emit(observer, 'fulfilled');
 
       expect(mockCallback1).toHaveBeenCalledTimes(3);
       expect(mockCallback1).toHaveBeenNthCalledWith(1, 'cancelled');
@@ -125,10 +125,10 @@ describe('StateObserver', () => {
     });
 
     it('должен поддерживать корректное состояние после множественных вызовов emit', () => {
-      observer.emit('aborted');
+      StateObserver.emit(observer, 'aborted');
       expect(observer.value).toBe('aborted');
 
-      observer.emit('fulfilled');
+      StateObserver.emit(observer, 'fulfilled');
       expect(observer.value).toBe('fulfilled');
     });
   });
@@ -137,11 +137,11 @@ describe('StateObserver', () => {
     it('должен отписываться с использованием возвращенной функции', () => {
       const unsubscribe = observer.subscribe(mockCallback1);
 
-      observer.emit('aborted');
+      StateObserver.emit(observer, 'aborted');
       expect(mockCallback1).toHaveBeenCalledTimes(1);
 
       unsubscribe();
-      observer.emit('fulfilled');
+      StateObserver.emit(observer, 'fulfilled');
 
       expect(mockCallback1).toHaveBeenCalledTimes(1);
     });
@@ -155,13 +155,13 @@ describe('StateObserver', () => {
 
       observer.subscribe(mockCallback2);
 
-      observer.emit('aborted');
+      StateObserver.emit(observer, 'aborted');
 
       expect(mockCallback1).toHaveBeenCalledTimes(1);
 
       expect(mockCallback2).toHaveBeenCalledTimes(1);
 
-      observer.emit('fulfilled');
+      StateObserver.emit(observer, 'fulfilled');
       expect(mockCallback1).toHaveBeenCalledTimes(1);
       expect(mockCallback2).toHaveBeenCalledTimes(2);
     });
@@ -173,7 +173,7 @@ describe('StateObserver', () => {
       observer.subscribe(() => callOrder.push('второй'));
       observer.subscribe(() => callOrder.push('третий'));
 
-      observer.emit('fulfilled');
+      StateObserver.emit(observer, 'fulfilled');
 
       expect(callOrder).toEqual(['первый', 'второй', 'третий']);
     });
@@ -182,7 +182,7 @@ describe('StateObserver', () => {
       const asyncMock = jest.fn().mockResolvedValue('результат');
       observer.subscribe(asyncMock);
 
-      observer.emit('fulfilled');
+      StateObserver.emit(observer, 'fulfilled');
 
       await Promise.resolve();
 
