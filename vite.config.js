@@ -44,6 +44,7 @@ export default defineConfig({
       fileName: (format) => {
         if (format === 'es') return 'index.es.js';
         if (format === 'cjs') return 'index.cjs.js';
+
         return `index.${format}.js`;
       }
     },

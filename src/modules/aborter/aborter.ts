@@ -1,6 +1,7 @@
 import { AbortError, getCauseMessage, isError, ABORT_ERROR_NAME } from '../../features/abort-error';
 import { Timeout, TimeoutError } from '../../features/timeout';
-import { EventListener } from './event-listener';
+import { EventListener } from '../../features/event-listener';
+import { StateObserver } from '../../features/state-observer';
 import { Utils } from '../../shared';
 import * as Types from './aborter.types';
 
@@ -15,7 +16,7 @@ export class Aborter {
   public listeners: EventListener;
 
   constructor(options?: Types.AborterOptions) {
-    this.listeners = new EventListener({ onAbort: options?.onAbort });
+    this.listeners = new EventListener({ onAbort: options?.onAbort, onStateChange: options?.onStateChange });
   }
 
   /**
@@ -54,6 +55,7 @@ export class Aborter {
         signal: this.signal
       });
 
+      StateObserver.emit(this.listeners.state, 'cancelled');
       this.listeners.dispatchEvent('cancelled', cancelledAbortError);
       const { signal } = this.abortWithRecovery(cancelledAbortError);
 
@@ -61,8 +63,15 @@ export class Aborter {
         this.abort(new TimeoutError('the request timed out and an automatic abort occurred', timeout));
       });
 
+      queueMicrotask(() => {
+        StateObserver.emit(this.listeners.state, 'pending');
+      });
+
       request(signal)
-        .then(resolve)
+        .then((response) => {
+          StateObserver.emit(this.listeners.state, 'fulfilled');
+          resolve(response);
+        })
         .catch((err: Error) => {
           const error: Error = {
             ...err,
@@ -70,10 +79,13 @@ export class Aborter {
           };
 
           if (isErrorNativeBehavior || !Aborter.isError(err) || (err instanceof TimeoutError && err.hasThrow)) {
+            StateObserver.emit(this.listeners.state, 'rejected');
+
             return reject(error);
           }
 
           if ((error as AbortError)?.type !== 'cancelled') {
+            StateObserver.emit(this.listeners.state, 'aborted');
             this.listeners.dispatchEvent(
               'aborted',
               new AbortError(error.message, {

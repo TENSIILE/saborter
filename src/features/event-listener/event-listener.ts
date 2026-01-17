@@ -1,21 +1,27 @@
 import * as Types from './event-listener.types';
+import { StateObserver } from '../state-observer';
 
 export class EventListener {
-  private listeners: Record<Types.EventListenerType, Set<Types.EventCallback<any>>> = {
-    aborted: new Set<Types.EventCallback<'aborted'>>(),
-    cancelled: new Set<Types.EventCallback<'cancelled'>>()
-  };
+  private listeners = {} as Record<Types.EventListenerType, Set<Types.EventCallback<any>>>;
 
   /**
    * Method called when an Aborter request is cancelled
    */
   public onabort?: Types.OnAbortCallback;
 
+  /**
+   * Returns an `StateObserver` object for monitoring the status of requests.
+   */
+  public state = new StateObserver();
+
   constructor(options?: Types.EventListenerOptions) {
     this.onabort = options?.onAbort;
+    this.state.onstatechange = options?.onStateChange;
   }
 
   private getListenersByType = <T extends Types.EventListenerType>(type: T): Set<Types.EventCallback<T>> => {
+    this.listeners[type] ??= new Set();
+
     return this.listeners[type] as Set<Types.EventCallback<T>>;
   };
 

@@ -1,4 +1,5 @@
-import { AbortError } from '../../../features/abort-error';
+import { AbortError } from '../abort-error';
+import { OnStateChangeCallback } from '../state-observer';
 
 export interface EventMap {
   aborted: AbortError;
@@ -15,4 +16,5 @@ export type OnAbortCallback = (error: AbortError) => void;
 
 export interface EventListenerOptions {
   onAbort?: OnAbortCallback;
+  onStateChange?: OnStateChangeCallback;
 }

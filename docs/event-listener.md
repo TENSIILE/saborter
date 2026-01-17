@@ -71,6 +71,12 @@ aborter.listeners.onabort = (event) => {
 };
 ```
 
+`state`
+
+Returns an `StateObserver` object for monitoring the status of requests.
+
+[Detailed documentation here](./state-observer.md)
+
 ## 🎯 Usage Examples
 
 ### Basic Usage
