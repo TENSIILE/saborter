@@ -44,6 +44,11 @@ export class Aborter {
 
   private setRequestState = (state: RequestState): void => {
     StateObserver.emit(this.listeners.state, state);
+
+    if ((['fulfilled', 'rejected', 'aborted'] as RequestState[]).indexOf(state) !== -1) {
+      this.timeout.clearTimeout();
+      this.isRequestInProgress = false;
+    }
   };
 
   /**
@@ -80,7 +85,6 @@ export class Aborter {
         .then((response) => {
           if (!this.isRequestInProgress) return;
 
-          this.isRequestInProgress = false;
           this.setRequestState('fulfilled');
           resolve(response);
         })
@@ -91,7 +95,6 @@ export class Aborter {
           };
 
           if (isErrorNativeBehavior || !Aborter.isError(err) || (err instanceof TimeoutError && err.hasThrow)) {
-            this.isRequestInProgress = false;
             this.setRequestState('rejected');
 
             return reject(error);
@@ -112,9 +115,7 @@ export class Aborter {
 
     this.abortController.abort(reason);
     this.abortController = null;
-    this.isRequestInProgress = false;
     this.setRequestState('aborted');
-    this.timeout.clearTimeout();
 
     const error = getAbortErrorByReason(reason);
 
