@@ -15,6 +15,9 @@ export class StateObserver {
 
   private subscribers = new Set<Types.OnStateChangeCallback>();
 
+  /**
+   * @internal
+   */
   public static emit = (instance: StateObserver, state: Types.RequestState) => {
     instance[EMIT_SYMBOL](state);
   };
