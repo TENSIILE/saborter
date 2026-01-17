@@ -78,11 +78,11 @@ export class Aborter {
 
       request(this.abortController.signal)
         .then((response) => {
-          if (this.isRequestInProgress) {
-            this.isRequestInProgress = false;
-            this.setRequestState('fulfilled');
-            resolve(response);
-          }
+          if (!this.isRequestInProgress) return;
+
+          this.isRequestInProgress = false;
+          this.setRequestState('fulfilled');
+          resolve(response);
         })
         .catch((err: Error) => {
           const error: Error = {
