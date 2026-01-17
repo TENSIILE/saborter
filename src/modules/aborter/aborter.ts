@@ -1,7 +1,7 @@
 import { AbortError, getCauseMessage, isError, ABORT_ERROR_NAME } from '../../features/abort-error';
 import { Timeout, TimeoutError } from '../../features/timeout';
 import { EventListener } from '../../features/event-listener';
-import { StateObserver } from '../../features/state-observer';
+import { StateObserver, RequestState } from '../../features/state-observer';
 import { Utils } from '../../shared';
 import * as Types from './aborter.types';
 
@@ -41,6 +41,10 @@ export class Aborter {
     return this.abortController?.signal;
   }
 
+  private setRequestState = (state: RequestState): void => {
+    StateObserver.emit(this.listeners.state, state);
+  };
+
   /**
    * Performs an asynchronous request with cancellation of the previous request, preventing the call of the catch block when the request is canceled and the subsequent finally block.
    * @param request callback function
@@ -57,7 +61,7 @@ export class Aborter {
         signal: this.signal
       });
 
-      StateObserver.emit(this.listeners.state, 'cancelled');
+      this.setRequestState('cancelled');
       this.listeners.dispatchEvent('cancelled', cancelledAbortError);
       this.abort(cancelledAbortError);
     }
@@ -70,15 +74,13 @@ export class Aborter {
         this.abort(new TimeoutError('the request timed out and an automatic abort occurred', timeout));
       });
 
-      queueMicrotask(() => {
-        StateObserver.emit(this.listeners.state, 'pending');
-      });
+      queueMicrotask(() => this.setRequestState('pending'));
 
       request(this.abortController.signal)
         .then((response) => {
           if (this.isRequestInProgress) {
             this.isRequestInProgress = false;
-            StateObserver.emit(this.listeners.state, 'fulfilled');
+            this.setRequestState('fulfilled');
             resolve(response);
           }
         })
@@ -90,14 +92,14 @@ export class Aborter {
 
           if (isErrorNativeBehavior || !Aborter.isError(err) || (err instanceof TimeoutError && err.hasThrow)) {
             this.isRequestInProgress = false;
-            StateObserver.emit(this.listeners.state, 'rejected');
+            this.setRequestState('rejected');
 
             return reject(error);
           }
 
           if ((error as AbortError)?.type !== 'cancelled') {
             this.isRequestInProgress = false;
-            StateObserver.emit(this.listeners.state, 'aborted');
+            this.setRequestState('aborted');
             this.listeners.dispatchEvent(
               'aborted',
               new AbortError(error.message, {
