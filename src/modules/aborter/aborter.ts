@@ -2,7 +2,8 @@ import { AbortError, getCauseMessage, isError, ABORT_ERROR_NAME } from '../../fe
 import { Timeout, TimeoutError } from '../../features/timeout';
 import { EventListener } from '../../features/event-listener';
 import { StateObserver, RequestState } from '../../features/state-observer';
-import { Utils } from '../../shared';
+import { getAbortErrorByReason } from './aborter.utils';
+import { ErrorMessage } from './aborter.constants';
 import * as Types from './aborter.types';
 
 export class Aborter {
@@ -56,13 +57,12 @@ export class Aborter {
     { isErrorNativeBehavior = false, timeout }: Types.FnTryOptions = {}
   ): Promise<R> => {
     if (this.isRequestInProgress && this.abortController) {
-      const cancelledAbortError = new AbortError('cancellation of the previous AbortController', {
+      const cancelledAbortError = new AbortError(ErrorMessage.CancelRequest, {
         type: 'cancelled',
         signal: this.signal
       });
 
       this.setRequestState('cancelled');
-      this.listeners.dispatchEvent('cancelled', cancelledAbortError);
       this.abort(cancelledAbortError);
     }
 
@@ -71,7 +71,7 @@ export class Aborter {
       this.isRequestInProgress = true;
 
       this.timeout.setTimeout(timeout?.ms, () => {
-        this.abort(new TimeoutError('the request timed out and an automatic abort occurred', timeout));
+        this.abort(new TimeoutError(ErrorMessage.RequestTimedout, timeout));
       });
 
       queueMicrotask(() => this.setRequestState('pending'));
@@ -97,18 +97,6 @@ export class Aborter {
             return reject(error);
           }
 
-          if ((error as AbortError)?.type !== 'cancelled') {
-            this.isRequestInProgress = false;
-            this.setRequestState('aborted');
-            this.listeners.dispatchEvent(
-              'aborted',
-              new AbortError(error.message, {
-                signal: this.signal,
-                reason: Utils.get(error, 'reason') || this.signal?.reason
-              })
-            );
-          }
-
           promise = null;
         });
     });
@@ -120,11 +108,20 @@ export class Aborter {
    * Calling this method sets the AbortSignal flag of this object and signals all observers that the associated action should be aborted.
    */
   public abort = (reason?: any): void => {
-    if (this.abortController) {
-      this.abortController.abort(reason);
-      this.abortController = null;
-      this.isRequestInProgress = false;
-      this.timeout.clearTimeout();
+    if (!this.abortController) return;
+
+    this.abortController.abort(reason);
+    this.abortController = null;
+    this.isRequestInProgress = false;
+    this.setRequestState('aborted');
+    this.timeout.clearTimeout();
+
+    const error = getAbortErrorByReason(reason);
+
+    if (error && error.type) {
+      this.listeners.dispatchEvent(error.type, error);
+    } else {
+      this.listeners.dispatchEvent('aborted', new AbortError(ErrorMessage.AbortedSignalWithoutMessage));
     }
   };
 
