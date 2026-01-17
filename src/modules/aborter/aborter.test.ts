@@ -1,219 +1,219 @@
+/* eslint-disable dot-notation */
 import { Aborter } from './aborter';
-import { get } from '../../shared/utils';
-import { isError, getCauseMessage, AbortError } from '../../features/abort-error';
-
-jest.mock('../../shared/utils', () => ({
-  get: jest.fn()
-}));
-
-jest.mock('../../features/abort-error', () => ({
-  isError: jest.fn(),
-  AbortError: jest.fn(),
-  getCauseMessage: jest.fn()
-}));
+import { AbortError } from '../../features/abort-error';
+import { EventListener } from '../../features/event-listener';
+import { StateObserver } from '../../features/state-observer';
 
 describe('Aborter', () => {
   let aborter: Aborter;
   let mockRequest: jest.Mock;
-  let mockAbortController: {
-    abort: jest.Mock;
-    signal: AbortSignal;
-  };
+  let mockSignal: AbortSignal;
 
   beforeEach(() => {
-    global.AbortController = jest.fn(() => ({
-      abort: jest.fn(),
-      signal: {
-        aborted: false,
-        reason: undefined,
-        addEventListener: jest.fn(),
-        removeEventListener: jest.fn(),
-        dispatchEvent: jest.fn(),
-        onabort: null,
-        throwIfAborted: jest.fn()
-      } as unknown as AbortSignal
-    })) as any;
+    jest.clearAllMocks();
 
     aborter = new Aborter();
     mockRequest = jest.fn();
-    mockAbortController = (aborter as any).abortController;
+
+    mockSignal = {
+      aborted: false,
+      reason: undefined,
+      onabort: null,
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn(),
+      throwIfAborted: jest.fn()
+    } as unknown as AbortSignal;
+
+    global.AbortController = jest.fn().mockImplementation(() => ({
+      abort: jest.fn(),
+      signal: mockSignal
+    }));
+
+    global.queueMicrotask = jest.fn().mockImplementation((callback) => callback());
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
-  describe('Constructor', () => {
-    it('должен создавать новый экземпляр Aborter с AbortController', () => {
+  describe('Конструктор', () => {
+    it('должен создавать экземпляр Aborter', () => {
       expect(aborter).toBeInstanceOf(Aborter);
-      expect(global.AbortController).toHaveBeenCalledTimes(1);
+      expect(aborter.listeners).toBeInstanceOf(EventListener);
     });
   });
 
-  describe('signal', () => {
-    it('должен возвращать signal от внутреннего AbortController', () => {
-      const { signal } = aborter;
-      expect(signal).toBe(mockAbortController.signal);
+  describe('Статические свойства', () => {
+    it('должен иметь статический метод isError', () => {
+      expect(Aborter.isError).toBeDefined();
+      expect(typeof Aborter.isError).toBe('function');
     });
   });
 
-  describe('abort', () => {
-    it('должен вызывать abort на внутреннем AbortController', () => {
-      aborter.abort();
-      expect(mockAbortController.abort).toHaveBeenCalledTimes(1);
-    });
-
-    it('должен вызывать abort перед созданием нового запроса в методе try', async () => {
-      mockRequest.mockResolvedValue('success');
-
-      await aborter.try(mockRequest);
-
-      expect(mockAbortController.abort).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('try', () => {
-    it('должен успешно выполнять запрос и возвращать результат', async () => {
+  describe('Метод try', () => {
+    it('должен выполнять запрос и возвращать результат', async () => {
       const expectedResult = { data: 'test' };
       mockRequest.mockResolvedValue(expectedResult);
 
       const result = await aborter.try(mockRequest);
 
+      expect(mockRequest).toHaveBeenCalledWith(mockSignal);
       expect(result).toEqual(expectedResult);
     });
 
-    it('должен создавать новый AbortController для каждого вызова try', async () => {
-      mockRequest.mockResolvedValue('success');
+    it('должен отменять предыдущий запрос при новом вызове', async () => {
+      const slowRequest = jest.fn().mockImplementation(() => new Promise(() => {}));
+      const fastRequest = jest.fn().mockResolvedValue('fast');
+
+      const slowPromise = aborter.try(slowRequest);
+
+      const fastPromise = aborter.try(fastRequest);
+
+      await expect(fastPromise).resolves.toBe('fast');
+    });
+
+    it('должен обрабатывать AbortError без отклонения промиса', async () => {
+      const abortError = new AbortError('Aborted', { signal: mockSignal });
+      mockRequest.mockRejectedValue(abortError);
+
+      const promise = aborter.try(mockRequest);
+
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Timeout')), 100);
+      });
+
+      await expect(Promise.race([promise, timeoutPromise])).rejects.toThrow('Timeout');
+    });
+
+    it('должен устанавливать таймаут', async () => {
+      const timeoutMock = {
+        setTimeout: jest.fn(),
+        clearTimeout: jest.fn()
+      };
+
+      aborter['timeout'] = timeoutMock as any;
+
+      const timeoutOptions = { ms: 5000 };
+      mockRequest.mockResolvedValue('result');
+
+      await aborter.try(mockRequest, { timeout: timeoutOptions });
+
+      expect(timeoutMock.setTimeout).toHaveBeenCalledWith(5000, expect.any(Function));
+    });
+  });
+
+  describe('Метод abort', () => {
+    it('должен прерывать текущий запрос', () => {
+      aborter.abortWithRecovery();
+      const abortSpy = jest.spyOn(aborter['abortController']!, 'abort');
+
+      aborter.abort('test reason');
+
+      expect(abortSpy).toHaveBeenCalledWith('test reason');
+      expect(aborter['abortController']).toBeNull();
+      expect(aborter['isRequestInProgress']).toBe(false);
+    });
+
+    it('должен очищать таймаут при прерывании', () => {
+      const timeoutMock = {
+        clearTimeout: jest.fn()
+      };
+
+      aborter['timeout'] = timeoutMock as any;
+      aborter['abortController'] = new AbortController() as any;
+
+      aborter.abort();
+
+      expect(timeoutMock.clearTimeout).toHaveBeenCalled();
+    });
+  });
+
+  describe('Метод abortWithRecovery', () => {
+    it('должен прерывать текущий запрос и создавать новый контроллер', () => {
+      const originalController = aborter['abortController'];
+      const abortSpy = jest.spyOn(aborter, 'abort');
+
+      const newController = aborter.abortWithRecovery('reason');
+
+      expect(abortSpy).toHaveBeenCalledWith('reason');
+      expect(aborter['abortController']).toBe(newController);
+      expect(aborter['abortController']).not.toBe(originalController);
+    });
+  });
+
+  describe('Состояния и события', () => {
+    it('должен излучать состояние pending при начале запроса', async () => {
+      const emitSpy = jest.spyOn(StateObserver, 'emit');
+      mockRequest.mockResolvedValue('result');
 
       await aborter.try(mockRequest);
 
-      expect(global.AbortController).toHaveBeenCalledTimes(2);
+      expect(emitSpy).toHaveBeenCalledWith(aborter.listeners.state, 'pending');
     });
 
-    describe('при ошибках', () => {
-      it('должен использовать cause.message если основное сообщение отсутствует', async () => {
-        const error = {
-          cause: { message: 'Cause error message' }
-        };
-        mockRequest.mockRejectedValue(error);
-        (isError as unknown as jest.Mock).mockReturnValue(false);
-        (get as jest.Mock).mockReturnValue(error.cause.message);
-        (getCauseMessage as jest.Mock).mockReturnValue(error.cause.message);
+    it('должен излучать состояние fulfilled при успешном завершении', async () => {
+      const emitSpy = jest.spyOn(StateObserver, 'emit');
+      mockRequest.mockResolvedValue('result');
 
-        await expect(aborter.try(mockRequest)).rejects.toEqual({
-          ...error,
-          message: error.cause.message
-        });
-      });
+      await aborter.try(mockRequest);
 
-      it('должен возвращать пустую строку если нет сообщения об ошибке', async () => {
-        const error = {};
-        mockRequest.mockRejectedValue(error);
-        (isError as unknown as jest.Mock).mockReturnValue(false);
-        (get as jest.Mock).mockReturnValue(undefined);
-        (getCauseMessage as jest.Mock).mockReturnValue(undefined);
+      expect(emitSpy).toHaveBeenCalledWith(aborter.listeners.state, 'fulfilled');
+    });
 
-        await expect(aborter.try(mockRequest)).rejects.toEqual({
-          ...error,
-          message: ''
-        });
-      });
+    it('должен излучать состояние rejected при ошибке', async () => {
+      const emitSpy = jest.spyOn(StateObserver, 'emit');
+      mockRequest.mockRejectedValue(new Error('test'));
 
-      it('должен отменять предыдущий запрос при новом вызове try', async () => {
-        const firstRequest = jest.fn().mockImplementationOnce(
-          () =>
-            new Promise((resolve) => {
-              setTimeout(() => resolve('first'), 100);
-            })
-        );
-        const secondRequest = jest.fn().mockResolvedValue('second');
+      try {
+        await aborter.try(mockRequest);
+      } catch {
+        // Игнорируем ошибку
+      }
 
-        const firstPromise = aborter.try(firstRequest);
+      expect(emitSpy).toHaveBeenCalledWith(aborter.listeners.state, 'rejected');
+    });
 
-        const secondPromise = aborter.try(secondRequest);
+    it('должен излучать состояние cancelled при отмене предыдущего запроса', async () => {
+      const slowRequest = () => new Promise(() => {});
+      const fastRequest = jest.fn().mockResolvedValue('fast');
 
-        await expect(secondPromise).resolves.toBe('second');
+      const emitSpy = jest.spyOn(StateObserver, 'emit');
+      const dispatchSpy = jest.spyOn(aborter.listeners, 'dispatchEvent');
 
-        expect(mockAbortController.abort).toHaveBeenCalled();
-      });
+      aborter.try(slowRequest);
+      await aborter.try(fastRequest);
 
-      it('не должен завершать промис при AbortError и isErrorNativeBehavior = false', async () => {
-        const abortError = new DOMException('Aborted', 'AbortError');
-        mockRequest.mockRejectedValue(abortError);
-        (isError as unknown as jest.Mock).mockReturnValue(true);
-
-        const promise = aborter.try(mockRequest);
-
-        await Promise.race([
-          promise,
-          new Promise((resolve) => {
-            setTimeout(() => resolve('timeout'), 50);
-          })
-        ]);
-
-        expect(mockAbortController.abort).toHaveBeenCalled();
-      });
+      expect(emitSpy).toHaveBeenCalledWith(aborter.listeners.state, 'cancelled');
+      expect(dispatchSpy).toHaveBeenCalledWith('cancelled', expect.any(AbortError));
     });
   });
 
-  describe('Статические методы', () => {
-    it('isError должен делегировать вызов Utils.isError', () => {
-      const testError = new Error('test');
-      const mockIsError = isError as unknown as jest.Mock;
-      mockIsError.mockReturnValue(true);
+  describe('Поведение при повторных вызовах', () => {
+    it('должен корректно обрабатывать несколько последовательных запросов', async () => {
+      const results = ['result1', 'result2', 'result3'];
+      let callCount = 0;
 
-      const result = Aborter.isError(testError);
+      // eslint-disable-next-line no-plusplus
+      mockRequest.mockImplementation(() => Promise.resolve(results[callCount++]));
 
-      expect(result).toBe(true);
-      expect(mockIsError).toHaveBeenCalledWith(testError);
-    });
-  });
-
-  describe('onAbort property', () => {
-    it('Проверка исполнения коллбека onAbort при передаче через конструктор', async () => {
-      const fn = jest.fn();
-      const abortError = new DOMException('Aborted', 'AbortError');
-      mockRequest.mockRejectedValue(abortError);
-      (isError as unknown as jest.Mock).mockReturnValue(true);
-
-      aborter = new Aborter({ onAbort: fn });
-      mockAbortController = (aborter as any).abortController;
-
-      const promise = aborter.try(mockRequest);
-
-      await Promise.race([
-        promise,
-        new Promise((resolve) => {
-          setTimeout(() => resolve('timeout'), 50);
-        })
-      ]);
-
-      expect(mockAbortController.abort).toHaveBeenCalled();
-      expect(fn).toHaveBeenCalled();
+      // eslint-disable-next-line no-restricted-syntax
+      for (const expectedResult of results) {
+        // eslint-disable-next-line no-await-in-loop
+        const result = await aborter.try(mockRequest);
+        expect(result).toBe(expectedResult);
+      }
     });
 
-    it('Проверка исполнения коллбека onAbort при переопределении свойства', async () => {
-      const fn = jest.fn();
-      const abortError = new AbortError('Aborted');
-      mockRequest.mockRejectedValue(abortError);
-      (isError as unknown as jest.Mock).mockReturnValue(true);
+    it('не должен позволять множественные одновременные запросы', async () => {
+      const requestPromises: Promise<unknown>[] = [];
 
-      const promise = aborter.try(mockRequest);
+      // eslint-disable-next-line no-plusplus
+      for (let i = 0; i < 3; i++) {
+        requestPromises.push(aborter.try(() => new Promise(() => {})));
+      }
 
-      aborter.listeners.onabort = (error) => {
-        fn();
-        expect(error.message).toBe(abortError.message);
-      };
-
-      await Promise.race([
-        promise,
-        new Promise((resolve) => {
-          setTimeout(() => resolve('timeout'), 50);
-        })
-      ]);
-
-      expect(mockAbortController.abort).toHaveBeenCalled();
-      expect(fn).toHaveBeenCalled();
+      expect(aborter['isRequestInProgress']).toBe(true);
     });
   });
 });

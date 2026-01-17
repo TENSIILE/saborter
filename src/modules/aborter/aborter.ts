@@ -37,12 +37,8 @@ export class Aborter {
   /**
    * Returns the AbortSignal object associated with this object.
    */
-  public get signal(): AbortSignal {
-    if (!this.abortController) {
-      this.abortController = new AbortController();
-    }
-
-    return this.abortController.signal;
+  public get signal(): AbortSignal | undefined {
+    return this.abortController?.signal;
   }
 
   /**
@@ -106,7 +102,7 @@ export class Aborter {
               'aborted',
               new AbortError(error.message, {
                 signal: this.signal,
-                reason: Utils.get(error, 'reason') || this.signal.reason
+                reason: Utils.get(error, 'reason') || this.signal?.reason
               })
             );
           }
