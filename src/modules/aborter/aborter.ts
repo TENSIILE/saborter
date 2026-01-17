@@ -1,4 +1,4 @@
-import { AbortError, getCauseMessage, isError, ABORT_ERROR_NAME } from '../../features/abort-error';
+import { AbortError, isError, ABORT_ERROR_NAME } from '../../features/abort-error';
 import { Timeout, TimeoutError } from '../../features/timeout';
 import { EventListener } from '../../features/event-listener';
 import { StateObserver, RequestState } from '../../features/state-observer';
@@ -88,13 +88,8 @@ export class Aborter {
           this.setRequestState('fulfilled');
           resolve(response);
         })
-        .catch((err: Error) => {
-          const error: Error = {
-            ...err,
-            message: err?.message || getCauseMessage(err) || ''
-          };
-
-          if (isErrorNativeBehavior || !Aborter.isError(err) || (err instanceof TimeoutError && err.hasThrow)) {
+        .catch((error: Error) => {
+          if (isErrorNativeBehavior || !Aborter.isError(error) || (error instanceof TimeoutError && error.hasThrow)) {
             this.setRequestState('rejected');
 
             return reject(error);

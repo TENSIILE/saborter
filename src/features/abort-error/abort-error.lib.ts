@@ -16,7 +16,3 @@ export const isError = (error: any): error is Error =>
   (Utils.isObject(error) && 'name' in error && error.name === ABORT_ERROR_NAME) ||
   ABORT_ERROR_MESSAGES.includes((error as Error | undefined)?.message ?? '') ||
   checkErrorCause(error);
-
-export const getCauseMessage = (error: unknown) => {
-  return Utils.get<unknown, string>(error, ERROR_CAUSE_PATH_MESSAGE);
-};
