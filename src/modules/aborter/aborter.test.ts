@@ -2,7 +2,7 @@
 import { Aborter } from './aborter';
 import { AbortError } from '../../features/abort-error';
 import { EventListener } from '../../features/event-listener';
-import { EMIT_METHOD_SYMBOL } from '../../features/state-observer/state-obverver.constants';
+import { EMIT_METHOD_SYMBOL } from '../../features/state-observer/state-observer.constants';
 
 describe('Aborter', () => {
   let aborter: Aborter;

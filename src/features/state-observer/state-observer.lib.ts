@@ -1,4 +1,4 @@
-import * as Constants from './state-obverver.constants';
+import * as Constants from './state-observer.constants';
 import { StateObserver } from './state-observer';
 import { RequestState } from './state-observer.types';
 

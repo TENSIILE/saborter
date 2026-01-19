@@ -1,5 +1,5 @@
 import * as Types from './state-observer.types';
-import * as Constants from './state-obverver.constants';
+import * as Constants from './state-observer.constants';
 
 export class StateObserver {
   /**
