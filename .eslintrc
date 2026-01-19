@@ -36,7 +36,7 @@
       "error",
       {
         "arrowParens": "always",
-        "endOfLine": "auto"
+        "endOfLine": "none"
       }
     ]
   },

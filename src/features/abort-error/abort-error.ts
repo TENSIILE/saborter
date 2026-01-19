@@ -1,10 +1,5 @@
 import { ABORT_ERROR_NAME } from './abort-error.constants';
-
-interface AbortErrorOptions {
-  type?: 'cancelled' | 'aborted';
-  reason?: any;
-  signal?: AbortSignal;
-}
+import * as Types from './abort-error.types';
 
 export class AbortError extends Error {
   /**
@@ -17,10 +12,10 @@ export class AbortError extends Error {
    * Interrupt type 'cancelled' | 'aborted'.
    * @default `aborted`
    */
-  public type: AbortErrorOptions['type'];
+  public type: Types.AbortErrorOptions['type'];
 
   /**
-   *The timestamp in milliseconds when the error was created.
+   * The timestamp in milliseconds when the error was created.
    @readonly
    @returns Date.now();
    */
@@ -36,7 +31,17 @@ export class AbortError extends Error {
    */
   public signal?: AbortSignal;
 
-  constructor(message: string, options?: AbortErrorOptions) {
+  /**
+   * A field containing additional error information indicating the reason for the current error.
+   */
+  public cause?: Error;
+
+  /**
+   * field with the name of the error initiator.
+   */
+  public initiator?: Types.AbortInitiator;
+
+  constructor(message: string, options?: Types.AbortErrorOptions) {
     super(message);
 
     this.name = ABORT_ERROR_NAME;
@@ -44,5 +49,7 @@ export class AbortError extends Error {
     this.type = options?.type || 'aborted';
     this.reason = options?.reason;
     this.signal = options?.signal;
+    this.cause = options?.cause;
+    this.initiator = options?.initiator;
   }
 }
