@@ -1,5 +1,6 @@
 import * as Types from './event-listener.types';
-import { StateObserver } from '../state-observer';
+import { StateObserver, clearStateListeners } from '../state-observer';
+import { CLEAR_METHOD_SYMBOL } from './event-listener.constants';
 
 export class EventListener {
   private listeners = {} as Record<Types.EventListenerType, Set<Types.EventCallback<any>>>;
@@ -55,5 +56,15 @@ export class EventListener {
       this.onabort?.(event);
     }
     this.getListenersByType(type).forEach((listener) => listener(event));
+  };
+
+  /**
+   * Clears the object's data completely.
+   * @internal
+   */
+  public [CLEAR_METHOD_SYMBOL] = (): void => {
+    this.listeners = {} as Record<Types.EventListenerType, Set<Types.EventCallback<any>>>;
+    this.onabort = undefined;
+    clearStateListeners(this.state);
   };
 }
