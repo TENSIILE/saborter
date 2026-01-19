@@ -50,6 +50,6 @@ export class AbortError extends Error {
     this.reason = options?.reason;
     this.signal = options?.signal;
     this.cause = options?.cause;
-    this.initiator = options?.initiator;
+    this.initiator = options?.initiator || 'user';
   }
 }
