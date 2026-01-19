@@ -81,7 +81,6 @@ export class Aborter {
           initiator: 'timeout',
           cause: new TimeoutError(ErrorMessage.RequestTimedout, timeout)
         });
-        this.listeners.dispatchEvent('timeout', abortError);
         this.abort(abortError);
       });
 

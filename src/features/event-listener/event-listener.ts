@@ -52,7 +52,7 @@ export class EventListener {
    * Dispatches a synthetic event event to target
    */
   public dispatchEvent = <T extends Types.EventListenerType, E extends Types.EventMap[T]>(type: T, event: E): void => {
-    if (type === 'aborted' || type === 'cancelled' || type === 'timeout') {
+    if (type === 'aborted' || type === 'cancelled') {
       this.onabort?.(event);
     }
     this.getListenersByType(type).forEach((listener) => listener(event));
