@@ -2,8 +2,8 @@ import { AbortError, isError, ABORT_ERROR_NAME } from '../../features/abort-erro
 import { Timeout, TimeoutError } from '../../features/timeout';
 import { EventListener } from '../../features/event-listener';
 import { StateObserver, RequestState } from '../../features/state-observer';
-import { getAbortErrorByReason } from './aborter.utils';
 import { ErrorMessage } from './aborter.constants';
+import * as Utils from './aborter.utils';
 import * as Types from './aborter.types';
 
 export class Aborter {
@@ -64,7 +64,8 @@ export class Aborter {
     if (this.isRequestInProgress && this.abortController) {
       const cancelledAbortError = new AbortError(ErrorMessage.CancelRequest, {
         type: 'cancelled',
-        signal: this.signal
+        signal: this.signal,
+        initiator: 'system'
       });
 
       this.setRequestState('cancelled');
@@ -76,7 +77,12 @@ export class Aborter {
       this.isRequestInProgress = true;
 
       this.timeout.setTimeout(timeout?.ms, () => {
-        this.abort(new TimeoutError(ErrorMessage.RequestTimedout, timeout));
+        const abortError = new AbortError(ErrorMessage.RequestTimedout, {
+          initiator: 'timeout',
+          cause: new TimeoutError(ErrorMessage.RequestTimedout, timeout)
+        });
+        this.listeners.dispatchEvent('timeout', abortError);
+        this.abort(abortError);
       });
 
       queueMicrotask(() => this.setRequestState('pending'));
@@ -89,7 +95,7 @@ export class Aborter {
           resolve(response);
         })
         .catch((error: Error) => {
-          if (isErrorNativeBehavior || !Aborter.isError(error) || (error instanceof TimeoutError && error.hasThrow)) {
+          if (isErrorNativeBehavior || !Aborter.isError(error) || Utils.hasThrowInTimeoutError(error)) {
             this.setRequestState('rejected');
 
             return reject(error);
@@ -112,12 +118,15 @@ export class Aborter {
     this.abortController = null;
     this.setRequestState('aborted');
 
-    const error = getAbortErrorByReason(reason);
+    const error = Utils.getAbortErrorByReason(reason);
 
     if (error && error.type) {
       this.listeners.dispatchEvent(error.type, error);
     } else {
-      this.listeners.dispatchEvent('aborted', new AbortError(ErrorMessage.AbortedSignalWithoutMessage));
+      this.listeners.dispatchEvent(
+        'aborted',
+        new AbortError(ErrorMessage.AbortedSignalWithoutMessage, { initiator: 'user' })
+      );
     }
   };
 
