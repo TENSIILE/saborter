@@ -1,2 +1,2 @@
 export * from './state-observer';
-export type { OnStateChangeCallback } from './state-observer.types';
+export type { OnStateChangeCallback, RequestState } from './state-observer.types';

@@ -16,6 +16,8 @@ export const App = () => {
       onAbort: (e) => {
         if (e.type === 'aborted') return;
 
+        console.log('cancelled', { e });
+
         setLoading(true);
         setUsers([]);
       }
@@ -26,6 +28,8 @@ export const App = () => {
     return aborterRef.current.listeners.addEventListener('aborted', (e) => {
       setLoading(false);
       setUsers([]);
+
+      console.log('aborted', { e });
     });
   }, []);
 
@@ -36,7 +40,7 @@ export const App = () => {
     setUsers(data.data);
   };
 
-  const handleCancel = () => aborterRef.current.abort(new AbortError('non message', { reason: { userId: 1 } }));
+  const handleCancel = () => aborterRef.current.abort(new Error('!!!'));
 
   return (
     <>
