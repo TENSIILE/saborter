@@ -1,4 +1,4 @@
-export interface TimeoutOptions {
+export interface TimeoutErrorOptions {
   /**
    * A flag that determines whether to throw the error further.
    */
@@ -27,7 +27,7 @@ export class TimeoutError extends Error {
    */
   public ms?: number;
 
-  constructor(message: string, options?: TimeoutOptions) {
+  constructor(message: string, options?: TimeoutErrorOptions) {
     super(message);
 
     this.hasThrow = options?.hasThrow ?? false;

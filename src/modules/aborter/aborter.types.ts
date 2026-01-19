@@ -1,5 +1,5 @@
 import { EventListenerOptions } from '../../features/event-listener/event-listener.types';
-import { TimeoutOptions } from '../../features/timeout';
+import { TimeoutErrorOptions } from '../../features/timeout';
 
 export type AbortRequest<T> = (signal: AbortSignal) => Promise<T>;
 
@@ -12,7 +12,7 @@ export interface FnTryOptions {
   /**
    * Automatic request cancellation setting field.
    */
-  timeout?: TimeoutOptions;
+  timeout?: TimeoutErrorOptions;
 }
 
 export interface AborterOptions extends Pick<EventListenerOptions, 'onAbort' | 'onStateChange'> {}
