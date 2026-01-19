@@ -1,3 +1,5 @@
+export type AbortInitiator = 'timeout' | 'user' | 'system';
+
 export interface AbortErrorOptions {
   type?: 'cancelled' | 'aborted';
   reason?: any;
@@ -5,5 +7,3 @@ export interface AbortErrorOptions {
   signal?: AbortSignal;
   initiator?: AbortInitiator;
 }
-
-export type AbortInitiator = 'timeout' | 'user' | 'system';
