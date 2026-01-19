@@ -1,8 +1,8 @@
+import { RequestState, emitRequestState } from '../../features/state-observer';
 import { AbortError, isError, ABORT_ERROR_NAME } from '../../features/abort-error';
 import { Timeout, TimeoutError } from '../../features/timeout';
-import { EventListener } from '../../features/event-listener';
-import { StateObserver, RequestState } from '../../features/state-observer';
 import { ErrorMessage } from './aborter.constants';
+import { EventListener, clearEventListeners } from '../../features/event-listener';
 import * as Utils from './aborter.utils';
 import * as Types from './aborter.types';
 
@@ -43,7 +43,7 @@ export class Aborter {
   }
 
   private setRequestState = (state: RequestState): void => {
-    StateObserver.emit(this.listeners.state, state);
+    emitRequestState(this.listeners.state, state);
 
     if ((['fulfilled', 'rejected', 'aborted'] as RequestState[]).indexOf(state) !== -1) {
       this.timeout.clearTimeout();
@@ -81,7 +81,6 @@ export class Aborter {
           initiator: 'timeout',
           cause: new TimeoutError(ErrorMessage.RequestTimedout, timeout)
         });
-        this.listeners.dispatchEvent('timeout', abortError);
         this.abort(abortError);
       });
 
@@ -139,5 +138,14 @@ export class Aborter {
     this.abortController = new AbortController();
 
     return this.abortController;
+  };
+
+  /**
+   * Clears the object's data completely: all subscriptions in all properties, clears overridden methods, state values.
+   */
+  public dispose = (): void => {
+    this.abortController = null;
+    this.timeout.clearTimeout();
+    clearEventListeners(this.listeners);
   };
 }

@@ -1,6 +1,5 @@
 import * as Types from './state-observer.types';
-
-const EMIT_SYMBOL = Symbol('STATE-OBSERVER:MTD_EMIT');
+import * as Constants from './state-obverver.constants';
 
 export class StateObserver {
   /**
@@ -14,13 +13,6 @@ export class StateObserver {
   public onstatechange?: Types.OnStateChangeCallback;
 
   private subscribers = new Set<Types.OnStateChangeCallback>();
-
-  /**
-   * @internal
-   */
-  public static emit = (instance: StateObserver, state: Types.RequestState) => {
-    instance[EMIT_SYMBOL](state);
-  };
 
   constructor(options?: Types.StateListenerOptions) {
     this.onstatechange = options?.onStateChange;
@@ -48,15 +40,26 @@ export class StateObserver {
 
   /**
    * Sets new state and notifies all subscribers.
+   * @internal
    * @param state - New state
    * @returns {void}
    */
-  public [EMIT_SYMBOL] = (state: Types.RequestState): void => {
+  public [Constants.EMIT_METHOD_SYMBOL] = (state: Types.RequestState): void => {
     this.value = state;
 
     this.subscribers.forEach((subscribe) => {
       subscribe(state);
     });
     this.onstatechange?.(state);
+  };
+
+  /**
+   * Clears the object's data completely.
+   * @internal
+   */
+  public [Constants.CLEAR_METHOD_SYMBOL] = (): void => {
+    this.subscribers = new Set();
+    this.onstatechange = undefined;
+    this.value = undefined;
   };
 }

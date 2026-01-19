@@ -1,5 +1,6 @@
 import * as Types from './event-listener.types';
-import { StateObserver } from '../state-observer';
+import { StateObserver, clearStateListeners } from '../state-observer';
+import { CLEAR_METHOD_SYMBOL } from './event-listener.constants';
 
 export class EventListener {
   private listeners = {} as Record<Types.EventListenerType, Set<Types.EventCallback<any>>>;
@@ -51,9 +52,19 @@ export class EventListener {
    * Dispatches a synthetic event event to target
    */
   public dispatchEvent = <T extends Types.EventListenerType, E extends Types.EventMap[T]>(type: T, event: E): void => {
-    if (type === 'aborted' || type === 'cancelled' || type === 'timeout') {
+    if (type === 'aborted' || type === 'cancelled') {
       this.onabort?.(event);
     }
     this.getListenersByType(type).forEach((listener) => listener(event));
+  };
+
+  /**
+   * Clears the object's data completely.
+   * @internal
+   */
+  public [CLEAR_METHOD_SYMBOL] = (): void => {
+    this.listeners = {} as Record<Types.EventListenerType, Set<Types.EventCallback<any>>>;
+    this.onabort = undefined;
+    clearStateListeners(this.state);
   };
 }

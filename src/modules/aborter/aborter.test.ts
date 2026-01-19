@@ -2,7 +2,7 @@
 import { Aborter } from './aborter';
 import { AbortError } from '../../features/abort-error';
 import { EventListener } from '../../features/event-listener';
-import { StateObserver } from '../../features/state-observer';
+import { EMIT_METHOD_SYMBOL } from '../../features/state-observer/state-obverver.constants';
 
 describe('Aborter', () => {
   let aborter: Aborter;
@@ -144,25 +144,28 @@ describe('Aborter', () => {
 
   describe('Состояния и события', () => {
     it('должен излучать состояние pending при начале запроса', async () => {
-      const emitSpy = jest.spyOn(StateObserver, 'emit');
+      const emitSpy = jest.spyOn(aborter.listeners.state, EMIT_METHOD_SYMBOL);
+
       mockRequest.mockResolvedValue('result');
 
       await aborter.try(mockRequest);
 
-      expect(emitSpy).toHaveBeenCalledWith(aborter.listeners.state, 'pending');
+      expect(emitSpy).toHaveBeenCalledWith('pending');
     });
 
     it('должен излучать состояние fulfilled при успешном завершении', async () => {
-      const emitSpy = jest.spyOn(StateObserver, 'emit');
+      const emitSpy = jest.spyOn(aborter.listeners.state, EMIT_METHOD_SYMBOL);
+
       mockRequest.mockResolvedValue('result');
 
       await aborter.try(mockRequest);
 
-      expect(emitSpy).toHaveBeenCalledWith(aborter.listeners.state, 'fulfilled');
+      expect(emitSpy).toHaveBeenCalledWith('fulfilled');
     });
 
     it('должен излучать состояние rejected при ошибке', async () => {
-      const emitSpy = jest.spyOn(StateObserver, 'emit');
+      const emitSpy = jest.spyOn(aborter.listeners.state, EMIT_METHOD_SYMBOL);
+
       mockRequest.mockRejectedValue(new Error('test'));
 
       try {
@@ -171,20 +174,21 @@ describe('Aborter', () => {
         // Игнорируем ошибку
       }
 
-      expect(emitSpy).toHaveBeenCalledWith(aborter.listeners.state, 'rejected');
+      expect(emitSpy).toHaveBeenCalledWith('rejected');
     });
 
     it('должен излучать состояние cancelled при отмене предыдущего запроса', async () => {
       const slowRequest = () => new Promise(() => {});
       const fastRequest = jest.fn().mockResolvedValue('fast');
 
-      const emitSpy = jest.spyOn(StateObserver, 'emit');
+      const emitSpy = jest.spyOn(aborter.listeners.state, EMIT_METHOD_SYMBOL);
+
       const dispatchSpy = jest.spyOn(aborter.listeners, 'dispatchEvent');
 
       aborter.try(slowRequest);
       await aborter.try(fastRequest);
 
-      expect(emitSpy).toHaveBeenCalledWith(aborter.listeners.state, 'cancelled');
+      expect(emitSpy).toHaveBeenCalledWith('cancelled');
       expect(dispatchSpy).toHaveBeenCalledWith('cancelled', expect.any(AbortError));
     });
   });
