@@ -1,3 +1,4 @@
+npm run fix
 npm run verify
 npm run test
 npx lint-staged
