@@ -124,7 +124,7 @@ const aborter = new Aborter(options?: AborterOptions);
     It takes the new state as an argument.
     Can be overridden via `aborter.listeners.state.onstatechange`
   */
-  onStateChange?: OnStateChangeCallback
+  onStateChange?: OnStateChangeCallback;
 }
 ```
 
@@ -233,6 +233,9 @@ try {
 }
 ```
 
+If you want to catch a timeout error through events or subscriptions, you can do that.
+[Detailed documentation here](./docs/event-listener.md#catching-an-error-by-timeout)
+
 `abort(reason?)`
 
 **Parameters:**
@@ -291,7 +294,9 @@ aborter.abortWithRecovery();
 fetchData();
 ```
 
-`dispose`
+`dispose()`
+
+**Returns:** `void`
 
 Clears the object's data completely: all subscriptions in all properties, clears overridden methods, state values.
 
@@ -356,6 +361,23 @@ const result = await aborter
   });
 ```
 
+### Resource Cleanup
+
+Always abort requests when unmounting components or closing pages:
+
+```javascript
+// In React
+useEffect(() => {
+  const aborter = new Aborter();
+
+  // Make requests
+
+  return () => {
+    aborter.abort(); // Clean up on unmount
+  };
+}, []);
+```
+
 ### Finally block
 
 By ignoring `AbortError` errors, the `finally` block will only be executed if other errors are received or if the request is successful.
@@ -385,25 +407,68 @@ try {
 }
 ```
 
-#### ⚠️ Attention!
+> [!WARNING]
+> With the `isErrorNativeBehavior` flag enabled, the `finally` block will also be executed.
 
-With the `isErrorNativeBehavior` flag enabled, the `finally` block will also be executed.
+## 🐜 Troubleshooting
 
-### Resource Cleanup
+Many people have probably encountered the problem with the `finally` block and the classic `AbortController`. When a request is canceled, the `catch` block is called. Why would `finally` block be called? This behavior only gets in the way and causes problems.
 
-Always abort requests when unmounting components or closing pages:
+**Example:**
 
 ```javascript
-// In React
-useEffect(() => {
-  const aborter = new Aborter();
+const aborterRef = useRef(new Aborter());
 
-  // Make requests
+const handleLoad = async () => {
+  try {
+    setLoading(true);
 
-  return () => {
-    aborter.abort(); // Clean up on unmount
-  };
-}, []);
+    const users = await aborterRef.current.try(getUsers);
+
+    setUsers(users);
+  } catch (error) {
+    console.log(error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+const abortLoad = () => aborterRef.current.abort();
+```
+
+We have a data loading function. In the `try` block, we start the loading state, run the request, wait for it, then cancel the loading and render the data received from the request. In the `catch` block, we wait for any errors associated with the request, such as `400` or `500`, and we'll handle them here. And in the `finally` block, if the request completes successfully or with an error, we cancel the loading state, signaling to the user that the request is not being processed.
+
+If you call the `handleLoad` function multiple times, previous requests will be canceled, but the `catch` block won't catch this problem, meaning we skip the `finally` block, which is exactly what we want. `Aborter` solves this problem.
+But if you call the `abortLoad` function, the `try` block won't run again, and the `catch` block won't work, meaning the `finally` block won't execute either, even though you'd like it to.
+
+**Solution:** don't use the `finally` block and use Aborter's own subscription solution, either through listeners or the onAbort method.
+
+```javascript
+// We use the onAbort method
+const aborterRef = useRef(
+  new Aborter({
+    onAbort: (error) => {
+      if (error.type === 'aborted') {
+        setIsLoading(false);
+      }
+    }
+  })
+);
+
+// We can override this method manually
+aborterRef.current.listeners.onabort = (error) => {
+  if (error.type === 'aborted') {
+    setIsLoading(false);
+  }
+};
+
+// Or subscribe to request cancellation events
+
+const aborterRef = useRef(new Aborter());
+
+const unsubscribe = aborterRef.current.listeners.addEventListener('aborted', () => {
+  setIsLoading(false);
+});
 ```
 
 ## 🎯 Usage Examples
