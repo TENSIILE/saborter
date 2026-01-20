@@ -7,6 +7,20 @@
 
 A simple and effective library for canceling asynchronous requests using AbortController.
 
+## 📚 Documentation
+
+The documentation is divided into several sections:
+
+- [Installation](#📦-installation)
+- [Quick Start](#🚀-quick-start)
+- [Key Features](#📖-key-features)
+- [API](#🔧-api)
+- [Additional APIs](#🔌-additional-apis)
+- [Important Features](#⚠️-important-features)
+- [Troubleshooting](#🐜-troubleshooting)
+- [Usage Examples](#🎯-usage-examples)
+- [Compatibility](#💻-compatibility)
+
 ## 📦 Installation
 
 ```bash
@@ -233,8 +247,7 @@ try {
 }
 ```
 
-If you want to catch a timeout error through events or subscriptions, you can do that.
-[Detailed documentation here](./docs/event-listener.md#catching-an-error-by-timeout)
+If you want to catch a [timeout error through events or subscriptions](./docs/event-listener.md#catching-an-error-by-timeout), you can do that.
 
 `abort(reason?)`
 
@@ -441,34 +454,58 @@ We have a data loading function. In the `try` block, we start the loading state,
 If you call the `handleLoad` function multiple times, previous requests will be canceled, but the `catch` block won't catch this problem, meaning we skip the `finally` block, which is exactly what we want. `Aborter` solves this problem.
 But if you call the `abortLoad` function, the `try` block won't run again, and the `catch` block won't work, meaning the `finally` block won't execute either, even though you'd like it to.
 
-**Solution:** don't use the `finally` block and use Aborter's own subscription solution, either through listeners or the onAbort method.
+**Solution:** don't use the `finally` block and use Aborter's own subscription solution, either through listeners or the onAbort method:
 
 ```javascript
-// We use the onAbort method
 const aborterRef = useRef(
   new Aborter({
     onAbort: (error) => {
       if (error.type === 'aborted') {
-        setIsLoading(false);
+        setLoading(false);
       }
     }
   })
 );
 
-// We can override this method manually
-aborterRef.current.listeners.onabort = (error) => {
-  if (error.type === 'aborted') {
-    setIsLoading(false);
+const handleLoad = async () => {
+  try {
+    setLoading(true);
+
+    const users = await aborterRef.current.try(getUsers);
+
+    setUsers(users);
+    setLoading(false);
+  } catch (error) {
+    // When a request is cancelled via the `abort()` call,
+    // the `catch` block will not be called.
+    setLoading(false);
   }
 };
+```
 
-// Or subscribe to request cancellation events
+You can use a different approach and disable the `isErrorNativeBehavior` setting.
+In the `catch` block, use `Aborter.isError` or an `error instanceof AbortError`, and in the `finally` block, abort the check:
 
+```javascript
 const aborterRef = useRef(new Aborter());
 
-const unsubscribe = aborterRef.current.listeners.addEventListener('aborted', () => {
-  setIsLoading(false);
-});
+const handleLoad = async () => {
+  try {
+    setLoading(true);
+
+    const users = await aborterRef.current.try(getUsers, { isErrorNativeBehavior: true });
+
+    setUsers(users);
+  } catch (error) {
+    if (error instanceof AbortError) return;
+
+    console.log(error);
+  } finally {
+    if (aborterRef.current.signal.aborted) {
+      setLoading(false);
+    }
+  }
+};
 ```
 
 ## 🎯 Usage Examples
