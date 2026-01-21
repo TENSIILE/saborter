@@ -1,12 +1,22 @@
 # Saborter Changelog
 
-## v1.4.0 (January 20th, 2026)
+## v1.4.1 (January 21th, 2026)
+
+### Bug Fixes
+
+- Fixes a bug where the `catch` block would receive a regular error, rather than the custom `AbortError` error. [#29](https://github.com/TENSIILE/saborter/pull/29/commits/17615026f47ead51bbf290d4119dd451b9640d75)
+- Fixes a typing error where IntelliSense does not suggest options for the `AbortError` error. [#29](https://github.com/TENSIILE/saborter/pull/29/commits/bb20db451bc06caa95ea0e645d744863409688b0)
+- The documentation has been corrected: [#29](https://github.com/TENSIILE/saborter/pull/29/commits/1116fb7bd851c405d794aa71991f400a4c12741a)
+  - `RequestState API` now provides a little more information about the `rejected` state.
+  - The `initiator` field for the `AbortError` error is now always `Error`.
+
+## v1.4.0 (January 21th, 2026)
 
 ### New Features
 
 - `Timeout API` - Ability to create automatic cancellation of a request.
   - `TimeoutError` **class** - Error for working with timeout interrupt.
-- `State Request API` - The ability to find out what status the request is currently in.
+- `RequestState API` - The ability to find out what status the request is currently in.
 - `cause` | `initiator` **property** - New properties of `AbortError`.
 - `dispose()` **method** - Clears the object's data completely: all subscriptions in all properties, clears overridden methods, state values.
 
