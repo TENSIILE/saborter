@@ -1,8 +1,7 @@
-import { TimeoutError } from '../timeout';
 import { ABORT_ERROR_NAME } from './abort-error.constants';
 import * as Types from './abort-error.types';
 
-export class AbortError<Options extends Types.AbortErrorOptions = {}> extends Error {
+export class AbortError extends Error {
   /**
    * Interrupt error code.
    * @readonly
@@ -35,14 +34,14 @@ export class AbortError<Options extends Types.AbortErrorOptions = {}> extends Er
   /**
    * A field containing additional error information indicating the reason for the current error.
    */
-  public cause?: Options['initiator'] extends 'timeout' ? TimeoutError : Error;
+  public cause?: Error;
 
   /**
    * field with the name of the error initiator.
    */
   public initiator?: Types.AbortInitiator;
 
-  constructor(message: string, options?: Options) {
+  constructor(message: string, options?: Types.AbortErrorOptions) {
     super(message);
 
     this.name = ABORT_ERROR_NAME;

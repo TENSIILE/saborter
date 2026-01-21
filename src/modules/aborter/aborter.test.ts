@@ -3,6 +3,7 @@ import { Aborter } from './aborter';
 import { AbortError } from '../../features/abort-error';
 import { EventListener } from '../../features/event-listener';
 import { EMIT_METHOD_SYMBOL } from '../../features/state-observer/state-observer.constants';
+import { ErrorMessage } from './aborter.constants';
 
 describe('Aborter', () => {
   let aborter: Aborter;
@@ -110,7 +111,13 @@ describe('Aborter', () => {
 
       aborter.abort('test reason');
 
-      expect(abortSpy).toHaveBeenCalledWith('test reason');
+      const abortError = new AbortError(ErrorMessage.AbortedSignalWithoutMessage, {
+        reason: 'test reason',
+        initiator: 'user',
+        type: 'aborted'
+      });
+
+      expect(abortSpy).toHaveBeenCalledWith(abortError);
       expect(aborter['isRequestInProgress']).toBe(false);
     });
 
