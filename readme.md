@@ -163,7 +163,7 @@ Returns an `EventListener` object to listen for `Aborter` events.
 
 [Detailed documentation here](./docs/event-listener.md)
 
-⚠️ `static errorName`
+⚠️ `[DEPRECATED] static errorName`
 
 Use `AbortError.name`.
 
@@ -484,7 +484,7 @@ const handleLoad = async () => {
 ```
 
 You can use a different approach and disable the `isErrorNativeBehavior` setting.
-In the `catch` block, use `Aborter.isError` or an `error instanceof AbortError`, and in the `finally` block, abort the check:
+In the `catch` block, use `Aborter.isError` or an `error instanceof AbortError`, and in the `finally` block, check for the `signal.aborted` flag:
 
 ```javascript
 const aborterRef = useRef(new Aborter());
