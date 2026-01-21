@@ -54,7 +54,6 @@ import { AbortError } from 'saborter';
 `cause?`
 
 - **Type:** `Error`
-  - If the `initiator` is a `timeout`, the type changes to `TimeoutError`.
 - **Description:** A field containing additional error information indicating the reason for the current error.
 
 `initiator`

@@ -58,7 +58,7 @@ Five types of states are supported:
 - **`cancelled`** - the previous operation was cancelled
 - **`pending`** - the current operation is still in progress
 - **`fulfilled`** - the operation was completed successfully
-- **`rejected`** - the operation was a failure
+- **`rejected`** - the operation was a failure. An error was caught in the request itself, or a syntax error
 - **`aborted`** - the operation was interrupted
 
 `onstatechange?: OnStateChangeCallback`
