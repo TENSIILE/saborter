@@ -7,7 +7,7 @@ import * as Utils from './aborter.utils';
 import * as Types from './aborter.types';
 
 export class Aborter {
-  protected abortController: AbortController | null = null;
+  protected abortController = new AbortController();
 
   protected isRequestInProgress = false;
 
@@ -38,7 +38,7 @@ export class Aborter {
   /**
    * Returns the AbortSignal object associated with this object.
    */
-  public get signal(): AbortSignal | undefined {
+  public get signal(): AbortSignal {
     return this.abortController?.signal;
   }
 
@@ -61,7 +61,7 @@ export class Aborter {
     request: Types.AbortRequest<R>,
     { isErrorNativeBehavior = false, timeout }: Types.FnTryOptions = {}
   ): Promise<R> => {
-    if (this.isRequestInProgress && this.abortController) {
+    if (this.isRequestInProgress) {
       const cancelledAbortError = new AbortError(ErrorMessage.CancelRequest, {
         type: 'cancelled',
         signal: this.signal,
@@ -111,10 +111,9 @@ export class Aborter {
    * Calling this method sets the AbortSignal flag of this object and signals all observers that the associated action should be aborted.
    */
   public abort = (reason?: any): void => {
-    if (!this.abortController) return;
+    if (!this.isRequestInProgress) return;
 
     this.abortController.abort(reason);
-    this.abortController = null;
     this.setRequestState('aborted');
 
     const error = Utils.getAbortErrorByReason(reason);
@@ -144,7 +143,6 @@ export class Aborter {
    * Clears the object's data completely: all subscriptions in all properties, clears overridden methods, state values.
    */
   public dispose = (): void => {
-    this.abortController = null;
     this.timeout.clearTimeout();
     clearEventListeners(this.listeners);
   };

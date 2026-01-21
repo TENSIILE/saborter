@@ -29,8 +29,8 @@ Adds an event listener for the specified event type.
 **Example:**
 
 ```typescript
-const unsubscribe = listener.addEventListener('aborted', (event) => {
-  console.log('Operation aborted:', event);
+const unsubscribe = listener.addEventListener('aborted', (error) => {
+  console.log('Operation aborted:', error);
 });
 
 // Call the returned function to unsubscribe
@@ -46,7 +46,7 @@ Removes an event listener for the specified event type.
 - `type: 'aborted' | 'cancelled'` - event type
 - `listener: (error: AbortError): void` - event handler function to remove
 
-`dispatchEvent(type, event): void`
+`dispatchEvent(type, error): void`
 
 Dispatches an event of the specified type, calling all registered handlers.
 
@@ -66,8 +66,8 @@ Global handler called for any abort event (`aborted` or `cancelled`).
 **Example:**
 
 ```typescript
-aborter.listeners.onabort = (event) => {
-  console.log('Global abort handler:', event);
+aborter.listeners.onabort = (error) => {
+  console.log('Global abort handler:', error);
 };
 ```
 
@@ -86,18 +86,18 @@ import { Aborter, AbortError } from 'saborter';
 
 // Create Aborter instance with global handler
 const aborter = new Aborter({
-  onAbort: (event) => {
-    console.log('Global abort detected:', event);
+  onAbort: (error) => {
+    console.log('Global abort detected:', error);
   }
 });
 
 // Add specific event handlers
-const removeAbortedHandler = aborter.listeners.addEventListener('aborted', (event) => {
-  console.log('Aborted event:', event);
+const removeAbortedHandler = aborter.listeners.addEventListener('aborted', (error) => {
+  console.log('Aborted error:', error);
 });
 
-const removeCancelledHandler = aborter.listeners.addEventListener('cancelled', (event) => {
-  console.log('Cancelled event:', event);
+const removeCancelledHandler = aborter.listeners.addEventListener('cancelled', (error) => {
+  console.log('Cancelled error:', error);
 });
 
 // Dispatch an event
@@ -105,4 +105,41 @@ aborter.listeners.dispatchEvent('aborted', new AbortError('message error'));
 
 // Remove handler
 removeAbortedHandler();
+```
+
+### Catching an error by timeout
+
+```typescript
+import { Aborter } from 'saborter';
+
+// Create Aborter instance with global handler
+const aborter = new Aborter({
+  onAbort: (error) => {
+    if (error.initiator === 'timeout') {
+      // We caught a bug caused by a timeout
+    }
+  }
+});
+
+// Add specific event handlers
+const removeAbortedHandler = aborter.listeners.addEventListener('aborted', (error) => {
+  if (error.initiator === 'timeout') {
+    // We caught a bug caused by a timeout
+  }
+});
+```
+
+#### Getting arguments for an error caused by a timeout
+
+```typescript
+import { Aborter, TimeoutError } from 'saborter';
+
+// Create Aborter instance with global handler
+const aborter = new Aborter({
+  onAbort: (error) => {
+    if (error.initiator === 'timeout' && error.cause instanceof TimeoutError) {
+      console.log(error.cause.ms, error.cause.hasThrow); // `error.cause` — TimeoutError
+    }
+  }
+});
 ```

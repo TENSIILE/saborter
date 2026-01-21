@@ -51,6 +51,24 @@ import { AbortError } from 'saborter';
 - **Description:** AbortSignal that was just interrupted.
 - **Optional:** `true`
 
+`cause?`
+
+- **Type:** `Error`
+  - If the `initiator` is a `timeout`, the type changes to `TimeoutError`.
+- **Description:** A field containing additional error information indicating the reason for the current error.
+
+`initiator`
+
+- **Type:** `'timeout' | 'user' | 'system'`
+- **Description:** A field with the name of the error initiator.
+- **Default:** `user`
+
+When the error is triggered by a `timeout`, it means that automatic request cancellation was configured and the cancellation was successful.
+
+When the error is triggered by the `user`, it means that the user interrupted the request by calling the `abort()` method.
+
+When the error is triggered by the `system`, it means that you caught an error canceling a previous request.
+
 ### Constructor
 
 ```javascript

@@ -1,6 +1,6 @@
 {
   "name": "saborter",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "A simple and efficient library for canceling asynchronous requests using AbortController",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",

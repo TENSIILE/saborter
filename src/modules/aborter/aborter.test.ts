@@ -2,7 +2,7 @@
 import { Aborter } from './aborter';
 import { AbortError } from '../../features/abort-error';
 import { EventListener } from '../../features/event-listener';
-import { EMIT_METHOD_SYMBOL } from '../../features/state-observer/state-obverver.constants';
+import { EMIT_METHOD_SYMBOL } from '../../features/state-observer/state-observer.constants';
 
 describe('Aborter', () => {
   let aborter: Aborter;
@@ -105,13 +105,12 @@ describe('Aborter', () => {
 
   describe('Метод abort', () => {
     it('должен прерывать текущий запрос', () => {
-      aborter.abortWithRecovery();
       const abortSpy = jest.spyOn(aborter['abortController']!, 'abort');
+      aborter['isRequestInProgress'] = true;
 
       aborter.abort('test reason');
 
       expect(abortSpy).toHaveBeenCalledWith('test reason');
-      expect(aborter['abortController']).toBeNull();
       expect(aborter['isRequestInProgress']).toBe(false);
     });
 
@@ -121,7 +120,7 @@ describe('Aborter', () => {
       };
 
       aborter['timeout'] = timeoutMock as any;
-      aborter['abortController'] = new AbortController() as any;
+      aborter['isRequestInProgress'] = true;
 
       aborter.abort();
 
