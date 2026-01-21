@@ -97,7 +97,7 @@ export class Aborter {
           if (isErrorNativeBehavior || !Aborter.isError(error) || Utils.hasThrowInTimeoutError(error)) {
             this.setRequestState('rejected');
 
-            return reject(error);
+            reject(error);
           }
 
           promise = null;
@@ -113,19 +113,13 @@ export class Aborter {
   public abort = (reason?: any): void => {
     if (!this.isRequestInProgress) return;
 
-    this.abortController.abort(reason);
     this.setRequestState('aborted');
 
     const error = Utils.getAbortErrorByReason(reason);
 
-    if (error && error.type) {
-      this.listeners.dispatchEvent(error.type, error);
-    } else {
-      this.listeners.dispatchEvent(
-        'aborted',
-        new AbortError(ErrorMessage.AbortedSignalWithoutMessage, { initiator: 'user' })
-      );
-    }
+    this.listeners.dispatchEvent(error.type!, error);
+
+    this.abortController.abort(error);
   };
 
   /**
