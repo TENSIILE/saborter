@@ -4,8 +4,8 @@
 
 ### Bug Fixes
 
-- Aborting a request is `rejected`, and cancellations of previous requests are ignored.
-- `TimeoutError` is now always accepted as a catch.
+- Aborting a request is `rejected`, and cancellations of previous requests are ignored. [#31](https://github.com/TENSIILE/saborter/pull/31/commits/40a3163732cd3850b833044b89491748119328fe)
+- `TimeoutError` is now always accepted as a catch. [#31](https://github.com/TENSIILE/saborter/pull/31/commits/40a3163732cd3850b833044b89491748119328fe)
 
 ## v1.4.1 (January 21th, 2026)
 
