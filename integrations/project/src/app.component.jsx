@@ -32,11 +32,11 @@ export const App = () => {
 
   return (
     <>
-      <h1>Проверка Saborter</h1>
+      <h1>Saborter Check</h1>
       <div className='card'>
         <div className='gap-2'>
-          <button onClick={handleLoad}>Загрузить</button>
-          <button onClick={handleCancel}>Отменить</button>
+          <button onClick={handleLoad}>Load</button>
+          <button onClick={handleCancel}>Cancel</button>
         </div>
 
         {loading && <p>Loading...</p>}
