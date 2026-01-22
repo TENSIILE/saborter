@@ -1,5 +1,12 @@
 # Saborter Changelog
 
+## v1.4.2 (January 22th, 2026)
+
+### Bug Fixes
+
+- Aborting a request is `rejected`, and cancellations of previous requests are ignored.
+- `TimeoutError` is now always accepted as a catch.
+
 ## v1.4.1 (January 21th, 2026)
 
 ### Bug Fixes

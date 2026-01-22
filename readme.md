@@ -1,6 +1,6 @@
 ![Logo](./assets/logo.png)
 
-[![Npm package](https://img.shields.io/badge/npm%20package-1.4.1-red)](https://www.npmjs.com/package/saborter)
+[![Npm package](https://img.shields.io/badge/npm%20package-1.4.2-red)](https://www.npmjs.com/package/saborter)
 ![Static Badge](https://img.shields.io/badge/coverage-90%25-orange)
 ![Static Badge](https://img.shields.io/badge/license-MIT-blue)
 [![Github](https://img.shields.io/badge/repository-github-color)](https://github.com/TENSIILE/saborter)
@@ -192,7 +192,6 @@ Executes an asynchronous request with the ability to cancel.
   - `isErrorNativeBehavior?: boolean` - a flag for controlling error handling. Default is `false`
   - `timeout?: Object`
     - `ms: number` - Time in milliseconds after which interrupts should be started
-    - `hasThrow?: boolean` - A flag that determines whether to throw the error further
 
 **Returns:** `Promise<T>`
 
@@ -225,13 +224,13 @@ const result = await aborter.try(
   { timeout: { ms: 2000 } }
 );
 
-// If we want to get an error in the "catch" block, then we set "hasThrow:true"
+// We want to get an error in the "catch" block
 try {
   const result = await aborter.try(
     (signal) => {
       return fetch('/api/data', { signal });
     },
-    { timeout: { ms: 2000, hasThrow: true } }
+    { timeout: { ms: 2000 } }
   );
 } catch (error) {
   if (error instanceof AbortError && error.initiator === 'timeout') {
@@ -241,7 +240,7 @@ try {
       // To get the parameters that caused the timeout error,
       // they can be found in the "cause" field using the upstream typeguard.
 
-      console.log(error.cause.ms, error.cause.hasThrow); // `error.cause` — TimeoutError
+      console.log(error.cause.ms); // `error.cause` — TimeoutError
     }
   }
 }
@@ -393,13 +392,13 @@ useEffect(() => {
 
 ### Finally block
 
-By ignoring `AbortError` errors, the `finally` block will only be executed if other errors are received or if the request is successful.
+Ignoring `AbortError` cancellation errors, the `finally` block will only be executed if other errors are received, or if an abort error or the request succeeds.
 
 ```javascript
 const result = await aborter
   .try((signal) => fetch('/api/data', { signal }))
   .catch((error) => {
-    // Any error, except AbortError, will go here
+    // Any error other than a request cancellation will be logged here.
     console.log(error);
   })
   .finally(() => {
@@ -413,7 +412,7 @@ Everything will also work if you use the `try-catch` syntax.
 try {
   const result = await aborter.try((signal) => fetch('/api/data', { signal }));
 } catch (error) {
-  // Any error, except AbortError, will go here
+  // Any error other than a request cancellation will be logged here.
   console.log(error);
 } finally {
   // The request was successfully completed or we caught a "throw"
@@ -430,61 +429,36 @@ Many people have probably encountered the problem with the `finally` block and t
 **Example:**
 
 ```javascript
-const aborterRef = useRef(new Aborter());
+const abortController = useRef(new AbortController());
 
 const handleLoad = async () => {
   try {
     setLoading(true);
 
-    const users = await aborterRef.current.try(getUsers);
+    const users = await fetch('/api/users', { signal: abortController.signal });
 
     setUsers(users);
   } catch (error) {
+    if (error.name === 'AbortError') {
+      console.log('interrupt error handling');
+    }
     console.log(error);
   } finally {
-    setLoading(false);
-  }
-};
-
-const abortLoad = () => aborterRef.current.abort();
-```
-
-We have a data loading function. In the `try` block, we start the loading state, run the request, wait for it, then cancel the loading and render the data received from the request. In the `catch` block, we wait for any errors associated with the request, such as `400` or `500`, and we'll handle them here. And in the `finally` block, if the request completes successfully or with an error, we cancel the loading state, signaling to the user that the request is not being processed.
-
-If you call the `handleLoad` function multiple times, previous requests will be canceled, but the `catch` block won't catch this problem, meaning we skip the `finally` block, which is exactly what we want. `Aborter` solves this problem.
-But if you call the `abortLoad` function, the `try` block won't run again, and the `catch` block won't work, meaning the `finally` block won't execute either, even though you'd like it to.
-
-**Solution:** don't use the `finally` block and use Aborter's own subscription solution, either through listeners or the onAbort method:
-
-```javascript
-const aborterRef = useRef(
-  new Aborter({
-    onAbort: (error) => {
-      if (error.type === 'aborted') {
-        setLoading(false);
-      }
+    if (abortController.current.signal.aborted) {
+      setLoading(false);
     }
-  })
-);
-
-const handleLoad = async () => {
-  try {
-    setLoading(true);
-
-    const users = await aborterRef.current.try(getUsers);
-
-    setUsers(users);
-    setLoading(false);
-  } catch (error) {
-    // When a request is cancelled via the `abort()` call,
-    // the `catch` block will not be called.
-    setLoading(false);
   }
 };
+
+const abortLoad = () => abortController.current.abort();
 ```
 
-You can use a different approach and disable the `isErrorNativeBehavior` setting.
-In the `catch` block, use `Aborter.isError` or an `error instanceof AbortError`, and in the `finally` block, check for the `signal.aborted` flag:
+The problem is obvious: checking the error by name, checking the condition to see if the `AbortController` was actually terminated in the `finally` block—it's all rather inconvenient.
+
+How `Aborter` solves these problems:
+
+The name check is gone, replaced by an instance check. It's easy to make a typo in the error name and not be able to fix it. With `instanceof` this problem disappears.
+With the `finally` block, everything has become even simpler. The condition that checked for termination is completely gone.
 
 ```javascript
 const aborterRef = useRef(new Aborter());
@@ -493,7 +467,7 @@ const handleLoad = async () => {
   try {
     setLoading(true);
 
-    const users = await aborterRef.current.try(getUsers, { isErrorNativeBehavior: true });
+    const users = await aborterRef.current.try(getUsers);
 
     setUsers(users);
   } catch (error) {
@@ -501,9 +475,7 @@ const handleLoad = async () => {
 
     console.log(error);
   } finally {
-    if (aborterRef.current.signal.aborted) {
-      setLoading(false);
-    }
+    setLoading(false);
   }
 };
 ```
