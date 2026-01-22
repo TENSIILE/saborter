@@ -256,6 +256,8 @@ If you want to catch a [timeout error through events or subscriptions](./docs/ev
 
 Immediately cancels the currently executing request.
 
+**Examples:**
+
 ```javascript
 // Start the request
 const requestPromise = aborter.try((signal) => fetch('/api/data', { signal }), { isErrorNativeBehavior: true });
@@ -271,6 +273,46 @@ requestPromise.catch((error) => {
 });
 ```
 
+You can specify any data as the `reason`.
+If we want to pass an `object`, we can put the error message in the `message` field. The same object will be available as the `reason` in the case of the `AbortError` error.
+
+```javascript
+// Start the request
+const requestPromise = aborter.try((signal) => fetch('/api/data', { signal }));
+
+// Cancel
+aborter.abort({ message: 'Hello', data: [] });
+
+// Handle cancellation
+requestPromise.catch((error) => {
+  if (error instanceof AbortError) {
+    console.log(error.message); // Hello
+    console.log(error.reason); // { message: 'Hello', data: [] }
+  }
+});
+```
+
+You can also submit your own `AbortError` with your own settings.
+
+> [!WARNING]
+> Please be careful, the behavior of the `Aborter` function may be broken in its original form when reconfiguring the options.
+
+```javascript
+// Start the request
+const requestPromise = aborter.try((signal) => fetch('/api/data', { signal }));
+
+// Cancel
+aborter.abort(new AbortError('Custom AbortError message', { reason: 1 }));
+
+// Handle cancellation
+requestPromise.catch((error) => {
+  if (error instanceof AbortError) {
+    console.log(error.message); // Custom AbortError message
+    console.log(error.reason); // 1
+  }
+});
+```
+
 `abortWithRecovery(reason?)`
 
 Immediately cancels the currently executing request.
@@ -281,6 +323,8 @@ After aborting, it restores the `AbortSignal`, resetting the `isAborted` propert
 - `reason?: any` - the reason for aborting the request (optional)
 
 **Returns:** `AbortController`
+
+**Examples:**
 
 ```javascript
 // Create an Aborter instance
