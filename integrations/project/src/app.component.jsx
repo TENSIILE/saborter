@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Aborter } from 'saborter';
+import { AbortError, Aborter } from 'saborter';
 
 const getUsers = async (signal) => {
   const response = await fetch('https://apimocker.com/users?_delay=3000', { signal });
@@ -11,29 +11,21 @@ export const App = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const aborterRef = useRef(
-    new Aborter({
-      onStateChange: (state) => {
-        if (state === 'pending') {
-          setLoading(true);
-          setUsers([]);
-
-          return;
-        }
-
-        if (state !== 'cancelled') {
-          setLoading(false);
-          setUsers([]);
-        }
-      }
-    })
-  );
+  const aborterRef = useRef(new Aborter());
 
   const handleLoad = async () => {
-    const data = await aborterRef.current.try(getUsers);
+    try {
+      setLoading(true);
+      setUsers([]);
 
-    setLoading(false);
-    setUsers(data.data);
+      const data = await aborterRef.current.try(getUsers);
+
+      setUsers(data.data);
+    } catch (error) {
+      console.log(error instanceof AbortError);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCancel = () => aborterRef.current.abort();
