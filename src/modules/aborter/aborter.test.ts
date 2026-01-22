@@ -74,7 +74,7 @@ describe('Aborter', () => {
       await expect(fastPromise).resolves.toBe('fast');
     });
 
-    it('должен обрабатывать AbortError без отклонения промиса', async () => {
+    it('должен обрабатывать AbortError c отклонением промиса', async () => {
       const abortError = new AbortError('Aborted', { signal: mockSignal });
       mockRequest.mockRejectedValue(abortError);
 
@@ -84,7 +84,7 @@ describe('Aborter', () => {
         setTimeout(() => reject(new Error('Timeout')), 100);
       });
 
-      await expect(Promise.race([promise, timeoutPromise])).rejects.toThrow('Timeout');
+      await expect(Promise.race([promise, timeoutPromise])).rejects.toThrow('Aborted');
     });
 
     it('должен устанавливать таймаут', async () => {

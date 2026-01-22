@@ -94,7 +94,11 @@ export class Aborter {
           resolve(response);
         })
         .catch((error: Error) => {
-          if (isErrorNativeBehavior || !Aborter.isError(error) || Utils.hasThrowInTimeoutError(error)) {
+          if (error instanceof AbortError && error.type === 'aborted') {
+            reject(error);
+          }
+
+          if (isErrorNativeBehavior || !Aborter.isError(error)) {
             this.setRequestState('rejected');
 
             reject(error);

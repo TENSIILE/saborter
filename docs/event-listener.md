@@ -138,7 +138,7 @@ import { Aborter, TimeoutError } from 'saborter';
 const aborter = new Aborter({
   onAbort: (error) => {
     if (error.initiator === 'timeout' && error.cause instanceof TimeoutError) {
-      console.log(error.cause.ms, error.cause.hasThrow); // `error.cause` — TimeoutError
+      console.log(error.cause.ms); // `error.cause` — TimeoutError
     }
   }
 });
