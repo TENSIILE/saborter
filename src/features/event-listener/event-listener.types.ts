@@ -12,9 +12,18 @@ export type EventCallback<T extends EventListenerType> = EventMap[T] extends und
   ? () => void
   : (event: EventMap[T]) => void;
 
+export interface EventListenerOptions {
+  once?: boolean;
+}
+
 export type OnAbortCallback = (error: AbortError) => void;
 
-export interface EventListenerOptions {
+export interface EventListenerConstructorOptions {
   onAbort?: OnAbortCallback;
   onStateChange?: OnStateChangeCallback;
+}
+
+export interface ListenerWrapper<K extends EventListenerType> {
+  originalListener: (event: EventMap[K]) => any;
+  wrappedListener?: (event: EventMap[K]) => any;
 }
