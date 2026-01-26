@@ -501,9 +501,6 @@ The problem is obvious: checking the error by name, checking the condition to se
 
 How `Aborter` solves these problems:
 
-The name check is gone, replaced by an instance check. It's easy to make a typo in the error name and not be able to fix it. With `instanceof` this problem disappears.
-With the `finally` block, everything has become even simpler. The condition that checked for termination is completely gone.
-
 ```javascript
 const aborterRef = useRef(new Aborter());
 
@@ -517,6 +514,34 @@ const handleLoad = async () => {
   } catch (error) {
     if (error instanceof AbortError) return;
 
+    console.log(error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+const abortLoad = () => abortController.current.abort();
+```
+
+The name check is gone, replaced by an instance check. It's easy to make a typo in the error name and not be able to fix it. With `instanceof` this problem disappears.
+With the `finally` block, everything has become even simpler. The condition that checked for termination is completely gone.
+
+> [!NOTE]
+> If you do not use the `abort()` method to terminate a request, then the check for `AbortError` in the `catch` block can be excluded.
+
+**Example:**
+
+```javascript
+const aborterRef = useRef(new Aborter());
+
+const handleLoad = async () => {
+  try {
+    setLoading(true);
+
+    const users = await aborterRef.current.try(getUsers);
+
+    setUsers(users);
+  } catch (error) {
     console.log(error);
   } finally {
     setLoading(false);
