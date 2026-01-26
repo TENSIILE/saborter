@@ -473,7 +473,7 @@ Many people have probably encountered the problem with the `finally` block and t
 **Example:**
 
 ```javascript
-const abortController = useRef(new AbortController());
+const abortController = new AbortController();
 
 const handleLoad = async () => {
   try {
@@ -488,13 +488,13 @@ const handleLoad = async () => {
     }
     console.log(error);
   } finally {
-    if (abortController.current.signal.aborted) {
+    if (abortController.signal.aborted) {
       setLoading(false);
     }
   }
 };
 
-const abortLoad = () => abortController.current.abort();
+const abortLoad = () => abortController.abort();
 ```
 
 The problem is obvious: checking the error by name, checking the condition to see if the `AbortController` was actually terminated in the `finally` block—it's all rather inconvenient.
@@ -502,13 +502,13 @@ The problem is obvious: checking the error by name, checking the condition to se
 How `Aborter` solves these problems:
 
 ```javascript
-const aborterRef = useRef(new Aborter());
+const aborter = new Aborter();
 
 const handleLoad = async () => {
   try {
     setLoading(true);
 
-    const users = await aborterRef.current.try(getUsers);
+    const users = await aborter.try(getUsers);
 
     setUsers(users);
   } catch (error) {
@@ -520,7 +520,7 @@ const handleLoad = async () => {
   }
 };
 
-const abortLoad = () => abortController.current.abort();
+const abortLoad = () => aborter.abort();
 ```
 
 The name check is gone, replaced by an instance check. It's easy to make a typo in the error name and not be able to fix it. With `instanceof` this problem disappears.
@@ -532,13 +532,13 @@ With the `finally` block, everything has become even simpler. The condition that
 **Example:**
 
 ```javascript
-const aborterRef = useRef(new Aborter());
+const aborter = new Aborter();
 
 const handleLoad = async () => {
   try {
     setLoading(true);
 
-    const users = await aborterRef.current.try(getUsers);
+    const users = await aborter.try(getUsers);
 
     setUsers(users);
   } catch (error) {
