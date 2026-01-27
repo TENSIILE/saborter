@@ -3,6 +3,7 @@
 ## v1.5.0
 
 - Adds a one-time execution option (`once`) to `EventListener`
+- Adds the `isAborted` flag to `Aborter`
 
 ## v1.4.2 (January 22th, 2026)
 

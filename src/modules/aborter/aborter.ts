@@ -36,7 +36,15 @@ export class Aborter {
   public static isError = isError;
 
   /**
+   * Returns true if this AbortSignal's Aborter has signaled to abort, and false otherwise.
+   */
+  public get isAborted(): boolean {
+    return this.signal.aborted && this.listeners.state.value === 'aborted';
+  }
+
+  /**
    * Returns the AbortSignal object associated with this object.
+   * @deprecated
    */
   public get signal(): AbortSignal {
     return this.abortController?.signal;
