@@ -88,7 +88,7 @@ export class EventListener {
    * @internal
    */
   public [CLEAR_METHOD_SYMBOL] = (): void => {
-    this.listeners = {} as Record<Types.EventListenerType, Set<Types.ListenerWrapper<any>>>;
+    Object.values(this.listeners).forEach((listeners) => listeners.clear());
     this.onabort = undefined;
     clearStateListeners(this.state);
   };
