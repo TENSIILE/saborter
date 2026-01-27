@@ -3,7 +3,7 @@ import { StateObserver, clearStateListeners } from '../state-observer';
 import { CLEAR_METHOD_SYMBOL } from './event-listener.constants';
 
 export class EventListener {
-  private listeners = {} as Record<Types.EventListenerType, Set<Types.EventCallback<any>>>;
+  private listeners = {} as Record<Types.EventListenerType, Set<Types.ListenerWrapper<any>>>;
 
   /**
    * Method called when an Aborter request is cancelled
@@ -15,25 +15,38 @@ export class EventListener {
    */
   public state = new StateObserver();
 
-  constructor(options?: Types.EventListenerOptions) {
+  constructor(options?: Types.EventListenerConstructorOptions) {
     this.onabort = options?.onAbort;
     this.state.onstatechange = options?.onStateChange;
   }
 
-  private getListenersByType = <T extends Types.EventListenerType>(type: T): Set<Types.EventCallback<T>> => {
+  private getListenersByType = <T extends Types.EventListenerType>(type: T): Set<Types.ListenerWrapper<T>> => {
     this.listeners[type] ??= new Set();
 
-    return this.listeners[type] as Set<Types.EventCallback<T>>;
+    return this.listeners[type] as Set<Types.ListenerWrapper<T>>;
   };
 
   /**
    * Appends an event listener for events whose type attribute value is type. The callback argument sets the callback that will be invoked when the event is dispatched.
    */
-  public addEventListener = <T extends Types.EventListenerType, L extends Types.EventCallback<T>>(
+  public addEventListener = <T extends Types.EventListenerType>(
     type: T,
-    listener: L
+    listener: Types.EventCallback<T>,
+    options?: Types.EventListenerOptions
   ): VoidFunction => {
-    this.getListenersByType(type).add(listener);
+    const wrapper: Types.ListenerWrapper<T> = {
+      originalListener: listener
+    };
+
+    if (options?.once) {
+      const onceWrapper = (event: Types.EventMap[T]) => {
+        listener(event);
+        this.getListenersByType(type).delete(wrapper);
+      };
+      wrapper.wrappedListener = onceWrapper;
+    }
+
+    this.getListenersByType(type).add(wrapper);
 
     return () => this.removeEventListener(type, listener);
   };
@@ -41,21 +54,33 @@ export class EventListener {
   /**
    * Removes the event listener in target's event listener list with the same type and callback.
    */
-  public removeEventListener = <T extends Types.EventListenerType, L extends Types.EventCallback<T>>(
-    type: T,
-    listener: L
-  ): void => {
-    this.getListenersByType(type).delete(listener);
+  public removeEventListener = <T extends Types.EventListenerType>(type: T, listener: Types.EventCallback<T>): void => {
+    const listeners = this.getListenersByType(type);
+
+    // eslint-disable-next-line no-restricted-syntax
+    for (const wrapper of listeners) {
+      if (wrapper.originalListener === listener) {
+        this.getListenersByType(type).delete(wrapper);
+        break;
+      }
+    }
   };
 
   /**
    * Dispatches a synthetic event event to target
    */
-  public dispatchEvent = <T extends Types.EventListenerType, E extends Types.EventMap[T]>(type: T, event: E): void => {
+  public dispatchEvent = <T extends Types.EventListenerType>(type: T, event: Types.EventMap[T]): void => {
     if (type === 'aborted' || type === 'cancelled') {
       this.onabort?.(event);
     }
-    this.getListenersByType(type).forEach((listener) => listener(event));
+
+    const listeners = [...this.getListenersByType(type)];
+
+    listeners.forEach((wrapper) => {
+      const listener = wrapper.wrappedListener || wrapper.originalListener;
+
+      listener(event);
+    });
   };
 
   /**
@@ -63,7 +88,7 @@ export class EventListener {
    * @internal
    */
   public [CLEAR_METHOD_SYMBOL] = (): void => {
-    this.listeners = {} as Record<Types.EventListenerType, Set<Types.EventCallback<any>>>;
+    Object.values(this.listeners).forEach((listeners) => listeners.clear());
     this.onabort = undefined;
     clearStateListeners(this.state);
   };

@@ -1,5 +1,9 @@
 # Saborter Changelog
 
+## v1.5.0
+
+- Adds a one-time execution option (`once`) to `EventListener`
+
 ## v1.4.2 (January 22th, 2026)
 
 ### Bug Fixes

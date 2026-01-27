@@ -58,7 +58,7 @@ export class StateObserver {
    * @internal
    */
   public [Constants.CLEAR_METHOD_SYMBOL] = (): void => {
-    this.subscribers = new Set();
+    this.subscribers.clear();
     this.onstatechange = undefined;
     this.value = undefined;
   };
