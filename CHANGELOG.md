@@ -2,7 +2,8 @@
 
 ## v1.5.0
 
-- Adds a one-time execution option (`once`) to `EventListener`
+- Adds a one-time execution option (`once`) to `EventListener` [#32](https://github.com/TENSIILE/saborter/pull/32)
+- Adds an extended stack for the `AbortError` error [#33](https://github.com/TENSIILE/saborter/pull/33)
 
 ## v1.4.2 (January 22th, 2026)
 

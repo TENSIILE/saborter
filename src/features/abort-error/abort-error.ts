@@ -1,4 +1,4 @@
-import { ABORT_ERROR_NAME } from './abort-error.constants';
+import { ABORT_ERROR_NAME, ABORT_ERROR_ADDITIONAL_INFO } from './abort-error.constants';
 import * as Types from './abort-error.types';
 
 export class AbortError extends Error {
@@ -51,5 +51,33 @@ export class AbortError extends Error {
     this.signal = options?.signal;
     this.cause = options?.cause;
     this.initiator = options?.initiator || 'user';
+
+    this.expandStack();
   }
+
+  private getAdditionalInfo = () => {
+    const info = {
+      timestamp: new Date(this.timestamp).toISOString(),
+      reason: this.reason,
+      type: this.type,
+      initiator: this.initiator,
+      cause: this.cause?.stack
+    };
+
+    return `\n${ABORT_ERROR_ADDITIONAL_INFO}: ${JSON.stringify(info, null, 2)}`;
+  };
+
+  /**
+   * Expands the stack with additional error information.
+   */
+  public expandStack = (): void => {
+    this.stack += this.getAdditionalInfo();
+  };
+
+  /**
+   * Restores the stack to default.
+   */
+  public restoreStack = (): void => {
+    Error.captureStackTrace(this, AbortError);
+  };
 }
