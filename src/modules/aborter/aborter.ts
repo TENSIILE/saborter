@@ -36,10 +36,10 @@ export class Aborter {
   public static isError = isError;
 
   /**
-   * Returns true if this AbortSignal's Aborter has signaled to abort, and false otherwise.
+   * Returns true if Aborter has signaled to abort, and false otherwise.
    */
   public get isAborted(): boolean {
-    return this.signal.aborted && this.listeners.state.value === 'aborted';
+    return this.listeners.state.value === 'aborted';
   }
 
   /**
@@ -125,13 +125,13 @@ export class Aborter {
   public abort = (reason?: any): void => {
     if (!this.isRequestInProgress) return;
 
-    this.setRequestState('aborted');
-
     const error = Utils.getAbortErrorByReason(reason);
 
     this.listeners.dispatchEvent(error.type!, error);
 
     this.abortController.abort(error);
+
+    this.setRequestState('aborted');
   };
 
   /**

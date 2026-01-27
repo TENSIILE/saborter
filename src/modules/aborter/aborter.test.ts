@@ -136,7 +136,6 @@ describe('Aborter', () => {
 
     it('Свойство isAborted должно быть true', () => {
       aborter['isRequestInProgress'] = true;
-
       aborter.abort('test reason');
 
       expect(aborter['isRequestInProgress']).toBe(false);
