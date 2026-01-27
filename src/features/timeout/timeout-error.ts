@@ -3,6 +3,10 @@ export interface TimeoutErrorOptions {
    * Time in milliseconds after which interrupts should be started.
    */
   ms: number;
+  /**
+   * A field that stores any metadata passed into the error.
+   */
+  reason?: any;
 }
 
 export class TimeoutError extends Error {
@@ -18,9 +22,15 @@ export class TimeoutError extends Error {
    */
   public ms?: number;
 
+  /**
+   * A field storing the error reason. Can contain any metadata.
+   */
+  public reason?: any;
+
   constructor(message: string, options?: TimeoutErrorOptions) {
     super(message);
 
     this.ms = options?.ms;
+    this.reason = options?.reason;
   }
 }

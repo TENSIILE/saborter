@@ -80,9 +80,13 @@ When the error is triggered by the `system`, it means that you caught an error c
 Expands the `stack` with additional error information.
 Enabled by `default`.
 
+**Returns:** `void`
+
 `restoreStack()`
 
 Restores the `stack` to default.
+
+**Returns:** `void`
 
 ### Constructor
 
