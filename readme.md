@@ -1,6 +1,6 @@
 ![Logo](./assets/logo.png)
 
-[![Npm package](https://img.shields.io/badge/npm%20package-1.4.2-red)](https://www.npmjs.com/package/saborter)
+[![Npm package](https://img.shields.io/npm/v/saborter?color=red&label=npm%20package)](https://www.npmjs.com/package/saborter)
 ![Static Badge](https://img.shields.io/badge/coverage-90%25-orange)
 ![Static Badge](https://img.shields.io/badge/license-MIT-blue)
 [![Github](https://img.shields.io/badge/repository-github-color)](https://github.com/TENSIILE/saborter)
@@ -733,3 +733,7 @@ export default {
 - **Browsers:** All modern browsers that support AbortController
 - **Node.js:** Requires a polyfill for AbortController (version 16+ has built-in support)
 - **TypeScript:** Full type support
+
+## 📄 Licence
+
+MIT License - see [LICENSE](./LICENSE) for details.
