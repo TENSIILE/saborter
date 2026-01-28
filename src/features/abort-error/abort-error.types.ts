@@ -5,7 +5,7 @@ export type AbortType = 'cancelled' | 'aborted';
 export interface AbortErrorOptions {
   type?: AbortType;
   reason?: any;
-  cause?: any;
+  cause?: Error;
   signal?: AbortSignal;
   initiator?: AbortInitiator;
 }
