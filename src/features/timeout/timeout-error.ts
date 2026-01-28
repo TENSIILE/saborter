@@ -1,3 +1,5 @@
+import { ExtendedStackError } from '../extended-stack-error';
+
 export interface TimeoutErrorOptions {
   /**
    * Time in milliseconds after which interrupts should be started.
@@ -9,7 +11,7 @@ export interface TimeoutErrorOptions {
   reason?: any;
 }
 
-export class TimeoutError extends Error {
+export class TimeoutError extends ExtendedStackError {
   /**
    *The timestamp in milliseconds when the error was created.
    @readonly
@@ -32,5 +34,15 @@ export class TimeoutError extends Error {
 
     this.ms = options?.ms;
     this.reason = options?.reason;
+
+    this.expandStack();
+  }
+
+  protected override get additionalStackInfo(): Record<string, any> {
+    return {
+      timestamp: new Date(this.timestamp).toISOString(),
+      ms: this.ms,
+      reason: this.reason
+    };
   }
 }
