@@ -34,6 +34,22 @@ import { TimeoutError } from 'saborter';
 - **Description:** A field displaying the time in milliseconds after which the request was interrupted.
 - **Optional:** `true`
 
+`reason?`
+
+- **Type:** `any`
+- **Description:** Additional reason or data associated with the interrupt.
+- **Optional:** `true`
+
+### Methods
+
+`static restoreStack()`
+
+Initially, the error `stack` is extended with additional error metadata information.
+
+Restores the `stack` to default.
+
+**Returns:** `void`
+
 ### Constructor
 
 ```javascript

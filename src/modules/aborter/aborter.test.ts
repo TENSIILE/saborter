@@ -133,6 +133,21 @@ describe('Aborter', () => {
 
       expect(timeoutMock.clearTimeout).toHaveBeenCalled();
     });
+
+    it('Вызов коллбека onAbort при прерывании запроса', async () => {
+      const firstRequest = jest.fn().mockImplementation(() => new Promise(() => {}));
+      const secondRequest = jest.fn().mockResolvedValue('second');
+
+      const fn = jest.fn();
+
+      const aborterInstance = new Aborter({ onAbort: fn });
+
+      const firstPromise = aborterInstance.try(firstRequest);
+      const secondPromise = aborterInstance.try(secondRequest);
+
+      expect(fn).toHaveBeenCalled();
+      await expect(secondPromise).resolves.toBe('second');
+    });
   });
 
   describe('Метод abortWithRecovery', () => {
