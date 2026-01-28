@@ -75,14 +75,9 @@ When the error is triggered by the `system`, it means that you caught an error c
 
 ### Methods
 
-`expandStack()`
+`static restoreStack()`
 
-Expands the `stack` with additional error information.
-Enabled by `default`.
-
-**Returns:** `void`
-
-`restoreStack()`
+Initially, the error `stack` is extended with additional error metadata information.
 
 Restores the `stack` to default.
 
