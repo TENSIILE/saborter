@@ -68,7 +68,6 @@ export class Aborter {
         initiator: 'system'
       });
 
-      this.setRequestState('cancelled');
       this.abort(cancelledAbortError);
     }
 
@@ -117,13 +116,13 @@ export class Aborter {
   public abort = (reason?: any): void => {
     if (!this.isRequestInProgress) return;
 
-    this.setRequestState('aborted');
-
     const error = Utils.getAbortErrorByReason(reason);
 
     this.listeners.dispatchEvent(error.type!, error);
 
     this.abortController.abort(error);
+
+    this.setRequestState(error.type!);
   };
 
   /**
