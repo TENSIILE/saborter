@@ -1,7 +1,8 @@
+import { ExtendedStackError } from '../extended-stack-error';
 import { ABORT_ERROR_NAME } from './abort-error.constants';
 import * as Types from './abort-error.types';
 
-export class AbortError extends Error {
+export class AbortError extends ExtendedStackError {
   /**
    * Interrupt error code.
    * @readonly
@@ -38,6 +39,7 @@ export class AbortError extends Error {
 
   /**
    * field with the name of the error initiator.
+   * @default `user`
    */
   public initiator?: Types.AbortInitiator;
 
@@ -51,5 +53,16 @@ export class AbortError extends Error {
     this.signal = options?.signal;
     this.cause = options?.cause;
     this.initiator = options?.initiator || 'user';
+
+    this.expandStack();
+  }
+
+  protected override get additionalStackInfo(): Record<string, any> {
+    return {
+      timestamp: new Date(this.timestamp).toISOString(),
+      reason: this.reason,
+      type: this.type,
+      initiator: this.initiator
+    };
   }
 }

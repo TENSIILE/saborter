@@ -1,8 +1,8 @@
 import { RequestState, emitRequestState } from '../../features/state-observer';
 import { AbortError, isError, ABORT_ERROR_NAME } from '../../features/abort-error';
+import { EventListener, clearEventListeners } from '../../features/event-listener';
 import { Timeout, TimeoutError } from '../../features/timeout';
 import { ErrorMessage } from './aborter.constants';
-import { EventListener, clearEventListeners } from '../../features/event-listener';
 import * as Utils from './aborter.utils';
 import * as Types from './aborter.types';
 
@@ -39,7 +39,7 @@ export class Aborter {
    * Returns true if Aborter has signaled to abort, and false otherwise.
    */
   public get isAborted(): boolean {
-    return this.listeners.state.value === 'aborted';
+    return this.signal.aborted && this.listeners.state.value === 'aborted';
   }
 
   /**
@@ -76,7 +76,6 @@ export class Aborter {
         initiator: 'system'
       });
 
-      this.setRequestState('cancelled');
       this.abort(cancelledAbortError);
     }
 
@@ -131,7 +130,7 @@ export class Aborter {
 
     this.abortController.abort(error);
 
-    this.setRequestState('aborted');
+    this.setRequestState(error.type!);
   };
 
   /**

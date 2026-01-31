@@ -56,6 +56,11 @@ import { AbortError } from 'saborter';
 - **Type:** `Error`
 - **Description:** A field containing additional error information indicating the reason for the current error.
 
+`stack`
+
+- **Type:** `string`
+- **Description:** Default stack field `Error` with extended information.
+
 `initiator`
 
 - **Type:** `'timeout' | 'user' | 'system'`
@@ -67,6 +72,16 @@ When the error is triggered by a `timeout`, it means that automatic request canc
 When the error is triggered by the `user`, it means that the user interrupted the request by calling the `abort()` method.
 
 When the error is triggered by the `system`, it means that you caught an error canceling a previous request.
+
+### Methods
+
+`static restoreStack()`
+
+Initially, the error `stack` is extended with additional error metadata information.
+
+Restores the `stack` to default.
+
+**Returns:** `void`
 
 ### Constructor
 
