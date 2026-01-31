@@ -4,7 +4,7 @@ let isStackExtensible = true;
 let originalStack: string | undefined;
 
 export abstract class ExtendedStackError extends Error {
-  protected abstract get additionalStackInfo(): Record<string, any>;
+  protected abstract get debugStackInfo(): Record<string, any>;
 
   constructor(message: string) {
     super(message);
@@ -17,7 +17,7 @@ export abstract class ExtendedStackError extends Error {
    */
   protected expandStack = (): void => {
     if (isStackExtensible) {
-      this.stack += Utils.getAdditionalStackInfo(this.additionalStackInfo);
+      this.stack += Utils.getDebugStackInfo(this.debugStackInfo);
     } else {
       this.stack = originalStack;
     }

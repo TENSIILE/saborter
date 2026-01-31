@@ -57,7 +57,7 @@ export class AbortError extends ExtendedStackError {
     this.expandStack();
   }
 
-  protected override get additionalStackInfo(): Record<string, any> {
+  protected override get debugStackInfo(): Record<string, any> {
     return {
       createdAt: new Date(this.timestamp).toISOString(),
       reason: this.reason,
