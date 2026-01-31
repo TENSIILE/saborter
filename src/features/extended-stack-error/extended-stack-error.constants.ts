@@ -1,1 +1,1 @@
-export const EXTENDED_STACK_ADDITIONAL_INFO_TEXT = 'Additional Info';
+export const EXTENDED_STACK_ADDITIONAL_INFO_TEXT = 'Debug Info';

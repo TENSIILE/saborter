@@ -12,6 +12,7 @@ A simple and effective library for canceling asynchronous requests using AbortCo
 The documentation is divided into several sections:
 
 - [Installation](#📦-installation)
+- [Why Saborter?](#📈-why-saborter)
 - [Quick Start](#🚀-quick-start)
 - [Key Features](#📖-key-features)
 - [API](#🔧-api)
@@ -20,6 +21,7 @@ The documentation is divided into several sections:
 - [Troubleshooting](#🐜-troubleshooting)
 - [Usage Examples](#🎯-usage-examples)
 - [Compatibility](#💻-compatibility)
+- [Licence](#📋-licence)
 
 ## 📦 Installation
 
@@ -28,6 +30,20 @@ npm install saborter
 # or
 yarn add saborter
 ```
+
+### Related libraries
+
+- [React](https://github.com/TENSIILE/saborter-react) - a standalone library with `Saborter` and `React` integration.
+
+## 📈 Why Saborter ?
+
+| Function/Characteristic                                                                                                                 | AbortController | Saborter |
+| --------------------------------------------------------------------------------------------------------------------------------------- | --------------- | -------- |
+| `Eliminated race condition when speed typing.`                                                                                          | ❌              | ✅       |
+| `The signal is created anew, there is no need to recreate it yourself. After abort() you can "reset" and use it again.`                 | ❌              | ✅       |
+| `Legible error handling across all browsers.`                                                                                           | ❌              | ✅       |
+| `There is extended information about request interruptions: who cancelled, when, and the reason.`                                       | ❌              | ✅       |
+| `The signal will always be new. It's no coincidence that a previously disabled signal can appear from outside, which breaks all logic.` | ❌              | ✅       |
 
 ## 🚀 Quick Start
 
@@ -468,6 +484,8 @@ try {
 
 ## 🐜 Troubleshooting
 
+### Finally block
+
 Many people have probably encountered the problem with the `finally` block and the classic `AbortController`. When a request is canceled, the `catch` block is called. Why would `finally` block be called? This behavior only gets in the way and causes problems.
 
 **Example:**
@@ -549,15 +567,57 @@ const handleLoad = async () => {
 };
 ```
 
+### Subsequent calls to the `try` method
+
+If you want to cancel a group of requests combined in `Promise.all` or `Promise.allSettled` from a single `Aborter` instance, do not use multiple sequentially called `try` methods:
+
+```javascript
+// ❌ Bad solution
+const fetchData = async () => {
+  const [users, posts] = await Promise.all([
+    aborter.try((signal) => axios.get('/api/users', { signal })),
+    aborter.try((signal) => axios.get('/api/posts', { signal }))
+  ]);
+};
+```
+
+```javascript
+// ✅ Good solution
+const fetchData = async () => {
+  const [users, posts] = await aborter.try((signal) => {
+    return Promise.all([axios.get('/api/users', { signal }), axios.get('/api/posts', { signal })]);
+  });
+};
+```
+
+In the case of the first solution, the second call to the `try` method will cancel the request of the first call, which will break your logic.
+
 ## 🎯 Usage Examples
 
-### Example 1: Autocomplete
+### Example 1: Canceling multiple simultaneous requests
+
+```javascript
+const aborter = new Aborter();
+
+const getCategoriesByUserId = (userId: number) => {
+  const data = aborter.try(async (signal) => {
+    const user = await fetch(`/api/users/${userId}`, { signal });
+    const categories = await fetch(`/api/categories/${user.categoryId}`, { signal });
+
+    return [await user.json(), await categories.json()];
+  })
+
+  return data;
+}
+```
+
+### Example 2: Autocomplete
 
 ```javascript
 class SearchAutocomplete {
   aborter = new Aborter();
 
-  async search(query) {
+  search = async (query) => {
     if (!query.trim()) return [];
 
     try {
@@ -572,15 +632,15 @@ class SearchAutocomplete {
       // Get any error except AbortError
       console.error('Search error:', error);
     }
-  }
+  };
 
-  displayResults(results) {
+  displayResults = (results) => {
     // Display the results
-  }
+  };
 }
 ```
 
-### Example 2: File Upload with Cancellation
+### Example 3: File Upload with Cancellation
 
 ```javascript
 class FileUploader {
@@ -589,34 +649,31 @@ class FileUploader {
     this.progress = 0;
   }
 
-  async uploadFile(file) {
+  uploadFile = async (file) => {
     const formData = new FormData();
     formData.append('file', file);
 
     try {
-      await this.aborter.try(
-        async (signal) => {
-          const response = await fetch('/api/upload', {
-            method: 'POST',
-            body: formData,
-            signal
-          });
+      await this.aborter.try(async (signal) => {
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+          signal
+        });
 
-          // Track progress
-          const reader = response.body.getReader();
-          let receivedLength = 0;
-          const contentLength = +response.headers.get('Content-Length');
+        // Track progress
+        const reader = response.body.getReader();
+        let receivedLength = 0;
+        const contentLength = +response.headers.get('Content-Length');
 
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-            receivedLength += value.length;
-            this.progress = Math.round((receivedLength / contentLength) * 100);
-          }
-        },
-        { isErrorNativeBehavior: true }
-      );
+          receivedLength += value.length;
+          this.progress = Math.round((receivedLength / contentLength) * 100);
+        }
+      });
 
       console.log('File uploaded successfully');
     } catch (error) {
@@ -626,15 +683,15 @@ class FileUploader {
         console.error('Upload error:', error);
       }
     }
-  }
+  };
 
-  cancelUpload() {
+  cancelUpload = () => {
     this.aborter.abort();
-  }
+  };
 }
 ```
 
-### Example 3: Integration with UI Frameworks
+### Example 4: Integration with UI Frameworks
 
 **React**
 
@@ -642,7 +699,7 @@ class FileUploader {
 import React, { useState, useEffect, useRef } from 'react';
 import { Aborter } from 'saborter';
 
-function DataFetcher({ url }) {
+const DataFetcher = ({ url }) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const aborterRef = useRef(new Aborter());
@@ -669,9 +726,7 @@ function DataFetcher({ url }) {
   };
 
   const cancelRequest = () => {
-    if (aborterRef.current) {
-      aborterRef.current.abort();
-    }
+    aborterRef.current?.abort();
   };
 
   return (
@@ -685,7 +740,7 @@ function DataFetcher({ url }) {
       {data && <pre>{JSON.stringify(data, null, 2)}</pre>}
     </div>
   );
-}
+};
 ```
 
 **Vue.js**
@@ -734,6 +789,6 @@ export default {
 - **Node.js:** Requires a polyfill for AbortController (version 16+ has built-in support)
 - **TypeScript:** Full type support
 
-## 📄 Licence
+## 📋 Licence
 
 MIT License - see [LICENSE](./LICENSE) for details.

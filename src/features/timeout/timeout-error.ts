@@ -40,7 +40,7 @@ export class TimeoutError extends ExtendedStackError {
 
   protected override get additionalStackInfo(): Record<string, any> {
     return {
-      timestamp: new Date(this.timestamp).toISOString(),
+      createdAt: new Date(this.timestamp).toISOString(),
       ms: this.ms,
       reason: this.reason
     };
