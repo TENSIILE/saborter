@@ -1,0 +1,36 @@
+{
+  "version": "0.2",
+  "language": "en,ru",
+  "words": ["Saborter", "saborter", "Laptev", "Vladislav", "tgz"],
+  "flagWords": [],
+  "ignorePaths": [
+    "node_modules/**",
+    "dist/**",
+    "build/**",
+    ".git/**",
+    "coverage/**",
+    "*.log",
+    "package-lock.json",
+    "./**/*.test.ts",
+    "./cspell.json",
+    "./integrations"
+  ],
+  "dictionaries": ["typescript", "node", "softwareTerms", "en_US", "ru_RU"],
+  "useGitignore": true,
+  "patterns": [
+    {
+      "name": "markdown-links",
+      "pattern": "\\(.*\\)",
+      "description": "Ignore URLs in Markdown"
+    },
+    {
+      "name": "html-entities",
+      "pattern": "&\\w+;",
+      "description": "Ignore HTML entities"
+    }
+  ],
+  "ignoreRegExpList": ["/\\[.*\\]\\(.*\\)/g", "/&[a-z]+;/g", "/0x[a-fA-F0-9]+/g", "/\\$[^{][\\w.]+/g"],
+  "caseSensitive": false,
+  "allowCompoundWords": true,
+  "minWordLength": 3
+}

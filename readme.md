@@ -21,7 +21,7 @@ The documentation is divided into several sections:
 - [Troubleshooting](#🐜-troubleshooting)
 - [Usage Examples](#🎯-usage-examples)
 - [Compatibility](#💻-compatibility)
-- [Licence](#📋-licence)
+- [License](#📋-license)
 
 ## 📦 Installation
 
@@ -797,6 +797,6 @@ export default {
 - **Node.js:** Requires a polyfill for AbortController (version 16+ has built-in support)
 - **TypeScript:** Full type support
 
-## 📋 Licence
+## 📋 License
 
 MIT License - see [LICENSE](./LICENSE) for details.
