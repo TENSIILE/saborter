@@ -160,9 +160,13 @@ const aborter = new Aborter(options?: AborterOptions);
 
 ### Properties
 
-`signal`
+⚠️ `[DEPRECATED] signal`
 
 Returns the `AbortSignal` associated with the current controller.
+
+> [!WARNING]
+> It's best not to use a signal to subscribe to interrupts or check whether a request has been interrupted.
+> The signal is updated on every attempt, and your subscriptions will be lost, causing a memory leak.
 
 ```javascript
 const aborter = new Aborter();
@@ -172,6 +176,10 @@ fetch('/api/data', {
   signal: aborter.signal
 });
 ```
+
+`isAborted`
+
+Returns a `boolean` value indicating whether the request was aborted or not.
 
 `listeners`
 

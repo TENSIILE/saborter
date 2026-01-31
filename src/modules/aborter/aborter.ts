@@ -1,8 +1,8 @@
 import { RequestState, emitRequestState } from '../../features/state-observer';
 import { AbortError, isError, ABORT_ERROR_NAME } from '../../features/abort-error';
+import { EventListener, clearEventListeners } from '../../features/event-listener';
 import { Timeout, TimeoutError } from '../../features/timeout';
 import { ErrorMessage } from './aborter.constants';
-import { EventListener, clearEventListeners } from '../../features/event-listener';
 import * as Utils from './aborter.utils';
 import * as Types from './aborter.types';
 
@@ -36,7 +36,15 @@ export class Aborter {
   public static isError = isError;
 
   /**
+   * Returns true if Aborter has signaled to abort, and false otherwise.
+   */
+  public get isAborted(): boolean {
+    return this.signal.aborted && this.listeners.state.value === 'aborted';
+  }
+
+  /**
    * Returns the AbortSignal object associated with this object.
+   * @deprecated
    */
   public get signal(): AbortSignal {
     return this.abortController?.signal;
