@@ -37,13 +37,13 @@ yarn add saborter
 
 ## 📈 Why Saborter ?
 
-| Function/Characteristic                                                                                                                 | AbortController | Saborter |
-| --------------------------------------------------------------------------------------------------------------------------------------- | --------------- | -------- |
-| `Eliminated race condition when speed typing.`                                                                                          | ❌              | ✅       |
-| `The signal is created anew, there is no need to recreate it yourself. After abort() you can "reset" and use it again.`                 | ❌              | ✅       |
-| `Legible error handling across all browsers.`                                                                                           | ❌              | ✅       |
-| `There is extended information about request interruptions: who cancelled, when, and the reason.`                                       | ❌              | ✅       |
-| `The signal will always be new. It's no coincidence that a previously disabled signal can appear from outside, which breaks all logic.` | ❌              | ✅       |
+| Function/Characteristic                                                                                                               | Saborter | AbortController |
+| ------------------------------------------------------------------------------------------------------------------------------------- | -------- | --------------- |
+| Eliminated race condition when speed typing.                                                                                          | ✔️       | ✖️              |
+| The signal is created anew, there is no need to recreate it yourself. After `abort()` you can "reset" and use it again.               | ✔️       | ✖️              |
+| Legible error handling across all browsers.                                                                                           | ✔️       | ✖️              |
+| There is extended information about request interruptions: who cancelled, when, and the reason.                                       | ✔️       | ✖️              |
+| The signal will always be new. It's no coincidence that a previously disabled signal can appear from outside, which breaks all logic. | ✔️       | ✖️              |
 
 ## 🚀 Quick Start
 
@@ -56,14 +56,14 @@ import { Aborter } from 'saborter';
 const aborter = new Aborter();
 
 // Use for the request
-async function fetchData() {
+const fetchData = async () => {
   try {
     const result = await aborter.try((signal) => fetch('/api/data', { signal }));
     console.log('Data received:', result);
   } catch (error) {
     console.error('Request error:', error);
   }
-}
+};
 ```
 
 ## 📖 Key Features
@@ -74,11 +74,11 @@ Each time `try()` is called, the previous request is automatically canceled:
 
 ```javascript
 // When searching with autocomplete
-async function handleSearch(query) {
+const handleSearch = async (query) => {
   // The previous request is automatically canceled
   const results = await aborter.try((signal) => fetch(`/api/search?q=${query}`, { signal }));
   return results;
-}
+};
 
 // When the user quickly types:
 handleSearch('a'); // Starts
@@ -580,7 +580,7 @@ const handleLoad = async () => {
 If you want to cancel a group of requests combined in `Promise.all` or `Promise.allSettled` from a single `Aborter` instance, do not use multiple sequentially called `try` methods:
 
 ```javascript
-// ❌ Bad solution
+// ✖️ Bad solution
 const fetchData = async () => {
   const [users, posts] = await Promise.all([
     aborter.try((signal) => axios.get('/api/users', { signal })),
@@ -590,7 +590,7 @@ const fetchData = async () => {
 ```
 
 ```javascript
-// ✅ Good solution
+// ✔️ Good solution
 const fetchData = async () => {
   const [users, posts] = await aborter.try((signal) => {
     return Promise.all([axios.get('/api/users', { signal }), axios.get('/api/posts', { signal })]);
