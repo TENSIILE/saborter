@@ -1,14 +1,19 @@
 import { useState, useRef } from 'react';
 import { AbortError, Aborter } from 'saborter';
 
-const getUsers = async (signal) => {
+interface User {
+  id: number;
+  name: string;
+}
+
+const getUsers = async (signal: AbortSignal): Promise<{ data: User[] }> => {
   const response = await fetch('https://apimocker.com/users?_delay=3000', { signal });
 
   return response.json();
 };
 
 export const App = () => {
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
 
   const aborterRef = useRef(new Aborter());
