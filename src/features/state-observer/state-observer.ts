@@ -44,7 +44,7 @@ export class StateObserver {
    * @param state - New state
    * @returns {void}
    */
-  public [Constants.EMIT_METHOD_SYMBOL] = (state: Types.RequestState): void => {
+  public [Constants.emitMethodSymbol] = (state: Types.RequestState): void => {
     this.value = state;
 
     this.subscribers.forEach((subscribe) => {
@@ -57,7 +57,7 @@ export class StateObserver {
    * Clears the object's data completely.
    * @internal
    */
-  public [Constants.CLEAR_METHOD_SYMBOL] = (): void => {
+  public [Constants.clearMethodSymbol] = (): void => {
     this.subscribers.clear();
     this.onstatechange = undefined;
     this.value = undefined;

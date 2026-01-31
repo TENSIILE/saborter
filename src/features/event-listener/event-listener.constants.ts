@@ -1,1 +1,1 @@
-export const CLEAR_METHOD_SYMBOL = Symbol('EVENT_LISTENER:CLEAR_METHOD');
+export const clearMethodSymbol = Symbol('event-listener::clear()');
