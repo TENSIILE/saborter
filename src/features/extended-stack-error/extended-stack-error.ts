@@ -1,32 +1,23 @@
 import * as Utils from './extended-stack-error.utils';
 
-let isStackExtensible = true;
-let originalStack: string | undefined;
+let isDebugErrorStackDisabled = false;
+
+/**
+ * Restores the stack to default values, disabling debug information.
+ */
+export const disableDebugErrorStack = (): void => {
+  isDebugErrorStackDisabled = true;
+};
 
 export abstract class ExtendedStackError extends Error {
-  protected abstract get additionalStackInfo(): Record<string, any>;
-
-  constructor(message: string) {
-    super(message);
-
-    originalStack = this.stack;
-  }
+  protected abstract get debugStackInfo(): Record<string, any>;
 
   /**
    * Expands the stack with additional error information.
    */
   protected expandStack = (): void => {
-    if (isStackExtensible) {
-      this.stack += Utils.getAdditionalStackInfo(this.additionalStackInfo);
-    } else {
-      this.stack = originalStack;
-    }
-  };
+    if (isDebugErrorStackDisabled) return;
 
-  /**
-   * Restores the stack to default.
-   */
-  public static restoreStack(): void {
-    isStackExtensible = false;
-  }
+    this.stack += Utils.getDebugStackInfo(this.debugStackInfo);
+  };
 }

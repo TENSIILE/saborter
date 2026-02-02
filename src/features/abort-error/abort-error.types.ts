@@ -1,4 +1,4 @@
-export type AbortInitiator = 'timeout' | 'user' | 'system' | 'unmounted-component' | {};
+export type AbortInitiator = 'timeout' | 'user' | 'system' | {};
 
 export type AbortType = 'cancelled' | 'aborted';
 

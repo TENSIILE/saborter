@@ -38,9 +38,9 @@ export class TimeoutError extends ExtendedStackError {
     this.expandStack();
   }
 
-  protected override get additionalStackInfo(): Record<string, any> {
+  protected override get debugStackInfo(): Record<string, any> {
     return {
-      timestamp: new Date(this.timestamp).toISOString(),
+      createdAt: new Date(this.timestamp).toISOString(),
       ms: this.ms,
       reason: this.reason
     };
