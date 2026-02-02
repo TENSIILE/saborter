@@ -216,6 +216,7 @@ Executes an asynchronous request with the ability to cancel.
   - `isErrorNativeBehavior?: boolean` - a flag for controlling error handling. Default is `false`
   - `timeout?: Object`
     - `ms: number` - Time in milliseconds after which interrupts should be started
+    - `reason?: any` - A field storing the error reason. Can contain any metadata
 
 **Returns:** `Promise<T>`
 
@@ -286,15 +287,15 @@ Immediately cancels the currently executing request.
 // Start the request
 const requestPromise = aborter.try((signal) => fetch('/api/data', { signal }), { isErrorNativeBehavior: true });
 
-// Cancel
-aborter.abort();
-
 // Handle cancellation
 requestPromise.catch((error) => {
   if (error.name === 'AbortError') {
     console.log('Request canceled');
   }
 });
+
+// Cancel
+aborter.abort();
 ```
 
 You can specify any data as the `reason`.
@@ -304,9 +305,6 @@ If we want to pass an `object`, we can put the error message in the `message` fi
 // Start the request
 const requestPromise = aborter.try((signal) => fetch('/api/data', { signal }));
 
-// Cancel
-aborter.abort({ message: 'Hello', data: [] });
-
 // Handle cancellation
 requestPromise.catch((error) => {
   if (error instanceof AbortError) {
@@ -314,6 +312,9 @@ requestPromise.catch((error) => {
     console.log(error.reason); // { message: 'Hello', data: [] }
   }
 });
+
+// Cancel
+aborter.abort({ message: 'Hello', data: [] });
 ```
 
 You can also submit your own `AbortError` with your own settings.
@@ -325,16 +326,16 @@ You can also submit your own `AbortError` with your own settings.
 // Start the request
 const requestPromise = aborter.try((signal) => fetch('/api/data', { signal }));
 
-// Cancel
-aborter.abort(new AbortError('Custom AbortError message', { reason: 1 }));
-
 // Handle cancellation
 requestPromise.catch((error) => {
   if (error instanceof AbortError) {
-    console.log(error.message); // Custom AbortError message
+    console.log(error.message); // 'Custom AbortError message'
     console.log(error.reason); // 1
   }
 });
+
+// Cancel
+aborter.abort(new AbortError('Custom AbortError message', { reason: 1 }));
 ```
 
 `abortWithRecovery(reason?)`
@@ -355,14 +356,14 @@ After aborting, it restores the `AbortSignal`, resetting the `isAborted` propert
 const aborter = new Aborter();
 
 // Data retrieval function
-async function fetchData() {
+const fetchData = async () => {
   try {
     const data = await fetch('/api/data', { signal: aborter.signal });
   } catch (error) {
     // ALL errors, including cancellations, will go here
     console.log(error);
   }
-}
+};
 
 // Calling a function with a request
 fetchData();
