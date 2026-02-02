@@ -1,4 +1,4 @@
-import { ExtendedStackError, addDebugErrorStack } from '../extended-stack-error';
+import { ExtendedStackError } from '../extended-stack-error';
 import { ABORT_ERROR_NAME } from './abort-error.constants';
 import * as Types from './abort-error.types';
 
@@ -66,5 +66,3 @@ export class AbortError extends ExtendedStackError {
     };
   }
 }
-
-addDebugErrorStack(AbortError.name);

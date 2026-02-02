@@ -73,16 +73,6 @@ When the error is triggered by the `user`, it means that the user interrupted th
 
 When the error is triggered by the `system`, it means that you caught an error canceling a previous request.
 
-### Methods
-
-`static restoreStack()`
-
-Initially, the error `stack` is extended with additional error metadata information.
-
-Restores the `stack` to default.
-
-**Returns:** `void`
-
 ### Constructor
 
 ```javascript

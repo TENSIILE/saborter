@@ -1,4 +1,4 @@
-import { ExtendedStackError, addDebugErrorStack } from '../extended-stack-error';
+import { ExtendedStackError } from '../extended-stack-error';
 
 export interface TimeoutErrorOptions {
   /**
@@ -46,5 +46,3 @@ export class TimeoutError extends ExtendedStackError {
     };
   }
 }
-
-addDebugErrorStack(TimeoutError.name);
