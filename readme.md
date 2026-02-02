@@ -608,16 +608,16 @@ In the case of the first solution, the second call to the `try` method will canc
 ```javascript
 const aborter = new Aborter();
 
-const getCategoriesByUserId = (userId: number) => {
-  const data = aborter.try(async (signal) => {
+const getCategoriesByUserId = async (userId) => {
+  const data = await aborter.try(async (signal) => {
     const user = await fetch(`/api/users/${userId}`, { signal });
     const categories = await fetch(`/api/categories/${user.categoryId}`, { signal });
 
     return [await user.json(), await categories.json()];
-  })
+  });
 
   return data;
-}
+};
 ```
 
 ### Example 2: Autocomplete
