@@ -1,5 +1,25 @@
 # Saborter Changelog
 
+## v1.5.0
+
+### New Features
+
+- Adds a one-time execution option (`once`) to `EventListener` [#32](https://github.com/TENSIILE/saborter/pull/32)
+- Adds an extended stack for the `AbortError` error [#33](https://github.com/TENSIILE/saborter/pull/33)
+- Adds a `reason` option to `TimeoutError` [#34](https://github.com/TENSIILE/saborter/pull/34)
+- Adds the `isAborted` flag to `Aborter` [#37](https://github.com/TENSIILE/saborter/pull/37)
+
+### Bug Fixes
+
+- Fixes a bug where the request state would not change to `cancelled` [#35](https://github.com/TENSIILE/saborter/pull/35)
+
+## v1.4.2 (January 22th, 2026)
+
+### Bug Fixes
+
+- Aborting a request is `rejected`, and cancellations of previous requests are ignored. [#31](https://github.com/TENSIILE/saborter/pull/31/commits/40a3163732cd3850b833044b89491748119328fe)
+- `TimeoutError` is now always accepted as a catch. [#31](https://github.com/TENSIILE/saborter/pull/31/commits/40a3163732cd3850b833044b89491748119328fe)
+
 ## v1.4.1 (January 21th, 2026)
 
 ### Bug Fixes

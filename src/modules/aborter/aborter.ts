@@ -1,8 +1,8 @@
 import { RequestState, emitRequestState } from '../../features/state-observer';
 import { AbortError, isError, ABORT_ERROR_NAME } from '../../features/abort-error';
+import { EventListener, clearEventListeners } from '../../features/event-listener';
 import { Timeout, TimeoutError } from '../../features/timeout';
 import { ErrorMessage } from './aborter.constants';
-import { EventListener, clearEventListeners } from '../../features/event-listener';
 import * as Utils from './aborter.utils';
 import * as Types from './aborter.types';
 
@@ -36,7 +36,15 @@ export class Aborter {
   public static isError = isError;
 
   /**
+   * Returns true if Aborter has signaled to abort, and false otherwise.
+   */
+  public get isAborted(): boolean {
+    return this.signal.aborted && this.listeners.state.value === 'aborted';
+  }
+
+  /**
    * Returns the AbortSignal object associated with this object.
+   * @deprecated
    */
   public get signal(): AbortSignal {
     return this.abortController?.signal;
@@ -68,7 +76,6 @@ export class Aborter {
         initiator: 'system'
       });
 
-      this.setRequestState('cancelled');
       this.abort(cancelledAbortError);
     }
 
@@ -94,7 +101,11 @@ export class Aborter {
           resolve(response);
         })
         .catch((error: Error) => {
-          if (isErrorNativeBehavior || !Aborter.isError(error) || Utils.hasThrowInTimeoutError(error)) {
+          if (error instanceof AbortError && error.type === 'aborted') {
+            reject(error);
+          }
+
+          if (isErrorNativeBehavior || !Aborter.isError(error)) {
             this.setRequestState('rejected');
 
             reject(error);
@@ -113,13 +124,13 @@ export class Aborter {
   public abort = (reason?: any): void => {
     if (!this.isRequestInProgress) return;
 
-    this.setRequestState('aborted');
-
     const error = Utils.getAbortErrorByReason(reason);
 
     this.listeners.dispatchEvent(error.type!, error);
 
     this.abortController.abort(error);
+
+    this.setRequestState(error.type!);
   };
 
   /**

@@ -1,6 +1,6 @@
 {
   "name": "saborter",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "A simple and efficient library for canceling asynchronous requests using AbortController",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
@@ -42,11 +42,12 @@
     "typecheck": "tsc --pretty --noEmit --skipLibCheck",
     "verify:prettier": "npx prettier . --check",
     "verify:eslint": "npx eslint \"./**/*.{js,jsx,ts,tsx}\" --max-warnings=0",
-    "verify": "npm run typecheck && npm run verify:prettier && npm run verify:eslint",
+    "verify": "npm run typecheck && npm run verify:prettier && npm run verify:eslint && npm run spellcheck",
     "fix:eslint": "npx eslint \"./**/*.{js,jsx,ts,tsx}\" --fix",
     "fix:prettier": "npx prettier --write .",
     "fix": "npm run fix:eslint && npm run fix:prettier",
     "test": "jest --colors --coverage test --passWithNoTests",
+    "spellcheck": "cspell \"**/*.{js,ts,jsx,tsx,md,json}\"",
     "prepare": "husky"
   },
   "devDependencies": {
@@ -54,6 +55,7 @@
     "@types/node": "^25.0.3",
     "@typescript-eslint/eslint-plugin": "^8.50.1",
     "@typescript-eslint/parser": "^8.50.1",
+    "cspell": "^9.6.2",
     "eslint": "^8.11.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-prettier": "^10.1.8",

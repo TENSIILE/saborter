@@ -56,6 +56,11 @@ import { AbortError } from 'saborter';
 - **Type:** `Error`
 - **Description:** A field containing additional error information indicating the reason for the current error.
 
+`stack`
+
+- **Type:** `string`
+- **Description:** Default stack field `Error` with extended information.
+
 `initiator`
 
 - **Type:** `'timeout' | 'user' | 'system'`

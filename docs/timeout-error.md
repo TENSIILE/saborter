@@ -28,16 +28,16 @@ import { TimeoutError } from 'saborter';
 - **Description:** The timestamp in milliseconds when the error was created.
 - **Default:** `Date.now()`
 
-`hasThrow`
-
-- **Type:** `boolean`
-- **Description:** A field indicating whether an error was thrown.
-- **Default:** `false`
-
 `ms?`
 
 - **Type:** `number`
 - **Description:** A field displaying the time in milliseconds after which the request was interrupted.
+- **Optional:** `true`
+
+`reason?`
+
+- **Type:** `any`
+- **Description:** Additional reason or data associated with the interrupt.
 - **Optional:** `true`
 
 ### Constructor
@@ -50,7 +50,6 @@ new TimeoutError(message, options?)
 
 - `message: string` - Text error message
 - `options?: Object` (optional)
-  - `hasThrow?: boolean` - A flag that determines whether to throw the error further
   - `ms?: number` - Time in milliseconds after which interrupts should be started
 
 ## 🎯 Usage Examples
@@ -63,12 +62,10 @@ const error = new TimeoutError('Request timed out');
 
 // With Options
 const error = new TimeoutError('The operation exceeded its execution time', {
-  hasThrow: true,
   ms: 3000
 });
 
 // Accessing Properties
 console.log(error.timestamp); // 1641234567890
 console.log(error.ms); // 3000
-console.log(error.hasThrow); // true
 ```

@@ -1,2 +1,2 @@
-export const EMIT_METHOD_SYMBOL = Symbol('STATE-OBSERVER:EMIT_METHOD');
-export const CLEAR_METHOD_SYMBOL = Symbol('STATE-OBSERVER:CLEAR_METHOD');
+export const emitMethodSymbol = Symbol('state-observer::emit()');
+export const clearMethodSymbol = Symbol('state-observer::clear()');

@@ -2,7 +2,7 @@
 import { Aborter } from './aborter';
 import { AbortError } from '../../features/abort-error';
 import { EventListener } from '../../features/event-listener';
-import { EMIT_METHOD_SYMBOL } from '../../features/state-observer/state-observer.constants';
+import { emitMethodSymbol } from '../../features/state-observer/state-observer.constants';
 import { ErrorMessage } from './aborter.constants';
 
 describe('Aborter', () => {
@@ -74,7 +74,21 @@ describe('Aborter', () => {
       await expect(fastPromise).resolves.toBe('fast');
     });
 
-    it('должен обрабатывать AbortError без отклонения промиса', async () => {
+    it('должен поймать ошибку отмены к блоке catch при флаге isErrorNativeBehavior', async () => {
+      const slowRequest = jest.fn().mockImplementation(() => new Promise(() => {}));
+      const fastRequest = jest.fn().mockResolvedValue('fast');
+
+      try {
+        const slowPromise = aborter.try(slowRequest, { isErrorNativeBehavior: true });
+        const fastPromise = aborter.try(fastRequest, { isErrorNativeBehavior: true });
+
+        await expect(fastPromise).resolves.toBe('fast');
+      } catch (error) {
+        expect(error instanceof AbortError ? error.type : '').toBe('cancelled');
+      }
+    });
+
+    it('должен обрабатывать AbortError c отклонением промиса', async () => {
       const abortError = new AbortError('Aborted', { signal: mockSignal });
       mockRequest.mockRejectedValue(abortError);
 
@@ -84,7 +98,7 @@ describe('Aborter', () => {
         setTimeout(() => reject(new Error('Timeout')), 100);
       });
 
-      await expect(Promise.race([promise, timeoutPromise])).rejects.toThrow('Timeout');
+      await expect(Promise.race([promise, timeoutPromise])).rejects.toThrow('Aborted');
     });
 
     it('должен устанавливать таймаут', async () => {
@@ -133,6 +147,21 @@ describe('Aborter', () => {
 
       expect(timeoutMock.clearTimeout).toHaveBeenCalled();
     });
+
+    it('Вызов коллбека onAbort при прерывании запроса', async () => {
+      const firstRequest = jest.fn().mockImplementation(() => new Promise(() => {}));
+      const secondRequest = jest.fn().mockResolvedValue('second');
+
+      const fn = jest.fn();
+
+      const aborterInstance = new Aborter({ onAbort: fn });
+
+      const firstPromise = aborterInstance.try(firstRequest);
+      const secondPromise = aborterInstance.try(secondRequest);
+
+      expect(fn).toHaveBeenCalled();
+      await expect(secondPromise).resolves.toBe('second');
+    });
   });
 
   describe('Метод abortWithRecovery', () => {
@@ -150,7 +179,7 @@ describe('Aborter', () => {
 
   describe('Состояния и события', () => {
     it('должен излучать состояние pending при начале запроса', async () => {
-      const emitSpy = jest.spyOn(aborter.listeners.state, EMIT_METHOD_SYMBOL);
+      const emitSpy = jest.spyOn(aborter.listeners.state, emitMethodSymbol);
 
       mockRequest.mockResolvedValue('result');
 
@@ -160,7 +189,7 @@ describe('Aborter', () => {
     });
 
     it('должен излучать состояние fulfilled при успешном завершении', async () => {
-      const emitSpy = jest.spyOn(aborter.listeners.state, EMIT_METHOD_SYMBOL);
+      const emitSpy = jest.spyOn(aborter.listeners.state, emitMethodSymbol);
 
       mockRequest.mockResolvedValue('result');
 
@@ -170,7 +199,7 @@ describe('Aborter', () => {
     });
 
     it('должен излучать состояние rejected при ошибке', async () => {
-      const emitSpy = jest.spyOn(aborter.listeners.state, EMIT_METHOD_SYMBOL);
+      const emitSpy = jest.spyOn(aborter.listeners.state, emitMethodSymbol);
 
       mockRequest.mockRejectedValue(new Error('test'));
 
@@ -187,7 +216,7 @@ describe('Aborter', () => {
       const slowRequest = () => new Promise(() => {});
       const fastRequest = jest.fn().mockResolvedValue('fast');
 
-      const emitSpy = jest.spyOn(aborter.listeners.state, EMIT_METHOD_SYMBOL);
+      const emitSpy = jest.spyOn(aborter.listeners.state, emitMethodSymbol);
 
       const dispatchSpy = jest.spyOn(aborter.listeners, 'dispatchEvent');
 

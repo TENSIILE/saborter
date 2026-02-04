@@ -1,15 +1,17 @@
+import { ExtendedStackError } from '../extended-stack-error';
+
 export interface TimeoutErrorOptions {
-  /**
-   * A flag that determines whether to throw the error further.
-   */
-  hasThrow?: boolean;
   /**
    * Time in milliseconds after which interrupts should be started.
    */
   ms: number;
+  /**
+   * A field that stores any metadata passed into the error.
+   */
+  reason?: any;
 }
 
-export class TimeoutError extends Error {
+export class TimeoutError extends ExtendedStackError {
   /**
    *The timestamp in milliseconds when the error was created.
    @readonly
@@ -18,19 +20,29 @@ export class TimeoutError extends Error {
   public readonly timestamp = Date.now();
 
   /**
-   * A field indicating whether an error was thrown.
-   */
-  public hasThrow: boolean;
-
-  /**
    * A field displaying the time in milliseconds after which the request was interrupted.
    */
   public ms?: number;
 
+  /**
+   * A field storing the error reason. Can contain any metadata.
+   */
+  public reason?: any;
+
   constructor(message: string, options?: TimeoutErrorOptions) {
     super(message);
 
-    this.hasThrow = options?.hasThrow ?? false;
     this.ms = options?.ms;
+    this.reason = options?.reason;
+
+    this.expandStack();
+  }
+
+  protected override get debugStackInfo(): Record<string, any> {
+    return {
+      createdAt: new Date(this.timestamp).toISOString(),
+      ms: this.ms,
+      reason: this.reason
+    };
   }
 }
