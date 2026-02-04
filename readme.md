@@ -31,6 +31,10 @@ npm install saborter
 yarn add saborter
 ```
 
+### Related libraries
+
+- [React](https://github.com/TENSIILE/saborter-react) - a standalone library with `Saborter` and `React` integration.
+
 ## 📈 Why Saborter ?
 
 | Function/Characteristic                                                                                                               | Saborter | AbortController |
