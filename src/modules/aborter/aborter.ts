@@ -1,5 +1,5 @@
 import { RequestState, emitRequestState } from '../../features/state-observer';
-import { AbortError, isError, ABORT_ERROR_NAME } from '../../features/abort-error';
+import { AbortError, isAbortError, ABORT_ERROR_NAME } from '../../features/abort-error';
 import { EventListener, clearEventListeners } from '../../features/event-listener';
 import { Timeout, TimeoutError } from '../../features/timeout';
 import { ErrorMessage } from './aborter.constants';
@@ -28,12 +28,6 @@ export class Aborter {
    * @deprecated use AbortError.name
    */
   public static readonly errorName = ABORT_ERROR_NAME;
-
-  /**
-   * Method of checking whether an error is an error AbortError.
-   * @returns boolean
-   */
-  public static isError = isError;
 
   /**
    * Returns true if Aborter has signaled to abort, and false otherwise.
@@ -105,7 +99,7 @@ export class Aborter {
             reject(error);
           }
 
-          if (isErrorNativeBehavior || !Aborter.isError(error)) {
+          if (isErrorNativeBehavior || !isAbortError(error)) {
             this.setRequestState('rejected');
 
             reject(error);
