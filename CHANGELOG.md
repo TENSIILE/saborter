@@ -1,5 +1,11 @@
 # Saborter Changelog
 
+## v2.0.0
+
+### Breaking Changes
+
+- Removed the `isError` static method from the `Aborter` class.
+- Removed the static field `errorName` from the `Aborter` class.
 
 ## v1.5.0 (February 4th, 2026)
 

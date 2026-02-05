@@ -1,5 +1,5 @@
 import { RequestState, emitRequestState } from '../../features/state-observer';
-import { AbortError, isAbortError, ABORT_ERROR_NAME } from '../../features/abort-error';
+import { AbortError, isAbortError } from '../../features/abort-error';
 import { EventListener, clearEventListeners } from '../../features/event-listener';
 import { Timeout, TimeoutError } from '../../features/timeout';
 import { ErrorMessage } from './aborter.constants';
@@ -21,13 +21,6 @@ export class Aborter {
   constructor(options?: Types.AborterOptions) {
     this.listeners = new EventListener(options);
   }
-
-  /**
-   * The name of the error instance thrown by the AbortSignal.
-   * @readonly
-   * @deprecated use AbortError.name
-   */
-  public static readonly errorName = ABORT_ERROR_NAME;
 
   /**
    * Returns true if Aborter has signaled to abort, and false otherwise.
