@@ -6,6 +6,7 @@
 
 - Removed the `isError` static method from the `Aborter` class.
 - Removed the static field `errorName` from the `Aborter` class.
+- The `code` and `signal` fields have been removed from `AbortError`.
 
 ## v1.5.0 (February 4th, 2026)
 

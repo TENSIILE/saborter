@@ -4,12 +4,6 @@ import * as Types from './abort-error.types';
 
 export class AbortError extends ExtendedStackError {
   /**
-   * Interrupt error code.
-   * @readonly
-   */
-  public readonly code: number = 20;
-
-  /**
    * Interrupt type 'cancelled' | 'aborted'.
    * @default `aborted`
    */
@@ -26,11 +20,6 @@ export class AbortError extends ExtendedStackError {
    * Additional reason or data associated with the interrupt.
    */
   public reason?: any;
-
-  /**
-   * AbortSignal that was just interrupted.
-   */
-  public signal?: AbortSignal;
 
   /**
    * A field containing additional error information indicating the reason for the current error.
@@ -50,7 +39,6 @@ export class AbortError extends ExtendedStackError {
 
     this.type = options?.type || 'aborted';
     this.reason = options?.reason;
-    this.signal = options?.signal;
     this.cause = options?.cause;
     this.initiator = options?.initiator || 'user';
 

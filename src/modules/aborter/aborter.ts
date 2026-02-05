@@ -59,7 +59,6 @@ export class Aborter {
     if (this.isRequestInProgress) {
       const cancelledAbortError = new AbortError(ErrorMessage.CancelRequest, {
         type: 'cancelled',
-        signal: this.signal,
         initiator: 'system'
       });
 
