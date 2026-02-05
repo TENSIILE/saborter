@@ -2,7 +2,7 @@ import { RequestState, emitRequestState } from '../../features/state-observer';
 import { AbortError, isAbortError } from '../../features/abort-error';
 import { EventListener, clearEventListeners } from '../../features/event-listener';
 import { Timeout, TimeoutError } from '../../features/timeout';
-import { ErrorMessage } from './aborter.constants';
+import { ErrorMessage, disposeSymbol } from './aborter.constants';
 import * as Utils from './aborter.utils';
 import * as Types from './aborter.types';
 
@@ -133,7 +133,7 @@ export class Aborter {
   /**
    * Clears the object's data completely: all subscriptions in all properties, clears overridden methods, state values.
    */
-  public dispose = (): void => {
+  public [disposeSymbol] = (): void => {
     this.timeout.clearTimeout();
     clearEventListeners(this.listeners);
   };
