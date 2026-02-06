@@ -9,6 +9,10 @@
 - The `code` and `signal` fields have been removed from `AbortError`.
 - Moved the `dispose` method of the `Aborter` instance into a separate function.
 
+### Bug Fixes
+
+- Fixes a bug in the `Aborter.isError` function where any argument passed returned `true`
+
 ## v1.5.0 (February 4th, 2026)
 
 ### New Features

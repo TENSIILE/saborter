@@ -2,7 +2,7 @@
 import { AbortError } from '../../abort-error';
 import { throwIfAborted } from './throw-if-aborted.lib';
 
-describe('Функция throwIfAborted', () => {
+describe('throwIfAborted', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
