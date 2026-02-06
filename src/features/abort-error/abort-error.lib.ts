@@ -10,8 +10,18 @@ const checkErrorCause = (error: unknown) =>
  * Function of checking whether an error is an error AbortError.
  * @returns boolean
  */
-export const isAbortError = (error: any): error is Error =>
-  error instanceof AbortError ||
-  (Utils.isObject(error) && 'name' in error && error.name === ABORT_ERROR_NAME) ||
-  'abort'.includes((error as Error | undefined)?.message ?? '') ||
-  checkErrorCause(error);
+export const isAbortError = (error: any): error is Error => {
+  if (error instanceof AbortError) {
+    return true;
+  }
+
+  if (Utils.isObject(error) && 'name' in error && error.name === ABORT_ERROR_NAME) {
+    return true;
+  }
+
+  if ((error as Error | undefined)?.message && 'abort'.includes(error.message)) {
+    return true;
+  }
+
+  return checkErrorCause(error);
+};
