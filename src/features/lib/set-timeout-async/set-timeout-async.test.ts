@@ -1,8 +1,8 @@
 /* eslint-disable no-implied-eval */
-import { setTimeout } from './set-timeout.lib';
+import { setTimeoutAsync } from './set-timeout-async.lib';
 import { AbortError } from '../../abort-error';
 
-describe('Функция setTimeout', () => {
+describe('setTimeoutAsync', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
@@ -15,9 +15,9 @@ describe('Функция setTimeout', () => {
   describe('Работа с обработчиком-функцией', () => {
     it('должна разрешать промис с результатом синхронной функции', () => {
       const handler = jest.fn().mockReturnValue(42);
-      const promise = setTimeout(handler, 100);
+      const promise = setTimeoutAsync(handler, 100);
 
-      globalThis.setTimeout(async () => {
+      setTimeout(async () => {
         await expect(promise).resolves.toBe(42);
         expect(handler).toHaveBeenCalledWith(expect.any(AbortSignal));
       });
@@ -25,9 +25,9 @@ describe('Функция setTimeout', () => {
 
     it('должна разрешать промис с результатом асинхронной функции', () => {
       const handler = jest.fn().mockResolvedValue('async result');
-      const promise = setTimeout(handler, 100);
+      const promise = setTimeoutAsync(handler, 100);
 
-      globalThis.setTimeout(async () => {
+      setTimeout(async () => {
         await expect(promise).resolves.toBe('async result');
       });
     });
@@ -35,9 +35,9 @@ describe('Функция setTimeout', () => {
     it('должна отклонять промис если асинхронная функция выбрасывает ошибку', () => {
       const error = new Error('Async error');
       const handler = jest.fn().mockRejectedValue(error);
-      const promise = setTimeout(handler, 100);
+      const promise = setTimeoutAsync(handler, 100);
 
-      globalThis.setTimeout(async () => {
+      setTimeout(async () => {
         await expect(promise).rejects.toThrow('Async error');
       });
     });
@@ -47,9 +47,9 @@ describe('Функция setTimeout', () => {
       const handler = jest.fn().mockImplementation(() => {
         throw error;
       });
-      const promise = setTimeout(handler, 100);
+      const promise = setTimeoutAsync(handler, 100);
 
-      globalThis.setTimeout(async () => {
+      setTimeout(async () => {
         await expect(promise).rejects.toThrow('Sync error');
       });
     });
@@ -57,25 +57,25 @@ describe('Функция setTimeout', () => {
 
   describe('Работа с обработчиком-строкой', () => {
     it('должна выполнять строку как код и возвращать результат', () => {
-      const promise = setTimeout('return 42;', 100, { args: [] });
+      const promise = setTimeoutAsync('return 42;', 100, { args: [] });
 
-      globalThis.setTimeout(async () => {
+      setTimeout(async () => {
         await expect(promise).resolves.toBe(42);
       }, 100);
     });
 
     it('должна передавать аргументы в код строки', () => {
-      const promise = setTimeout('return a + b;', 100, { args: [10, 32] });
+      const promise = setTimeoutAsync('return a + b;', 100, { args: [10, 32] });
 
-      globalThis.setTimeout(async () => {
+      setTimeout(async () => {
         await expect(promise).resolves.toBe(42);
       }, 100);
     });
 
     it('должна отклонять промис если строка кода выбрасывает ошибку', () => {
-      const promise = setTimeout('throw new Error("Code error");', 100);
+      const promise = setTimeoutAsync('throw new Error("Code error");', 100);
 
-      globalThis.setTimeout(async () => {
+      setTimeout(async () => {
         await expect(promise).rejects.toThrow('Code error');
       }, 100);
     });
@@ -84,31 +84,31 @@ describe('Функция setTimeout', () => {
   describe('Работа с таймаутом', () => {
     it('должна вызывать обработчик без задержки если timeout не указан', () => {
       const handler = jest.fn().mockReturnValue('immediate');
-      const promise = setTimeout(handler);
+      const promise = setTimeoutAsync(handler);
 
-      globalThis.setTimeout(async () => {
+      setTimeout(async () => {
         await expect(promise).resolves.toBe('immediate');
       });
     });
 
     it('должна корректно работать с нулевым таймаутом', async () => {
       const handler = jest.fn().mockReturnValue('zero');
-      const promise = setTimeout(handler, 0);
+      const promise = setTimeoutAsync(handler, 0);
 
-      globalThis.setTimeout(async () => {
+      setTimeout(async () => {
         await expect(promise).resolves.toBe('zero');
       });
     });
 
     it('не должна вызывать обработчик до истечения таймаута', () => {
       const handler = jest.fn();
-      setTimeout(handler, 100);
+      setTimeoutAsync(handler, 100);
 
-      globalThis.setTimeout(async () => {
+      setTimeout(async () => {
         expect(handler).not.toHaveBeenCalled();
       });
 
-      globalThis.setTimeout(async () => {
+      setTimeout(async () => {
         expect(handler).toHaveBeenCalled();
       }, 100);
     });
@@ -118,7 +118,7 @@ describe('Функция setTimeout', () => {
     it('должна отклонять промис с AbortError при отмене сигнала', async () => {
       const controller = new AbortController();
       const handler = jest.fn();
-      const promise = setTimeout(handler, 1000, { signal: controller.signal });
+      const promise = setTimeoutAsync(handler, 1000, { signal: controller.signal });
 
       controller.abort();
 
@@ -131,7 +131,7 @@ describe('Функция setTimeout', () => {
       const handler = jest.fn();
       const clearTimeoutSpy = jest.spyOn(window, 'clearTimeout');
 
-      setTimeout(handler, 1000, { signal: controller.signal });
+      setTimeoutAsync(handler, 1000, { signal: controller.signal });
       controller.abort();
 
       expect(clearTimeoutSpy).toHaveBeenCalled();
@@ -143,20 +143,20 @@ describe('Функция setTimeout', () => {
       const handler = jest.fn();
 
       try {
-        setTimeout(handler, 1000, { signal: controller.signal });
+        setTimeoutAsync(handler, 1000, { signal: controller.signal });
 
         controller.abort('Operation cancelled');
       } catch (error) {
-        expect(error.initiator).toBe('setTimeout');
+        expect(error.initiator).toBe('setTimeoutAsync');
         expect(error.cause).toBeInstanceOf(AbortError);
       }
     });
 
     it('должна создавать внутренний AbortController если сигнал не передан', async () => {
       const handler = jest.fn().mockReturnValue('no signal');
-      const promise = setTimeout(handler, 100);
+      const promise = setTimeoutAsync(handler, 100);
 
-      globalThis.setTimeout(async () => {
+      setTimeout(async () => {
         await expect(promise).resolves.toBe('no signal');
       });
     });
@@ -164,9 +164,9 @@ describe('Функция setTimeout', () => {
 
   describe('Краевые случаи', () => {
     it('должна корректно работать с undefined и null как аргументами', async () => {
-      const promise = setTimeout('return [a, b];', 100, { args: [undefined, null] });
+      const promise = setTimeoutAsync('return [a, b];', 100, { args: [undefined, null] });
 
-      globalThis.setTimeout(async () => {
+      setTimeout(async () => {
         await expect(promise).resolves.toEqual([undefined, null]);
       });
     });
@@ -176,16 +176,16 @@ describe('Функция setTimeout', () => {
       controller.abort();
       const handler = jest.fn();
 
-      const promise = setTimeout(handler, 1000, { signal: controller.signal });
+      const promise = setTimeoutAsync(handler, 1000, { signal: controller.signal });
 
       await expect(promise).rejects.toThrow(AbortError);
       expect(handler).not.toHaveBeenCalled();
     });
 
     it('должна использовать пустой массив по умолчанию для args', async () => {
-      const promise = setTimeout('return arguments.length;', 100);
+      const promise = setTimeoutAsync('return arguments.length;', 100);
 
-      globalThis.setTimeout(async () => {
+      setTimeout(async () => {
         await expect(promise).resolves.toBe(0);
       });
     });

@@ -25,7 +25,7 @@ import { AbortError } from '../../abort-error';
  * const controller = new AbortController();
  *
  * try {
- *   const data = await setTimeout(
+ *   const data = await setTimeoutAsync(
  *     (signal) => fetch('/api/data', { signal }),
  *     5000,
  *     { signal: controller.signal }
@@ -34,7 +34,7 @@ import { AbortError } from '../../abort-error';
  *   console.log(error.name) // 'AbortError' Saborter's Error
  * }
  */
-export const setTimeout = <T>(
+export const setTimeoutAsync = <T>(
   handler: string | ((signal: AbortSignal) => T | Promise<T>),
   timeout?: number,
   options?: {
@@ -46,7 +46,7 @@ export const setTimeout = <T>(
 
   return new Promise<T>((resolve, reject) => {
     if (signal.aborted) {
-      reject(new AbortError(signal.reason.message, { initiator: setTimeout.name }));
+      reject(new AbortError(signal.reason.message, { initiator: setTimeoutAsync.name }));
     }
 
     const timeoutId = globalThis.setTimeout(
@@ -75,11 +75,11 @@ export const setTimeout = <T>(
         clearTimeout(timeoutId);
 
         if (!(signal.reason instanceof AbortError)) {
-          throw new Error('[setTimeout]: `signal.reason` is not an instance of AbortError!');
+          throw new Error('[setTimeoutAsync]: `signal.reason` is not an instance of AbortError!');
         }
 
         signal.reason.cause = new AbortError(signal.reason.message, { ...signal.reason });
-        signal.reason.initiator = setTimeout.name;
+        signal.reason.initiator = setTimeoutAsync.name;
 
         reject(signal.reason);
       },
