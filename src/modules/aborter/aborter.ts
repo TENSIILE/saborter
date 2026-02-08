@@ -5,6 +5,7 @@ import { Timeout, TimeoutError } from '../../features/timeout';
 import { ErrorMessage, disposeSymbol } from './aborter.constants';
 import * as Utils from './aborter.utils';
 import * as Types from './aborter.types';
+import { logger } from '../../shared';
 
 export class Aborter {
   protected abortController = new AbortController();
@@ -63,6 +64,7 @@ export class Aborter {
       });
 
       this.abort(cancelledAbortError);
+      logger.info('The request was cancelled', cancelledAbortError);
     }
 
     let promise: Promise<R> | null = new Promise<R>((resolve, reject) => {
@@ -74,16 +76,20 @@ export class Aborter {
           initiator: 'timeout',
           cause: new TimeoutError(ErrorMessage.RequestTimedout, timeout)
         });
+
         this.abort(abortError);
+        logger.info('The request was cancelled due to a timeout', abortError);
       });
 
       queueMicrotask(() => this.setRequestState('pending'));
 
       request(this.abortController.signal)
         .then((response) => {
-          if (!this.isRequestInProgress) return;
+          if (!this.isRequestInProgress)
+            return logger.info('While the request is being executed, the request will not be resolved');
 
           this.setRequestState('fulfilled');
+
           resolve(response);
         })
         .catch((error: Error) => {
@@ -108,7 +114,8 @@ export class Aborter {
    * Calling this method sets the AbortSignal flag of this object and signals all observers that the associated action should be aborted.
    */
   public abort = (reason?: any): void => {
-    if (!this.isRequestInProgress) return;
+    if (!this.isRequestInProgress)
+      return logger.info('While a request is running, the request cannot be interrupted again');
 
     const error = Utils.getAbortErrorByReason(reason);
 
@@ -136,5 +143,6 @@ export class Aborter {
   public [disposeSymbol] = (): void => {
     this.timeout.clearTimeout();
     clearEventListeners(this.listeners);
+    logger.info('Resources have been released');
   };
 }
