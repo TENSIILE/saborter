@@ -3,3 +3,5 @@ export enum ErrorMessage {
   RequestTimedout = 'the request timed out and an automatic abort occurred',
   CancelRequest = 'cancellation of the previous AbortController'
 }
+
+export const disposeSymbol = Symbol('aborter::dispose()');

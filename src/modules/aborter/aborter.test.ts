@@ -45,13 +45,6 @@ describe('Aborter', () => {
     });
   });
 
-  describe('Статические свойства', () => {
-    it('должен иметь статический метод isError', () => {
-      expect(Aborter.isError).toBeDefined();
-      expect(typeof Aborter.isError).toBe('function');
-    });
-  });
-
   describe('Метод try', () => {
     it('должен выполнять запрос и возвращать результат', async () => {
       const expectedResult = { data: 'test' };
@@ -89,7 +82,7 @@ describe('Aborter', () => {
     });
 
     it('должен обрабатывать AbortError c отклонением промиса', async () => {
-      const abortError = new AbortError('Aborted', { signal: mockSignal });
+      const abortError = new AbortError('Aborted');
       mockRequest.mockRejectedValue(abortError);
 
       const promise = aborter.try(mockRequest);

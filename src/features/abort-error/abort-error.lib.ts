@@ -38,7 +38,7 @@ const checkErrorCause = (error: unknown) =>
  * const outer = new Error('Wrapper', { cause: inner });
  * isAbortError(outer); // true (if checkErrorCause traverses the cause)
  */
-export const isError = (error: any): error is Error => {
+export const isAbortError = (error: any): error is Error => {
   if (error instanceof AbortError) {
     return true;
   }
