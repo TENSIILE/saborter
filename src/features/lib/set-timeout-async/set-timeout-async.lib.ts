@@ -1,4 +1,5 @@
 import { AbortError } from '../../abort-error';
+import { logger } from '../../../shared/logger';
 
 /**
  * Executes a handler function or evaluates a code string with a timeout,
@@ -18,8 +19,6 @@ import { AbortError } from '../../abort-error';
  *        These arguments will be passed as parameters to the code string when evaluated.
  * @returns {Promise<T>} A promise that resolves with the handler's result or rejects
  *         with an AbortError if the operation is aborted, or with any error thrown by the handler.
- * @throws {Error} Throws an error if `signal.reason` is not an instance of AbortError
- *         when the signal aborts (for debugging purposes).
  *
  * @example
  * const controller = new AbortController();
@@ -46,10 +45,17 @@ export const setTimeoutAsync = <T>(
 
   return new Promise<T>((resolve, reject) => {
     if (signal.aborted) {
-      reject(new AbortError(signal.reason.message, { initiator: setTimeoutAsync.name }));
+      if (!signal.reason?.message) {
+        logger.warn(`${setTimeoutAsync.name} -> no message indicating the reason for the signal interruption`, signal);
+      }
+      reject(
+        new AbortError(signal.reason?.message || 'The signal was interrupted before the timeout was initialized', {
+          initiator: setTimeoutAsync.name
+        })
+      );
     }
 
-    const timeoutId = globalThis.setTimeout(
+    const timeoutId = setTimeout(
       typeof handler === 'string'
         ? handler
         : () => {
@@ -74,14 +80,19 @@ export const setTimeoutAsync = <T>(
       () => {
         clearTimeout(timeoutId);
 
-        if (!(signal.reason instanceof AbortError)) {
-          throw new Error('[setTimeoutAsync]: `signal.reason` is not an instance of AbortError!');
+        if (signal.reason instanceof AbortError) {
+          signal.reason.cause = new AbortError(signal.reason.message, { ...signal.reason });
+          signal.reason.initiator = setTimeoutAsync.name;
+
+          return reject(signal.reason);
         }
 
-        signal.reason.cause = new AbortError(signal.reason.message, { ...signal.reason });
-        signal.reason.initiator = setTimeoutAsync.name;
+        const error = new AbortError(`${setTimeoutAsync.name} was interrupted`, {
+          initiator: setTimeoutAsync.name,
+          reason: signal.reason
+        });
 
-        reject(signal.reason);
+        reject(error);
       },
       { once: true }
     );

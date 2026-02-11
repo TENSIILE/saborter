@@ -115,9 +115,10 @@ describe('setTimeoutAsync', () => {
   });
 
   describe('Работа с AbortSignal', () => {
-    it('должна отклонять промис с AbortError при отмене сигнала', async () => {
+    it('должна отклонять промис с пустой причиной при отмене сигнала', async () => {
       const controller = new AbortController();
       const handler = jest.fn();
+
       const promise = setTimeoutAsync(handler, 1000, { signal: controller.signal });
 
       controller.abort();
@@ -126,13 +127,28 @@ describe('setTimeoutAsync', () => {
       expect(handler).not.toHaveBeenCalled();
     });
 
+    it('должна отклонять промис с AbortError при отмене сигнала', async () => {
+      const controller = new AbortController();
+      const handler = jest.fn();
+
+      const promise = setTimeoutAsync(handler, 1000, { signal: controller.signal });
+
+      controller.abort(new AbortError('aborted'));
+
+      await expect(promise).rejects.toThrow(AbortError);
+      expect(handler).not.toHaveBeenCalled();
+    });
+
     it('должна очищать таймаут при отмене сигнала', async () => {
       const controller = new AbortController();
       const handler = jest.fn();
+
       const clearTimeoutSpy = jest.spyOn(window, 'clearTimeout');
 
-      setTimeoutAsync(handler, 1000, { signal: controller.signal });
+      const promise = setTimeoutAsync(handler, 1000, { signal: controller.signal });
       controller.abort();
+
+      await expect(promise).rejects.toThrow(AbortError);
 
       expect(clearTimeoutSpy).toHaveBeenCalled();
       clearTimeoutSpy.mockRestore();
@@ -143,9 +159,10 @@ describe('setTimeoutAsync', () => {
       const handler = jest.fn();
 
       try {
-        setTimeoutAsync(handler, 1000, { signal: controller.signal });
-
+        const promise = setTimeoutAsync(handler, 2000, { signal: controller.signal });
         controller.abort('Operation cancelled');
+
+        await expect(promise).rejects.toThrow(AbortError);
       } catch (error) {
         expect(error.initiator).toBe('setTimeoutAsync');
         expect(error.cause).toBeInstanceOf(AbortError);
