@@ -1,6 +1,7 @@
 import { RequestState, emitRequestState } from '../../features/state-observer';
 import { AbortError, isError, ABORT_ERROR_NAME } from '../../features/abort-error';
 import { EventListener, clearEventListeners } from '../../features/event-listener';
+import { AbortablePromise } from '../../features/abortable-promise';
 import { Timeout, TimeoutError } from '../../features/timeout';
 import { ErrorMessage } from './aborter.constants';
 import * as Utils from './aborter.utils';
@@ -79,8 +80,9 @@ export class Aborter {
       this.abort(cancelledAbortError);
     }
 
-    let promise: Promise<R> | null = new Promise<R>((resolve, reject) => {
-      this.abortController = new AbortController();
+    this.abortController = new AbortController();
+
+    let promise: Promise<R> | null = new AbortablePromise<R>((resolve, reject) => {
       this.isRequestInProgress = true;
 
       this.timeout.setTimeout(timeout?.ms, () => {
@@ -113,7 +115,7 @@ export class Aborter {
 
           promise = null;
         });
-    });
+    }, this.abortController.signal);
 
     return promise;
   };
