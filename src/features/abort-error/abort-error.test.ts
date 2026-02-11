@@ -116,6 +116,9 @@ describe('isError', () => {
     });
 
     it('должна обрабатывать примитивные значения', () => {
+      expect(isError({})).toBe(false);
+      expect(isError([])).toBe(false);
+      expect(isError(() => {})).toBe(false);
       expect(isError(42)).toBe(false);
       expect(isError('string')).toBe(false);
       expect(isError(true)).toBe(false);
