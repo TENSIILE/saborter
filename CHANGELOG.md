@@ -1,6 +1,29 @@
 # Saborter Changelog
 
-## v1.5.0
+## v2.0.0
+
+### Breaking Changes
+
+- Removed the `isError` static method from the `Aborter` class.
+- Removed the static field `errorName` from the `Aborter` class.
+- The `code` and `signal` fields have been removed from `AbortError`.
+- Moved the `dispose` method of the `Aborter` instance into a separate function.
+
+### New Features
+
+- Added utility functions:
+  - catchAbortError
+  - isAbortSignal
+  - rethrowAbortSignal
+  - setTimeoutAsync
+  - throwIfAborted
+  - timeInMilliseconds
+
+### Bug Fixes
+
+- Fixes a bug in the `Aborter.isError` function where any argument passed returned `true`
+
+## v1.5.0 (February 4th, 2026)
 
 ### New Features
 

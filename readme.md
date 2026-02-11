@@ -341,7 +341,7 @@ aborter.abort(new AbortError('Custom AbortError message', { reason: 1 }));
 `abortWithRecovery(reason?)`
 
 Immediately cancels the currently executing request.
-After aborting, it restores the `AbortSignal`, resetting the `isAborted` property, and interaction with the `signal` property becomes available again.
+After aborting, it restores the `AbortSignal`, resetting the `aborted` property, and interaction with the `signal` property becomes available again.
 
 **Parameters:**
 
@@ -505,9 +505,7 @@ const abortController = new AbortController();
 const handleLoad = async () => {
   try {
     setLoading(true);
-
     const users = await fetch('/api/users', { signal: abortController.signal });
-
     setUsers(users);
   } catch (error) {
     if (error.name === 'AbortError') {
@@ -534,13 +532,10 @@ const aborter = new Aborter();
 const handleLoad = async () => {
   try {
     setLoading(true);
-
     const users = await aborter.try(getUsers);
-
     setUsers(users);
   } catch (error) {
     if (error instanceof AbortError) return;
-
     console.log(error);
   } finally {
     setLoading(false);
@@ -564,9 +559,7 @@ const aborter = new Aborter();
 const handleLoad = async () => {
   try {
     setLoading(true);
-
     const users = await aborter.try(getUsers);
-
     setUsers(users);
   } catch (error) {
     console.log(error);
