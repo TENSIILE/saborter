@@ -1,6 +1,12 @@
 # Saborter Changelog
 
-## v1.5.0
+## v1.5.1 (February 11th, 2026)
+
+### Bug Fixes
+
+- Fixes a bug in the `Aborter.isError` function where any argument passed returned `true` [#41](https://github.com/TENSIILE/saborter/pull/41)
+
+## v1.5.0 (February 4th, 2026)
 
 ### New Features
 
