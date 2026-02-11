@@ -9,6 +9,16 @@
 - The `code` and `signal` fields have been removed from `AbortError`.
 - Moved the `dispose` method of the `Aborter` instance into a separate function.
 
+### New Features
+
+- Added utility functions:
+  - catchAbortError
+  - isAbortSignal
+  - rethrowAbortSignal
+  - setTimeoutAsync
+  - throwIfAborted
+  - timeInMilliseconds
+
 ### Bug Fixes
 
 - Fixes a bug in the `Aborter.isError` function where any argument passed returned `true`
