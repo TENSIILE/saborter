@@ -11,6 +11,7 @@
 
 ### New Features
 
+- Added a `ReusableAborter`
 - Added `metadata` field for `AbortError` and `TimeoutError`.
 - Added utility functions:
   - catchAbortError
