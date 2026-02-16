@@ -22,7 +22,7 @@ import { AbortError } from '../../abort-error';
  * @param {Parameters<typeof setTimeoutAsync<R>>['0']} handler -
  *        The function to debounce.The function will be called either without arguments
  *        or with the `AbortSignal` argument after the timeout expires.
- * @param {number} timeout -
+ * @param {number | undefined} delay -
  *        The debounce delay in milliseconds.
  * @returns {(signal: AbortSignal) => Promise<R>} -
  *          A function that, when called, starts/resets the debounce timer
@@ -38,7 +38,7 @@ import { AbortError } from '../../abort-error';
  * debouncedFetch(controller.signal)
  *   .then(response => response.json())
  *   .catch(err => {
- *     if (err.name === 'AbortError') {
+ *     if (err instanceof AbortError) {
  *       console.log('Debounced call aborted by:', err.initiator); // 'debounce'
  *     }
  *   });
@@ -47,11 +47,11 @@ import { AbortError } from '../../abort-error';
  */
 export const debounce = <R>(
   handler: Parameters<typeof setTimeoutAsync<R>>['0'],
-  timeout: number
+  delay?: number
 ): ((signal: AbortSignal) => Promise<R>) => {
   return (signal: AbortSignal) => {
     try {
-      return setTimeoutAsync(handler, timeout, { signal });
+      return setTimeoutAsync(handler, delay, { signal });
     } catch (error) {
       if (error instanceof AbortError) {
         error.cause = new AbortError(error.message, { ...error, cause: error });

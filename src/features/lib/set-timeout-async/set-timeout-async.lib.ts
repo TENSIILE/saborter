@@ -10,7 +10,7 @@ import { logger } from '../../../shared/logger';
  *        Either a string of code to evaluate or a function that takes an AbortSignal
  *        and returns a value or Promise. If it's a function, it will be called with
  *        the AbortSignal to allow cleanup on abort.
- * @param {number} [timeout] - Optional timeout in milliseconds. If not provided,
+ * @param {number} [delay] - Optional timeout in milliseconds. If not provided,
  *        the handler will be scheduled without a delay.
  * @param {Object} [options] - Configuration options.
  * @param {AbortSignal} [options.signal] - AbortSignal to cancel the timeout.
@@ -35,7 +35,7 @@ import { logger } from '../../../shared/logger';
  */
 export const setTimeoutAsync = <T>(
   handler: string | ((signal: AbortSignal) => T | Promise<T>),
-  timeout?: number,
+  delay?: number,
   options?: {
     signal?: AbortSignal;
     args?: any[];
@@ -44,6 +44,8 @@ export const setTimeoutAsync = <T>(
   const { args = [], signal = new AbortController().signal } = options ?? {};
 
   return new Promise<T>((resolve, reject) => {
+    let timeoutId: number | undefined;
+
     if (signal.aborted) {
       if (!signal.reason?.message) {
         logger.warn(`${setTimeoutAsync.name} -> no message indicating the reason for the signal interruption`, signal);
@@ -56,7 +58,25 @@ export const setTimeoutAsync = <T>(
       );
     }
 
-    const timeoutId = setTimeout(
+    const handleEventListener = () => {
+      clearTimeout(timeoutId);
+
+      if (signal.reason instanceof AbortError) {
+        signal.reason.cause = new AbortError(signal.reason.message, { ...signal.reason });
+        signal.reason.initiator = setTimeoutAsync.name;
+
+        return reject(signal.reason);
+      }
+
+      const error = new AbortError(`${setTimeoutAsync.name} was interrupted`, {
+        initiator: setTimeoutAsync.name,
+        reason: signal.reason
+      });
+
+      reject(error);
+    };
+
+    timeoutId = setTimeout(
       typeof handler === 'string'
         ? handler
         : () => {
@@ -70,32 +90,14 @@ export const setTimeoutAsync = <T>(
               return resolve(promise);
             } catch (error) {
               reject(error);
+            } finally {
+              signal?.removeEventListener('abort', handleEventListener);
             }
           },
-      timeout,
+      delay,
       ...args
     );
 
-    signal?.addEventListener(
-      'abort',
-      () => {
-        clearTimeout(timeoutId);
-
-        if (signal.reason instanceof AbortError) {
-          signal.reason.cause = new AbortError(signal.reason.message, { ...signal.reason });
-          signal.reason.initiator = setTimeoutAsync.name;
-
-          return reject(signal.reason);
-        }
-
-        const error = new AbortError(`${setTimeoutAsync.name} was interrupted`, {
-          initiator: setTimeoutAsync.name,
-          reason: signal.reason
-        });
-
-        reject(error);
-      },
-      { once: true }
-    );
+    signal?.addEventListener('abort', handleEventListener, { once: true });
   });
 };
