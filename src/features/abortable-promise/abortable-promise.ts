@@ -1,6 +1,5 @@
-type PromiseReject = (reason?: any) => void;
-type PromiseResolve<T> = (value: T | PromiseLike<T>) => void;
-type PromiseExecutor<T> = (resolve: PromiseResolve<T>, reject: PromiseReject) => void;
+import { PromiseExecutor } from './abortable-promise.types';
+import { AbortError } from '../abort-error';
 
 /**
  * A Promise that can be aborted using an AbortSignal.
@@ -48,6 +47,9 @@ export class AbortablePromise<T> extends Promise<T> {
       signal?.addEventListener(
         'abort',
         () => {
+          if (signal.reason instanceof AbortError && signal.reason.type === 'cancelled') {
+            return;
+          }
           reject(signal?.reason);
         },
         { once: true }

@@ -65,7 +65,7 @@ export class Aborter {
       });
 
       this.abort(cancelledAbortError);
-      logger.info('The request was cancelled', cancelledAbortError);
+      logger.info('The request was cancelled -> ', cancelledAbortError);
     }
 
     this.abortController = new AbortController();
@@ -80,7 +80,7 @@ export class Aborter {
         });
 
         this.abort(abortError);
-        logger.info('The request was cancelled due to a timeout', abortError);
+        logger.info('The request was cancelled due to a timeout -> ', abortError);
       });
 
       queueMicrotask(() => this.setRequestState('pending'));
@@ -116,8 +116,7 @@ export class Aborter {
    * Calling this method sets the AbortSignal flag of this object and signals all observers that the associated action should be aborted.
    */
   public abort = (reason?: any): void => {
-    if (!this.isRequestInProgress)
-      return logger.info('While a request is running, the request cannot be interrupted again');
+    if (!this.isRequestInProgress) return logger.info('Until a request is executed, it cannot be interrupted');
 
     const error = Utils.getAbortErrorByReason(reason);
 
