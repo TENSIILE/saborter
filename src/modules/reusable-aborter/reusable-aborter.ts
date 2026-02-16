@@ -1,5 +1,6 @@
 /* eslint-disable no-param-reassign */
 import * as Types from './reusable-aborter.types';
+import * as Utils from './reusable-aborter.utils';
 
 /**
  * Manages a reusable AbortSignal that can be reset after an abort.
@@ -39,16 +40,26 @@ export class ReusableAborter {
    * List of listener registration parameters that should be preserved across resets.
    * Only non‑once listeners are stored.
    *
-   * @private
+   * @protected
    */
   protected originalSignalListenerParams: Types.OriginalSignalListenerParams[] = [];
 
-  constructor() {
+  /**
+   * Property storing constructor arguments.
+   *
+   * @protected
+   */
+  protected props: Types.ReusableAborterProps;
+
+  constructor(props: Types.ReusableAborterProps = { attractListeners: true }) {
+    this.props = props;
+
     const abortController = new AbortController();
 
-    this.saveSignalListenersApi(abortController.signal);
-
-    this.assignSignalListeners(abortController.signal);
+    if (Utils.canAttractListeners(props.attractListeners, 'eventListeners')) {
+      this.saveSignalListenersApi(abortController.signal);
+      this.assignSignalListeners(abortController.signal);
+    }
 
     this.abortController = abortController;
   }
@@ -121,12 +132,17 @@ export class ReusableAborter {
    * @protected
    */
   protected recoverySignalListeners = (originalSignal: AbortSignal, targetSignal: AbortSignal): void => {
-    targetSignal.onabort = originalSignal.onabort;
-    this.originalSignalListenerParams.forEach(({ type, listener, options }) => {
-      targetSignal.addEventListener(type, listener, options);
-    });
+    if (Utils.canAttractListeners(this.props.attractListeners, 'onabort')) {
+      targetSignal.onabort = originalSignal.onabort;
+    }
 
-    this.assignSignalListeners(targetSignal);
+    if (Utils.canAttractListeners(this.props.attractListeners, 'eventListeners')) {
+      this.originalSignalListenerParams.forEach(({ type, listener, options }) => {
+        targetSignal.addEventListener(type, listener, options);
+      });
+
+      this.assignSignalListeners(targetSignal);
+    }
   };
 
   /**

@@ -1,5 +1,13 @@
 /* eslint-disable dot-notation */
 import { ReusableAborter } from './reusable-aborter';
+import { canAttractListeners } from './reusable-aborter.utils';
+import { logger } from '../../shared/logger';
+
+jest.mock('../../shared/logger', () => ({
+  logger: {
+    info: jest.fn()
+  }
+}));
 
 describe('ReusableAborter', () => {
   let aborter: ReusableAborter;
@@ -259,6 +267,68 @@ describe('ReusableAborter', () => {
     });
   });
 
+  describe('Должен не сихронизировать слушателей при отключенной настройке', () => {
+    it('должен позволять многократные вызовы abort без сохранения listener и onabort', () => {
+      const listener = jest.fn();
+      const callback = jest.fn();
+
+      aborter = new ReusableAborter({ attractListeners: false });
+      aborter.signal.onabort = callback;
+
+      aborter.signal.addEventListener('abort', listener);
+
+      aborter.abort('first');
+      aborter.signal.dispatchEvent(new Event('abort'));
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(listener).toHaveBeenCalledTimes(1);
+
+      aborter.abort('second');
+      aborter.signal.dispatchEvent(new Event('abort'));
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+
+    it('должен позволять многократные вызовы abort без сохранения listener, но с сохранением onabort', () => {
+      const listener = jest.fn();
+      const callback = jest.fn();
+
+      aborter = new ReusableAborter({ attractListeners: { eventListeners: false, onabort: true } });
+      aborter.signal.onabort = callback;
+
+      aborter.signal.addEventListener('abort', listener);
+
+      aborter.abort('first');
+      aborter.signal.dispatchEvent(new Event('abort'));
+      expect(callback).toHaveBeenCalledTimes(2);
+      expect(listener).toHaveBeenCalledTimes(1);
+
+      aborter.abort('second');
+      aborter.signal.dispatchEvent(new Event('abort'));
+      expect(callback).toHaveBeenCalledTimes(4);
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+
+    it('должен позволять многократные вызовы abort с сохранением listener, но без сохранения onabort', () => {
+      const listener = jest.fn();
+      const callback = jest.fn();
+
+      aborter = new ReusableAborter({ attractListeners: { eventListeners: true, onabort: false } });
+      aborter.signal.onabort = callback;
+
+      aborter.signal.addEventListener('abort', listener);
+
+      aborter.abort('first');
+      aborter.signal.dispatchEvent(new Event('abort'));
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(listener).toHaveBeenCalledTimes(2);
+
+      aborter.abort('second');
+      aborter.signal.dispatchEvent(new Event('abort'));
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(listener).toHaveBeenCalledTimes(4);
+    });
+  });
+
   describe('интеграционные сценарии', () => {
     it('должен позволять отменять асинхронные операции и переиспользовать сигнал', async () => {
       const aborter1 = new ReusableAborter();
@@ -337,6 +407,80 @@ describe('ReusableAborter', () => {
         aborter.abort();
         aborter.abort();
       }).not.toThrow();
+    });
+  });
+
+  describe('canAttractListeners util', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    describe('когда attractListeners = falsy (undefined, null, false, 0, "")', () => {
+      it('должен возвращать false и логировать полное отключение для undefined', () => {
+        expect(canAttractListeners(undefined, 'onabort')).toBe(false);
+        expect(logger.info).toHaveBeenCalledWith(
+          'ReusableAborter -> Synchronization of listeners of the signal abortion was completely disabled'
+        );
+      });
+
+      it('должен возвращать false и логировать полное отключение для null', () => {
+        expect(canAttractListeners(null as any, 'eventListeners')).toBe(false);
+        expect(logger.info).toHaveBeenCalledWith(
+          'ReusableAborter -> Synchronization of listeners of the signal abortion was completely disabled'
+        );
+      });
+
+      it('должен возвращать false и логировать полное отключение для false', () => {
+        expect(canAttractListeners(false, 'onabort')).toBe(false);
+        expect(logger.info).toHaveBeenCalledWith(
+          'ReusableAborter -> Synchronization of listeners of the signal abortion was completely disabled'
+        );
+      });
+
+      it('должен возвращать false и логировать полное отключение для 0', () => {
+        expect(canAttractListeners(0 as any, 'onabort')).toBe(false);
+        expect(logger.info).toHaveBeenCalledWith(
+          'ReusableAborter -> Synchronization of listeners of the signal abortion was completely disabled'
+        );
+      });
+
+      it('должен возвращать false и логировать полное отключение для пустой строки', () => {
+        expect(canAttractListeners('' as any, 'onabort')).toBe(false);
+        expect(logger.info).toHaveBeenCalledWith(
+          'ReusableAborter -> Synchronization of listeners of the signal abortion was completely disabled'
+        );
+      });
+    });
+
+    describe('когда attractListeners = true', () => {
+      it('должен возвращать true для любого targetName без логирования', () => {
+        expect(canAttractListeners(true, 'onabort')).toBe(true);
+        expect(canAttractListeners(true, 'eventListeners')).toBe(true);
+        expect(logger.info).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('когда attractListeners = объект AttractListeners', () => {
+      it('должен возвращать значение соответствующего поля', () => {
+        const config = { eventListeners: true, onabort: false };
+        expect(canAttractListeners(config, 'onabort')).toBe(false);
+        expect(canAttractListeners(config, 'eventListeners')).toBe(true);
+      });
+
+      it('должен логировать отключение для конкретного типа, если значение false', () => {
+        const config = { eventListeners: true, onabort: false };
+        canAttractListeners(config, 'onabort');
+        expect(logger.info).toHaveBeenCalledWith('ReusableAborter -> Listener sync was disabled for "onabort"');
+
+        canAttractListeners(config, 'eventListeners');
+        expect(logger.info).toHaveBeenCalledTimes(1); // только для onabort
+      });
+
+      it('не должен логировать, если значение true', () => {
+        const config = { eventListeners: true, onabort: true };
+        canAttractListeners(config, 'onabort');
+        expect(logger.info).not.toHaveBeenCalled();
+      });
     });
   });
 });
