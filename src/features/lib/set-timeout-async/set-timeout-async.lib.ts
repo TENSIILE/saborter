@@ -50,7 +50,8 @@ export const setTimeoutAsync = <T>(
       }
       reject(
         new AbortError(signal.reason?.message || 'The signal was interrupted before the timeout was initialized', {
-          initiator: setTimeoutAsync.name
+          initiator: setTimeoutAsync.name,
+          reason: signal.reason
         })
       );
     }
