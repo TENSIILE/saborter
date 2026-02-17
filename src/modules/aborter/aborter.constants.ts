@@ -4,4 +4,4 @@ export enum ErrorMessage {
   CancelRequest = 'cancellation of the previous AbortController'
 }
 
-export const disposeSymbol = Symbol('aborter::dispose()');
+export const disposeSymbol = Symbol('dispose');

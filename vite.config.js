@@ -7,6 +7,7 @@ import dts from 'vite-plugin-dts';
 export default defineConfig({
   plugins: [
     dts({
+      entryRoot: 'src',
       insertTypesEntry: true,
       rollupTypes: true,
       bundledPackages: []
@@ -39,24 +40,29 @@ export default defineConfig({
   ],
   build: {
     lib: {
-      entry: resolve(__dirname, 'src/index.ts'),
+      entry: {
+        index: resolve(__dirname, 'src/index.ts'),
+        utils: resolve(__dirname, 'src/utils.ts')
+      },
       formats: ['es', 'cjs'],
-      fileName: (format) => {
-        if (format === 'es') return 'index.es.js';
-        if (format === 'cjs') return 'index.cjs.js';
-
-        return `index.${format}.js`;
+      fileName: (format, filename) => {
+        return `${filename}.${format}.js`;
       }
     },
     rollupOptions: {
+      input: {
+        index: resolve(__dirname, 'src/index.ts'),
+        utils: resolve(__dirname, 'src/utils.ts')
+      },
       external: [],
       output: {
         preserveModules: false,
-        globals: {}
+        globals: {},
+        exports: 'named'
       }
     },
     sourcemap: false,
-    minify: false,
+    minify: true,
     target: 'es2020'
   }
 });
