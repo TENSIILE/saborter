@@ -34,5 +34,5 @@ export const throwIfAborted = (signal: AbortSignal): never | void => {
     throw signal.reason;
   }
 
-  throw new AbortError('signal is aborted without message', { reason: signal.reason, initiator: 'system' });
+  throw new AbortError('signal is aborted without message', { reason: signal.reason, initiator: throwIfAborted.name });
 };
