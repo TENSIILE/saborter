@@ -42,7 +42,10 @@ export default defineConfig({
     lib: {
       entry: {
         index: resolve(__dirname, 'src/index.ts'),
-        utils: resolve(__dirname, 'src/utils.ts')
+        lib: resolve(__dirname, 'src/lib.ts'),
+        dev: resolve(__dirname, 'src/dev.ts'),
+        errors: resolve(__dirname, 'src/errors.ts'),
+        types: resolve(__dirname, 'src/types.ts')
       },
       formats: ['es', 'cjs'],
       fileName: (format, filename) => {
@@ -52,7 +55,10 @@ export default defineConfig({
     rollupOptions: {
       input: {
         index: resolve(__dirname, 'src/index.ts'),
-        utils: resolve(__dirname, 'src/utils.ts')
+        lib: resolve(__dirname, 'src/lib.ts'),
+        dev: resolve(__dirname, 'src/dev.ts'),
+        errors: resolve(__dirname, 'src/errors.ts'),
+        types: resolve(__dirname, 'src/types.ts')
       },
       external: [],
       output: {
