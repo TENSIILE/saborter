@@ -30,8 +30,46 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.es.js",
       "require": "./dist/index.cjs.js"
+    },
+    "./lib": {
+      "types": "./dist/lib.d.ts",
+      "import": "./dist/lib.es.js",
+      "require": "./dist/lib.cjs.js"
+    },
+    "./dev": {
+      "types": "./dist/dev.d.ts",
+      "import": "./dist/dev.es.js",
+      "require": "./dist/dev.cjs.js"
+    },
+    "./errors": {
+      "types": "./dist/errors.d.ts",
+      "import": "./dist/errors.es.js",
+      "require": "./dist/errors.cjs.js"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.cjs.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "lib": [
+        "./dist/lib.d.ts"
+      ],
+      "dev": [
+        "./dist/dev.d.ts"
+      ],
+      "errors": [
+        "./dist/errors.d.ts"
+      ],
+      "types": [
+        "./dist/types.d.ts"
+      ]
     }
   },
+  "sideEffects": false,
   "files": [
     "dist"
   ],

@@ -1,6 +1,6 @@
 import { StateObserver } from './state-observer';
 import { OnStateChangeCallback } from './state-observer.types';
-import { emitRequestState } from './state-observer.lib';
+import { emitRequestState } from './state-observer.utils';
 
 describe('StateObserver', () => {
   let observer: StateObserver;

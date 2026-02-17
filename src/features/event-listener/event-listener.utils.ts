@@ -1,6 +1,9 @@
 import { clearMethodSymbol } from './event-listener.constants';
 import { EventListener } from './event-listener';
 
-export const clearEventListeners = (instance: EventListener) => {
+/**
+ * Сalls a private instance method to clear all listeners and data.
+ */
+export const clearEventListeners = (instance: EventListener): void => {
   instance[clearMethodSymbol]();
 };

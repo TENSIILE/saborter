@@ -1,10 +1,11 @@
 import { RequestState, emitRequestState } from '../../features/state-observer';
-import { AbortError, isError, ABORT_ERROR_NAME } from '../../features/abort-error';
+import { AbortError, isAbortError } from '../../features/abort-error';
 import { EventListener, clearEventListeners } from '../../features/event-listener';
 import { Timeout, TimeoutError } from '../../features/timeout';
-import { ErrorMessage } from './aborter.constants';
+import { ErrorMessage, disposeSymbol } from './aborter.constants';
 import * as Utils from './aborter.utils';
 import * as Types from './aborter.types';
+import { logger } from '../../shared';
 
 export class Aborter {
   protected abortController = new AbortController();
@@ -21,19 +22,6 @@ export class Aborter {
   constructor(options?: Types.AborterOptions) {
     this.listeners = new EventListener(options);
   }
-
-  /**
-   * The name of the error instance thrown by the AbortSignal.
-   * @readonly
-   * @deprecated use AbortError.name
-   */
-  public static readonly errorName = ABORT_ERROR_NAME;
-
-  /**
-   * Method of checking whether an error is an error AbortError.
-   * @returns boolean
-   */
-  public static isError = isError;
 
   /**
    * Returns true if Aborter has signaled to abort, and false otherwise.
@@ -72,15 +60,16 @@ export class Aborter {
     if (this.isRequestInProgress) {
       const cancelledAbortError = new AbortError(ErrorMessage.CancelRequest, {
         type: 'cancelled',
-        signal: this.signal,
         initiator: 'system'
       });
 
       this.abort(cancelledAbortError);
+      logger.info('The request was cancelled -> ', cancelledAbortError);
     }
 
-    let promise: Promise<R> | null = new Promise<R>((resolve, reject) => {
-      this.abortController = new AbortController();
+    this.abortController = new AbortController();
+
+    const promise: Promise<R> = new Promise<R>((resolve, reject) => {
       this.isRequestInProgress = true;
 
       this.timeout.setTimeout(timeout?.ms, () => {
@@ -88,16 +77,20 @@ export class Aborter {
           initiator: 'timeout',
           cause: new TimeoutError(ErrorMessage.RequestTimedout, timeout)
         });
+
         this.abort(abortError);
+        logger.info('The request was cancelled due to a timeout -> ', abortError);
       });
 
       queueMicrotask(() => this.setRequestState('pending'));
 
       request(this.abortController.signal)
         .then((response) => {
-          if (!this.isRequestInProgress) return;
+          if (!this.isRequestInProgress)
+            return logger.info('While the request is being executed, the request will not be resolved');
 
           this.setRequestState('fulfilled');
+
           resolve(response);
         })
         .catch((error: Error) => {
@@ -105,13 +98,11 @@ export class Aborter {
             reject(error);
           }
 
-          if (isErrorNativeBehavior || !Aborter.isError(error)) {
+          if (isErrorNativeBehavior || !isAbortError(error)) {
             this.setRequestState('rejected');
 
             reject(error);
           }
-
-          promise = null;
         });
     });
 
@@ -122,7 +113,7 @@ export class Aborter {
    * Calling this method sets the AbortSignal flag of this object and signals all observers that the associated action should be aborted.
    */
   public abort = (reason?: any): void => {
-    if (!this.isRequestInProgress) return;
+    if (!this.isRequestInProgress) return logger.info('Until a request is executed, it cannot be interrupted');
 
     const error = Utils.getAbortErrorByReason(reason);
 
@@ -147,8 +138,9 @@ export class Aborter {
   /**
    * Clears the object's data completely: all subscriptions in all properties, clears overridden methods, state values.
    */
-  public dispose = (): void => {
+  public [disposeSymbol] = (): void => {
     this.timeout.clearTimeout();
     clearEventListeners(this.listeners);
+    logger.info('Resources have been released');
   };
 }
