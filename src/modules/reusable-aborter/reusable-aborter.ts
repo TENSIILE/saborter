@@ -1,4 +1,5 @@
 /* eslint-disable no-param-reassign */
+import { AbortError } from '../../features/abort-error';
 import * as Types from './reusable-aborter.types';
 import * as Utils from './reusable-aborter.utils';
 
@@ -164,7 +165,9 @@ export class ReusableAborter {
    * @param reason - Optional reason to pass to `abort()`.
    */
   public abort = (reason?: any): void => {
-    this.abortController.abort(reason);
+    this.abortController.abort(
+      reason instanceof AbortError ? reason : new AbortError('signal is aborted without message', { reason })
+    );
 
     const abortController = new AbortController();
 

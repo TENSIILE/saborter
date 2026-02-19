@@ -2,6 +2,7 @@
 import { ReusableAborter } from './reusable-aborter';
 import { canAttractListeners } from './reusable-aborter.utils';
 import { logger } from '../../shared/logger';
+import { AbortError } from '../../features/abort-error';
 
 jest.mock('../../shared/logger', () => ({
   logger: {
@@ -199,7 +200,7 @@ describe('ReusableAborter', () => {
       const abortSpy = jest.spyOn(aborter['abortController'], 'abort');
       const reason = 'test abort';
       aborter.abort(reason);
-      expect(abortSpy).toHaveBeenCalledWith(reason);
+      expect(abortSpy).toHaveBeenCalledWith(new AbortError('signal is aborted without message', { reason }));
     });
 
     it('должен создавать новый AbortController', () => {
