@@ -25,7 +25,7 @@ import { logger } from '../../../shared/logger';
  *
  * try {
  *   const data = await setTimeoutAsync(
- *     (signal) => fetch('/api/data', { signal }),
+ *     (signal) => fetch('/api/data', { signal }).then(res => res.json()),
  *     5000,
  *     { signal: controller.signal }
  *   )
