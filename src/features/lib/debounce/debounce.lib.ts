@@ -46,7 +46,7 @@ import { AbortError } from '../../abort-error';
  * @see setTimeoutAsync – The underlying delay mechanism.
  */
 export const debounce = <R>(
-  handler: Parameters<typeof setTimeoutAsync<R>>['0'],
+  handler: Parameters<typeof setTimeoutAsync<R>>['0'] & Function,
   delay?: number
 ): ((signal: AbortSignal) => Promise<R>) => {
   return (signal: AbortSignal) => {
