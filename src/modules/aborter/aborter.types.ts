@@ -1,7 +1,7 @@
 import { EventListenerConstructorOptions } from '../../features/event-listener/event-listener.types';
 import { TimeoutErrorOptions } from '../../features/timeout';
 
-export type AbortRequest<T> = (signal: AbortSignal) => Promise<T>;
+export type AbortableRequest<T> = (signal: AbortSignal) => Promise<T>;
 
 export interface FnTryOptions {
   /**
@@ -12,7 +12,12 @@ export interface FnTryOptions {
   /**
    * Automatic request cancellation setting field.
    */
-  timeout?: TimeoutErrorOptions;
+  timeout?: number | TimeoutErrorOptions;
+  /**
+   * Automatically unwraps JSON if the `try` method receives a `Response` instance, for example, returns `fetch()`.
+   * @default true
+   */
+  unpackData?: boolean;
 }
 
 export interface AborterOptions extends Pick<EventListenerConstructorOptions, 'onAbort' | 'onStateChange'> {}

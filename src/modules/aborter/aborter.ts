@@ -1,3 +1,4 @@
+/* eslint-disable no-dupe-class-members */
 import { RequestState, emitRequestState } from '../../features/state-observer';
 import { AbortError, isAbortError } from '../../features/abort-error';
 import { EventListener, clearEventListeners } from '../../features/event-listener';
@@ -21,6 +22,8 @@ export class Aborter {
 
   constructor(options?: Types.AborterOptions) {
     this.listeners = new EventListener(options);
+
+    this.try = this.try.bind(this);
   }
 
   /**
@@ -53,10 +56,26 @@ export class Aborter {
    * @param options an object that receives a set of settings for performing a request attempt
    * @returns Promise
    */
-  public try = <R>(
-    request: Types.AbortRequest<R>,
-    { isErrorNativeBehavior = false, timeout }: Types.FnTryOptions = {}
-  ): Promise<R> => {
+  public try<R>(request: Types.AbortableRequest<Response>, options?: Types.FnTryOptions): Promise<R>;
+
+  /**
+   * Performs an asynchronous request with cancellation of the previous request, preventing the call of the catch block when the request is canceled and the subsequent finally block.
+   * @param request callback function
+   * @param options an object that receives a set of settings for performing a request attempt
+   * @returns Promise
+   */
+  public try<R>(request: Types.AbortableRequest<R>, options?: Types.FnTryOptions): Promise<R>;
+
+  /**
+   * Performs an asynchronous request with cancellation of the previous request, preventing the call of the catch block when the request is canceled and the subsequent finally block.
+   * @param request callback function
+   * @param options an object that receives a set of settings for performing a request attempt
+   * @returns Promise
+   */
+  public try<R>(
+    request: Types.AbortableRequest<any>,
+    { isErrorNativeBehavior = false, timeout, unpackData = true }: Types.FnTryOptions = {}
+  ): Promise<R> {
     if (this.isRequestInProgress) {
       const cancelledAbortError = new AbortError(ErrorMessage.CancelRequest, {
         type: 'cancelled',
@@ -72,10 +91,14 @@ export class Aborter {
     const promise: Promise<R> = new Promise<R>((resolve, reject) => {
       this.isRequestInProgress = true;
 
-      this.timeout.setTimeout(timeout?.ms, () => {
+      const timeoutMs = typeof timeout === 'number' ? timeout : timeout?.ms;
+      const timeoutOptions =
+        timeout === undefined ? undefined : { ms: timeoutMs!, ...(typeof timeout !== 'number' ? timeout : {}) };
+
+      this.timeout.setTimeout(timeoutMs, () => {
         const abortError = new AbortError(ErrorMessage.RequestTimedout, {
           initiator: 'timeout',
-          cause: new TimeoutError(ErrorMessage.RequestTimedout, timeout)
+          cause: new TimeoutError(ErrorMessage.RequestTimedout, timeoutOptions)
         });
 
         this.abort(abortError);
@@ -90,6 +113,10 @@ export class Aborter {
             return logger.info('While the request is being executed, the request will not be resolved');
 
           this.setRequestState('fulfilled');
+
+          if (unpackData && response instanceof Response) {
+            return response.json().then(resolve).catch(reject);
+          }
 
           resolve(response);
         })
@@ -107,7 +134,7 @@ export class Aborter {
     });
 
     return promise;
-  };
+  }
 
   /**
    * Calling this method sets the AbortSignal flag of this object and signals all observers that the associated action should be aborted.

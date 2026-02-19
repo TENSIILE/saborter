@@ -11,15 +11,19 @@
 
 ### New Features
 
-- Added a `ReusableAborter`
+- Added a `ReusableAborter`.
+- Added the ability to automatically unpack data from `fetch()`.
 - Added `metadata` field for `AbortError` and `TimeoutError`.
 - Added utility functions:
+  - isAbortError
+  - debounce
   - catchAbortError
   - isAbortSignal
   - rethrowAbortSignal
   - setTimeoutAsync
   - throwIfAborted
   - timeInMilliseconds
+  - dispose
 
 ## v1.5.1 (February 11th, 2026)
 
