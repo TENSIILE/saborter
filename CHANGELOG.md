@@ -25,6 +25,8 @@
   - throwIfAborted
   - timeInMilliseconds
   - dispose
+  - setLoggerMode
+  - setDebugErrorStackMode
 
 ## v1.5.1 (February 11th, 2026)
 

@@ -1,6 +1,8 @@
 ![Logo](./assets/logo.png)
 
 [![Npm package](https://img.shields.io/npm/v/saborter?color=red&label=npm%20package)](https://www.npmjs.com/package/saborter)
+[![Npm downloads](https://img.shields.io/npm/dm/saborter.svg)](https://www.npmjs.com/package/saborter)
+[![Release](https://github.com/TENSIILE/saborter/actions/workflows/publish.yml/badge.svg)](https://www.npmjs.com/package/saborter)
 ![Static Badge](https://img.shields.io/badge/coverage-90%25-orange)
 ![Static Badge](https://img.shields.io/badge/license-MIT-blue)
 [![Github](https://img.shields.io/badge/repository-github-color)](https://github.com/TENSIILE/saborter)
@@ -39,11 +41,13 @@ yarn add saborter
 
 | Function/Characteristic                                                                                                               | Saborter | AbortController |
 | ------------------------------------------------------------------------------------------------------------------------------------- | -------- | --------------- |
-| Eliminated race condition when speed typing.                                                                                          | ✔️       | ✖️              |
-| The signal is created anew, there is no need to recreate it yourself. After `abort()` you can "reset" and use it again.               | ✔️       | ✖️              |
-| Legible error handling across all browsers.                                                                                           | ✔️       | ✖️              |
-| There is extended information about request interruptions: who cancelled, when, and the reason.                                       | ✔️       | ✖️              |
-| The signal will always be new. It's no coincidence that a previously disabled signal can appear from outside, which breaks all logic. | ✔️       | ✖️              |
+| Eliminated race condition when speed typing.                                                                                          | ✅       | ❌              |
+| The signal is created anew, there is no need to recreate it yourself. After `abort()` you can "reset" and use it again.               | ✅       | ❌              |
+| Legible error handling across all browsers.                                                                                           | ✅       | ❌              |
+| There is extended information about request interruptions: who cancelled, when, and the reason.                                       | ✅       | ❌              |
+| The signal will always be new. It's no coincidence that a previously disabled signal can appear from outside, which breaks all logic. | ✅       | ❌              |
+| Built-in debounce functionality.                                                                                                      | ✅       | ❌              |
+| Availability of ponyfills in the set.                                                                                                 | ✅       | ❌              |
 
 ## 🚀 Quick Start
 
@@ -88,18 +92,42 @@ handleSearch('abc'); // The second request is canceled, a new one is started
 
 ### 2. Automatic cancellation of requests
 
-The `Aborter` class allows you to easily cancel ongoing requests:
+The `Aborter` class makes it easy to cancel running requests after a period of time:
 
 ```javascript
 const aborter = new Aborter();
 
-const fetcher = (signal) => fetch('/api/long-task', { signal });
-
 // Start a long-running request and cancel the request after 2 seconds
-const longRequest = aborter.try(fetcher, { timeout: { ms: 2000 } });
+const longRequest = aborter.try(
+  (signal) => {
+    return fetch('/api/long-task', { signal });
+  },
+  { timeout: 2000 }
+);
 ```
 
-### 3. Working with Multiple Requests
+### 3. Multiple request aborts through a single `ReusableAborter` instance
+
+The `ReusableAborter` class allows you to easily cancel requests an unlimited number of times while preserving all listeners:
+
+```javascript
+const reusableAborter = new ReusableAborter();
+
+// Adding a subscription to an interrupt event
+reusableAborter.addEventListener('abort', (e) => console.log('aborted', e));
+
+// Start a long-running request and cancel the request after 2 seconds
+const fetchPosts = async () => {
+  const response = await fetch('/api/posts', { signal: reusableAborter.signal });
+
+  return await response.json();
+};
+
+reusableAborter.abort(); // call of the listener -> console.log('aborted', e)
+reusableAborter.abort(); // listener recall -> console.log('aborted', e)
+```
+
+### 4. Working with Multiple Requests
 
 You can create separate instances for different groups of requests:
 
@@ -160,7 +188,7 @@ const aborter = new Aborter(options?: AborterOptions);
 
 ### Properties
 
-⚠️ `[DEPRECATED] signal`
+⚠️ `[DEPRECATED] signal: AbortSignal`
 
 Returns the `AbortSignal` associated with the current controller.
 
@@ -171,52 +199,47 @@ Returns the `AbortSignal` associated with the current controller.
 ```javascript
 const aborter = new Aborter();
 
-// Using signal in the request
-fetch('/api/data', {
-  signal: aborter.signal
+// ❌ Bad Solution
+aborter.signal.addEventListener('abort', () => {
+  // Your interrupt handling
 });
 ```
 
-`isAborted`
+```javascript
+const aborter = new Aborter();
+
+// ✅ Good Solution
+aborter.listeners.addEventListener('aborted', () => {
+  // Your interrupt handling
+});
+```
+
+`aborted: boolean`
 
 Returns a `boolean` value indicating whether the request was aborted or not.
 
-`listeners`
+`listeners: EventListener`
 
 Returns an `EventListener` object to listen for `Aborter` events.
 
 [Detailed documentation here](./docs/event-listener.md)
 
-⚠️ `[DEPRECATED] static errorName`
-
-Use `AbortError.name`.
-
-Name of the `AbortError` error instance thrown by AbortSignal.
-
-```javascript
-const result = await aborter
-  .try((signal) => fetch('/api/data', { signal }), { isErrorNativeBehavior: true })
-  .catch((error) => {
-    if (error.name === AbortError.name) {
-      console.log('Canceled');
-    }
-  });
-```
-
 ### Methods
 
-`try(request, options?)`
+`try<T>(request, options?): Promise<T>`
 
 Executes an asynchronous request with the ability to cancel.
 
 **Parameters:**
 
-- `request: (signal: AbortSignal) => Promise<T>` - the function that fulfills the request
-- `options?: Object` (optional)
-  - `isErrorNativeBehavior?: boolean` - a flag for controlling error handling. Default is `false`
-  - `timeout?: Object`
-    - `ms: number` - Time in milliseconds after which interrupts should be started
-    - `reason?: any` - A field storing the error reason. Can contain any metadata
+- `request: (signal: AbortSignal) => Promise<T>` - the function that fulfills the request.
+- `options?: Object`
+  - `isErrorNativeBehavior?: boolean` (Default is `false`) - a flag for controlling error handling.
+  - `timeout?: number | Object`
+    - `ms: number` - Time in milliseconds after which interrupts should be started.
+    - `reason?: any` - A field storing the error reason.
+    - `metadata?: any` - Interrupt-related data. The best way to pass any data inside the error.
+  - `unpackData?: boolean` (Default is `true`) - Automatically unwraps JSON if the `try` method receives a `Response` instance, for example, returns `fetch()`.
 
 **Returns:** `Promise<T>`
 
@@ -238,6 +261,29 @@ const result = await aborter.try(async (signal) => {
 });
 ```
 
+You can either write `.json()` or not write it from the `fetch` function. You can immediately return the `fetch` result.
+
+```javascript
+const result = await aborter.try((signal) => {
+  return fetch('/api/data', { signal });
+});
+```
+
+If you want to return a `Fetch Response` instance to the outside, you can configure the `unpackData` option by changing the value to `false`.
+
+```javascript
+// The response variable contains the export of the Response class.
+const response = await aborter.try(
+  (signal) => {
+    return fetch('/api/data', { signal });
+  },
+  { unpackData: false }
+);
+
+// Getting data from JSON
+const data = await response.json();
+```
+
 **Examples using automatic cancellation after a time:**
 
 ```javascript
@@ -246,16 +292,16 @@ const result = await aborter.try(
   (signal) => {
     return fetch('/api/data', { signal });
   },
-  { timeout: { ms: 2000 } }
+  { timeout: 2000 }
 );
 
-// We want to get an error in the "catch" block
+// We want to catch the error in the "catch" block and pass more data for the error timeout
 try {
   const result = await aborter.try(
     (signal) => {
       return fetch('/api/data', { signal });
     },
-    { timeout: { ms: 2000 } }
+    { timeout: { ms: 2000, reason: 'any reason', metadata: { userId: 1 } } }
   );
 } catch (error) {
   if (error instanceof AbortError && error.initiator === 'timeout') {
@@ -264,8 +310,10 @@ try {
     if (error.cause instanceof TimeoutError) {
       // To get the parameters that caused the timeout error,
       // they can be found in the "cause" field using the upstream typeguard.
-
-      console.log(error.cause.ms); // `error.cause` — TimeoutError
+      console.log(error.cause); // `error.cause` — TimeoutError
+      console.log(error.cause.ms); // 2000
+      console.log(error.cause.reason); // 'any reason'
+      console.log(error.cause.metadata); //  { userId: 1 }
     }
   }
 }
@@ -273,11 +321,11 @@ try {
 
 If you want to catch a [timeout error through events or subscriptions](./docs/event-listener.md#catching-an-error-by-timeout), you can do that.
 
-`abort(reason?)`
+`abort(reason?): void`
 
 **Parameters:**
 
-- `reason?: any` - the reason for aborting the request (optional)
+- `reason?: any` - the reason for aborting the request.
 
 Immediately cancels the currently executing request.
 
@@ -289,6 +337,7 @@ const requestPromise = aborter.try((signal) => fetch('/api/data', { signal }), {
 
 // Handle cancellation
 requestPromise.catch((error) => {
+  // The old approach to checking for the AbortError error
   if (error.name === 'AbortError') {
     console.log('Request canceled');
   }
@@ -298,29 +347,10 @@ requestPromise.catch((error) => {
 aborter.abort();
 ```
 
-You can specify any data as the `reason`.
-If we want to pass an `object`, we can put the error message in the `message` field. The same object will be available as the `reason` in the case of the `AbortError` error.
-
-```javascript
-// Start the request
-const requestPromise = aborter.try((signal) => fetch('/api/data', { signal }));
-
-// Handle cancellation
-requestPromise.catch((error) => {
-  if (error instanceof AbortError) {
-    console.log(error.message); // Hello
-    console.log(error.reason); // { message: 'Hello', data: [] }
-  }
-});
-
-// Cancel
-aborter.abort({ message: 'Hello', data: [] });
-```
-
-You can also submit your own `AbortError` with your own settings.
+You can submit your own `AbortError` with your own settings.
 
 > [!WARNING]
-> Please be careful, the behavior of the `Aborter` function may be broken in its original form when reconfiguring the options.
+> Be careful, changing the `type` parameter may change the behavior of the `Aborter` function.
 
 ```javascript
 // Start the request
@@ -328,6 +358,7 @@ const requestPromise = aborter.try((signal) => fetch('/api/data', { signal }));
 
 // Handle cancellation
 requestPromise.catch((error) => {
+  // A strict and correct approach to checking for the AbortError error
   if (error instanceof AbortError) {
     console.log(error.message); // 'Custom AbortError message'
     console.log(error.reason); // 1
@@ -338,14 +369,14 @@ requestPromise.catch((error) => {
 aborter.abort(new AbortError('Custom AbortError message', { reason: 1 }));
 ```
 
-`abortWithRecovery(reason?)`
+`abortWithRecovery(reason?): void`
 
 Immediately cancels the currently executing request.
 After aborting, it restores the `AbortSignal`, resetting the `aborted` property, and interaction with the `signal` property becomes available again.
 
 **Parameters:**
 
-- `reason?: any` - the reason for aborting the request (optional)
+- `reason?: any` - the reason for aborting the request.
 
 **Returns:** `AbortController`
 
@@ -360,7 +391,7 @@ const fetchData = async () => {
   try {
     const data = await fetch('/api/data', { signal: aborter.signal });
   } catch (error) {
-    // ALL errors, including cancellations, will go here
+    // We will receive all interrupted errors here
     console.log(error);
   }
 };
@@ -375,52 +406,17 @@ aborter.abortWithRecovery();
 fetchData();
 ```
 
-`dispose()`
-
-**Returns:** `void`
-
-Clears the object's data completely: all subscriptions in all properties, clears overridden methods, state values.
-
-> [!WARNING]
-> The request does not interrupt!
-
-`static isError(error)`
-
-Static method for checking if an object is an `AbortError` error.
-
-> [!IMPORTANT]
->
-> - The method will return `true` even if it receives a native AbortError that is thrown by the `DOMException` itself, or finds a hint of a request abort in the error message.
-> - To exclusively verify that the error is an `AbortError` from the `saborter` package, it is better to use: `error instance AbortError`
-
-```javascript
-try {
-  await aborter.try((signal) => fetch('/api/data', { signal }), { isErrorNativeBehavior: true });
-} catch (error) {
-  if (Aborter.isError(error)) {
-    console.log('This is a cancellation error');
-  } else {
-    console.log('Another error:', error);
-  }
-}
-
-// or
-
-try {
-  await aborter.try((signal) => fetch('/api/data', { signal }), { isErrorNativeBehavior: true });
-} catch (error) {
-  if (error instanceof AbortError) {
-    console.log('This is a cancellation error');
-  } else {
-    console.log('Another error:', error);
-  }
-}
-```
-
 ## 🔌 Additional APIs
 
-- [**AbortError**](./docs/abort-error.md) - Custom error for working with Aborter.
-- [**TimeoutError**](./docs/timeout-error.md) - Error for working with timeout interrupt.
+The `saborter` package contains additional features out of the box that can help you:
+
+- [**@saborter/react**](https://github.com/TENSIILE/saborter-react) - a standalone library with `Saborter` and `React` integration.
+- [**saborter/lib**](./docs/libs.md) - auxiliary functions.
+- [**saborter/errors**](./docs/errors.md) - package errors.
+  - [**AbortError**](./docs/errors.md#aborterror) - Custom error for working with Aborter.
+  - [**TimeoutError**](./docs/errors.md#timeouterror) - Error for working with timeout interrupt.
+- [**saborter/dev**](./docs/dev.md) - development tools.
+- [**saborter/types**](.) - package typing.
 
 ## ⚠️ Important Features
 
@@ -461,13 +457,13 @@ useEffect(() => {
 
 ### Finally block
 
-Ignoring `AbortError` cancellation errors, the `finally` block will only be executed if other errors are received, or if an abort error or the request succeeds.
+Ignoring `AbortError` cancellation errors (`isErrorNativeBehavior: false`), the `finally` block will only be executed if other errors are received, or if an abort error or the request succeeds.
 
 ```javascript
 const result = await aborter
   .try((signal) => fetch('/api/data', { signal }))
   .catch((error) => {
-    // Any error other than a request cancellation will be logged here.
+    // Any error other than a cancellation of a previous request will be logged here.
     console.log(error);
   })
   .finally(() => {
@@ -481,7 +477,7 @@ Everything will also work if you use the `try-catch` syntax.
 try {
   const result = await aborter.try((signal) => fetch('/api/data', { signal }));
 } catch (error) {
-  // Any error other than a request cancellation will be logged here.
+  // Any error other than a cancellation of a previous request will be logged here.
   console.log(error);
 } finally {
   // The request was successfully completed or we caught a "throw"
@@ -535,7 +531,9 @@ const handleLoad = async () => {
     const users = await aborter.try(getUsers);
     setUsers(users);
   } catch (error) {
-    if (error instanceof AbortError) return;
+    if (error instanceof AbortError) {
+      console.log('interrupt error handling');
+    }
     console.log(error);
   } finally {
     setLoading(false);
@@ -679,7 +677,7 @@ class FileUploader {
 
       console.log('File uploaded successfully');
     } catch (error) {
-      if (Aborter.isError(error)) {
+      if (error instanceof AbortError) {
         console.log('Upload canceled');
       } else {
         console.error('Upload error:', error);
@@ -700,6 +698,7 @@ class FileUploader {
 ```javascript
 import React, { useState, useEffect, useRef } from 'react';
 import { Aborter } from 'saborter';
+import { AbortError } from 'saborter/errors';
 
 const DataFetcher = ({ url }) => {
   const [data, setData] = useState(null);
@@ -721,6 +720,9 @@ const DataFetcher = ({ url }) => {
       });
       setData(result);
     } catch (error) {
+      if (error instanceof AbortError) {
+        // Handle abort error
+      }
       // Handle fetch error
     } finally {
       setLoading(false);
@@ -749,6 +751,7 @@ const DataFetcher = ({ url }) => {
 
 ```javascript
 import { Aborter } from 'saborter';
+import { AbortError } from 'saborter/errors';
 
 export default {
   data() {
@@ -773,6 +776,9 @@ export default {
           return response.json();
         });
       } catch (error) {
+        if (error instanceof AbortError) {
+          // Handle abort error
+        }
         // Handle fetch errors
       } finally {
         this.loading = false;
