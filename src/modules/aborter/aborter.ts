@@ -29,7 +29,7 @@ export class Aborter {
   /**
    * Returns true if Aborter has signaled to abort, and false otherwise.
    */
-  public get isAborted(): boolean {
+  public get aborted(): boolean {
     return this.signal.aborted && this.listeners.state.value === 'aborted';
   }
 

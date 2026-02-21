@@ -8,6 +8,7 @@
 - Removed the static field `errorName` from the `Aborter` class.
 - The `code` and `signal` fields have been removed from `AbortError`.
 - Moved the `dispose` method of the `Aborter` instance into a separate function.
+- Changed the `isAborted` field to `aborted` in the `Aborter` class.
 
 ### New Features
 
