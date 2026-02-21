@@ -58,20 +58,8 @@ export class Aborter {
    */
   public try<R>(request: Types.AbortableRequest<Response>, options?: Types.FnTryOptions): Promise<R>;
 
-  /**
-   * Performs an asynchronous request with cancellation of the previous request, preventing the call of the catch block when the request is canceled and the subsequent finally block.
-   * @param request callback function
-   * @param options an object that receives a set of settings for performing a request attempt
-   * @returns Promise
-   */
   public try<R>(request: Types.AbortableRequest<R>, options?: Types.FnTryOptions): Promise<R>;
 
-  /**
-   * Performs an asynchronous request with cancellation of the previous request, preventing the call of the catch block when the request is canceled and the subsequent finally block.
-   * @param request callback function
-   * @param options an object that receives a set of settings for performing a request attempt
-   * @returns Promise
-   */
   public try<R>(
     request: Types.AbortableRequest<any>,
     { isErrorNativeBehavior = false, timeout, unpackData = true }: Types.FnTryOptions = {}

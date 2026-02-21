@@ -22,7 +22,7 @@ This function updates internal flags that determine whether logging is enabled a
 
 - `enabled: boolean` - If `true`, logging is globally enabled; if `false`, logging is disabled.
 - `options?: Object` - Additional configuration.
-  - `skipInfo: boolean` (default `false`): If `true`, `info`-level logs are skipped even when logging is enabled. If `false`, all log levels are allowed.
+  - `skipInfo?: boolean` (default `false`): If `true`, `info`-level logs are skipped even when logging is enabled. If `false`, all log levels are allowed.
 
 **Example:**
 

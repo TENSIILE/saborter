@@ -126,7 +126,7 @@ setDebugErrorStackMode(true);
 const abortError = new AbortError('Aborted');
 
 // In the console you will see an expanded stack with the full list of data for this error
-console.log(abortError);
+console.log(abortError); // or abortError.stack
 ```
 
 ## `TimeoutError`
@@ -226,5 +226,5 @@ setDebugErrorStackMode(true);
 const timeoutError = new TimeoutError('Request timed out');
 
 // In the console you will see an expanded stack with the full list of data for this error
-console.log(timeoutError);
+console.log(timeoutError); // or abortError.stack
 ```

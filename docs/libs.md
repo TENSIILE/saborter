@@ -95,7 +95,7 @@ This function catches errors that are `AbortError`'s and ignores them, while reâ
 
 - `error: any` - The error object to inspect.
 - `options?: Object` - Configuration options.
-  - `isStrict?: boolean` (Default `false`) - If `true`, the function uses `error instanceof AbortError` to identify an abort error. If `false`, it uses the more lenient `isAbortError` check (which may also recognize custom abort errors).
+  - `strict?: boolean` (Default `false`) - If `true`, the function uses `error instanceof AbortError` to identify an abort error. If `false`, it uses the more lenient `isAbortError` check (which may also recognize custom abort errors).
 
 **Returns:**
 
@@ -184,7 +184,7 @@ This function is the complement of `catchAbortError`. It reâ€‘throws the error o
 
 - `error: any` - The error to inspect.
 - `options?: Object`:
-  - `isStrict?: boolean` (default `false`) - If `true`, uses `error instanceof AbortError`. If `false`, uses the more lenient `isAbortError` check.
+  - `strict?: boolean` (default `false`) - If `true`, uses `error instanceof AbortError`. If `false`, uses the more lenient `isAbortError` check.
 
 **Returns:**
 
