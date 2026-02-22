@@ -1,15 +1,13 @@
 import { useState, useRef } from 'react';
-import { AbortError, Aborter } from 'saborter';
+import { Aborter } from 'saborter';
 
 interface User {
   id: number;
   name: string;
 }
 
-const getUsers = async (signal: AbortSignal): Promise<{ data: User[] }> => {
-  const response = await fetch('https://apimocker.com/users?_delay=3000', { signal });
-
-  return response.json();
+const getUsers = async (signal: AbortSignal) => {
+  return fetch('https://apimocker.com/users?_delay=3000', { signal });
 };
 
 export const App = () => {
@@ -23,11 +21,11 @@ export const App = () => {
       setLoading(true);
       setUsers([]);
 
-      const data = await aborterRef.current.try(getUsers);
+      const data = await aborterRef.current.try<{ data: User[] }>(getUsers);
 
       setUsers(data.data);
     } catch (error) {
-      console.log(error instanceof AbortError);
+      console.log(error);
     } finally {
       setLoading(false);
     }

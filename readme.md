@@ -7,7 +7,8 @@
 ![Static Badge](https://img.shields.io/badge/license-MIT-blue)
 [![Github](https://img.shields.io/badge/repository-github-color)](https://github.com/TENSIILE/saborter)
 
-A simple and effective library for canceling asynchronous requests using AbortController.
+**saborter** is a lightweight, dependency-free, simple, yet incredibly powerful JavaScript/TypeScript library for managing asynchronous cancellation.
+It builds on top of its own `AbortController` but fully exploits its shortcomings, providing a clean, inexpensive, and convenient API.
 
 ## 📚 Documentation
 
@@ -39,8 +40,16 @@ yarn add saborter
 
 ## 📈 Why Saborter ?
 
+### Why is this necessary?
+
+We constantly encounter situations where an incipient request needs to be canceled: the user quickly types in search, switches tabs, or a component unmounts. The native `AbortController` allows this, but its use in real-world scenarios results in boilerplate code, error handling issues, and awkward `finally` blocks.
+
 | Function/Characteristic                                                                                                               | Saborter | AbortController |
 | ------------------------------------------------------------------------------------------------------------------------------------- | -------- | --------------- |
+| Automatic cancellation of the previous request.                                                                                       | ✅       | ❌              |
+| Flexible timeout management.                                                                                                          | ✅       | ❌              |
+| By default, `saborter` doesn't throw an error when canceling, allowing the finally block to execute without unnecessary checks.       | ✅       | ❌              |
+| The ability to immediately "recharge" `Aborter` so that it is ready for a new call without creating a new instance.                   | ✅       | ❌              |
 | Eliminated race condition when speed typing.                                                                                          | ✅       | ❌              |
 | The signal is created anew, there is no need to recreate it yourself. After `abort()` you can "reset" and use it again.               | ✅       | ❌              |
 | Legible error handling across all browsers.                                                                                           | ✅       | ❌              |
@@ -263,9 +272,23 @@ const result = await aborter.try(async (signal) => {
 
 You can either write `.json()` or not write it from the `fetch` function. You can immediately return the `fetch` result.
 
+> [!NOTE]
+> If you return `fetch()`, the result type will be `Response`, to override it, just explicitly specify the new type (eg `User[]`) in generic.
+
 ```javascript
-const result = await aborter.try((signal) => {
-  return fetch('/api/data', { signal });
+const result = await aborter.try<User[]>((signal) => {
+  return fetch('/api/users', { signal });
+});
+```
+
+> [!WARNING]
+> You cannot override typing via a generic if the callback already has a specific return type.
+
+```javascript
+const result = await aborter.try<User[]>(async (signal) => {
+  const response = await fetch('/api/users', { signal });
+  // There will be a typing error!
+  return await response.json() as { data: User[] }
 });
 ```
 
@@ -332,13 +355,19 @@ Immediately cancels the currently executing request.
 **Examples:**
 
 ```javascript
+import { Aborter } from 'saborter';
+import { AbortError } from 'saborter/errors';
+
+// Create an Aborter instance
+const aborter = new Aborter();
+
 // Start the request
 const requestPromise = aborter.try((signal) => fetch('/api/data', { signal }), { isErrorNativeBehavior: true });
 
 // Handle cancellation
 requestPromise.catch((error) => {
   // The old approach to checking for the AbortError error
-  if (error.name === 'AbortError') {
+  if (error instanceof AbortError) {
     console.log('Request canceled');
   }
 });
@@ -353,6 +382,12 @@ You can submit your own `AbortError` with your own settings.
 > Be careful, changing the `type` parameter may change the behavior of the `Aborter` function.
 
 ```javascript
+import { Aborter } from 'saborter';
+import { AbortError } from 'saborter/errors';
+
+// Create an Aborter instance
+const aborter = new Aborter();
+
 // Start the request
 const requestPromise = aborter.try((signal) => fetch('/api/data', { signal }));
 
@@ -369,7 +404,7 @@ requestPromise.catch((error) => {
 aborter.abort(new AbortError('Custom AbortError message', { reason: 1 }));
 ```
 
-`abortWithRecovery(reason?): void`
+`abortWithRecovery(reason?): AbortController`
 
 Immediately cancels the currently executing request.
 After aborting, it restores the `AbortSignal`, resetting the `aborted` property, and interaction with the `signal` property becomes available again.
@@ -413,10 +448,11 @@ The `saborter` package contains additional features out of the box that can help
 - [**@saborter/react**](https://github.com/TENSIILE/saborter-react) - a standalone library with `Saborter` and `React` integration.
 - [**saborter/lib**](./docs/libs.md) - auxiliary functions.
 - [**saborter/errors**](./docs/errors.md) - package errors.
-  - [**AbortError**](./docs/errors.md#aborterror) - Custom error for working with Aborter.
-  - [**TimeoutError**](./docs/errors.md#timeouterror) - Error for working with timeout interrupt.
+  - [**AbortError**](./docs/errors.md#aborterror) - custom error for working with Aborter.
+  - [**TimeoutError**](./docs/errors.md#timeouterror) - error for working with timeout interrupt.
 - [**saborter/dev**](./docs/dev.md) - development tools.
 - [**saborter/types**](.) - package typing.
+- [**ReusableAborter**](./docs/reusable-aborter.md) - documentation `ReusableAborter`.
 
 ## ⚠️ Important Features
 
@@ -427,12 +463,18 @@ By default, the `try()` method does not reject the promise on `AbortError` (canc
 If you want the default behavior (the promise to be rejected on any error), use the `isErrorNativeBehavior` option:
 
 ```javascript
+import { Aborter } from 'saborter';
+import { AbortError } from 'saborter/errors';
+
+// Create an Aborter instance
+const aborter = new Aborter();
+
 // The promise will be rejected even if an AbortError occurs
 const result = await aborter
   .try((signal) => fetch('/api/data', { signal }), { isErrorNativeBehavior: true })
   .catch((error) => {
     // ALL errors, including cancellations, will go here
-    if (error.name === 'AbortError') {
+    if (error instanceof AbortError) {
       console.log('Cancelled');
     }
   });
@@ -572,7 +614,7 @@ const handleLoad = async () => {
 If you want to cancel a group of requests combined in `Promise.all` or `Promise.allSettled` from a single `Aborter` instance, do not use multiple sequentially called `try` methods:
 
 ```javascript
-// ✖️ Bad solution
+// ❌ Bad solution
 const fetchData = async () => {
   const [users, posts] = await Promise.all([
     aborter.try((signal) => axios.get('/api/users', { signal })),
@@ -582,7 +624,7 @@ const fetchData = async () => {
 ```
 
 ```javascript
-// ✔️ Good solution
+// ✅ Good solution
 const fetchData = async () => {
   const [users, posts] = await aborter.try((signal) => {
     return Promise.all([axios.get('/api/users', { signal }), axios.get('/api/posts', { signal })]);

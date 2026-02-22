@@ -27,7 +27,7 @@ export class Aborter {
   }
 
   /**
-   * Returns true if Aborter has signaled to abort, and false otherwise.
+   * Returns `true` if Aborter has signaled to abort, and `false` otherwise.
    */
   public get aborted(): boolean {
     return this.signal.aborted && this.listeners.state.value === 'aborted';
@@ -56,7 +56,7 @@ export class Aborter {
    * @param options an object that receives a set of settings for performing a request attempt
    * @returns Promise
    */
-  public try<R>(request: Types.AbortableRequest<Response>, options?: Types.FnTryOptions): Promise<R>;
+  public try<R = Response>(request: Types.AbortableRequest<Response>, options?: Types.FnTryOptions): Promise<Response>;
 
   public try<R>(request: Types.AbortableRequest<R>, options?: Types.FnTryOptions): Promise<R>;
 
@@ -141,7 +141,7 @@ export class Aborter {
 
   /**
    * Calling this method sets the AbortSignal flag of this object and signals all observers that the associated action should be aborted.
-   * After aborting, it restores the AbortSignal, resetting the isAborted property, and interaction with the signal property becomes available again.
+   * After aborting, it restores the AbortSignal, resetting the aborted property, and interaction with the signal property becomes available again.
    */
   public abortWithRecovery = (reason?: any): AbortController => {
     this.abort(reason);

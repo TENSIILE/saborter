@@ -62,7 +62,7 @@ export const setTimeoutAsync = <T>(
       clearTimeout(timeoutId);
 
       if (signal.reason instanceof AbortError) {
-        signal.reason.cause = new AbortError(signal.reason.message, { ...signal.reason });
+        signal.reason.cause = new AbortError(signal.reason.message, { ...signal.reason, cause: signal.reason });
         signal.reason.initiator = setTimeoutAsync.name;
 
         return reject(signal.reason);
