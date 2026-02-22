@@ -8,11 +8,30 @@ import * as Utils from './aborter.utils';
 import * as Types from './aborter.types';
 import { logger } from '../../shared';
 
+/**
+ * Manages a single abortable asynchronous request.
+ *
+ * @example
+ * const aborter = new Aborter();
+ * const promise = aborter.try((signal) => fetch('/api/data', { signal }));
+ * // Later, abort the request
+ * aborter.abort('User cancelled');
+ *
+ * @example
+ * // With timeout and custom error handling
+ * aborter.try(
+ *   (signal) => fetch('/api/data', { signal }),
+ *   { timeout: 5000 }
+ * );
+ */
 export class Aborter {
+  /** @protected Internal abort controller for the current request. */
   protected abortController = new AbortController();
 
+  /** @protected Flag indicating whether a request is currently in progress. */
   protected isRequestInProgress = false;
 
+  /** @protected Timeout instance for request timeout management. */
   protected timeout = new Timeout();
 
   /**
