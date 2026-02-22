@@ -4,19 +4,19 @@
  */
 interface TimeMsConfig {
   /**
-   * @property {number} - Milliseconds component.
+   * Milliseconds component.
    */
   milliseconds?: number;
   /**
-   * @property {number} - Seconds component (will be converted to milliseconds).
+   * Seconds component (will be converted to milliseconds).
    */
   seconds?: number;
   /**
-   * @property {number} - Minutes component (will be converted to milliseconds).
+   * Minutes component (will be converted to milliseconds).
    */
   minutes?: number;
   /**
-   * @property {number} - Hours component (will be converted to milliseconds).
+   * Hours component (will be converted to milliseconds).
    */
   hours?: number;
 }
@@ -28,7 +28,6 @@ interface TimeMsConfig {
  * @param {(number | undefined)[]} values - Array of values to validate.
  * @returns {void}
  * @throws {TypeError} Throws a TypeError if any value is not a number or undefined.
- *
  * @private
  */
 const throwErrorIfValuesNotMatchTyping = (values: (number | undefined)[]): never | void => {
@@ -44,13 +43,13 @@ const throwErrorIfValuesNotMatchTyping = (values: (number | undefined)[]): never
 };
 
 // Time conversion constants
-/** @const {number} SECOND_IN_MS - Milliseconds in one second. */
+/** Milliseconds in one second. */
 const SECOND_IN_MS = 1000;
 
-/** @const {number} MINUTES_IN_MS - Milliseconds in one minute. */
+/** Milliseconds in one minute. */
 const MINUTES_IN_MS = 60 * SECOND_IN_MS;
 
-/** @const {number} HOURS_IN_MS - Milliseconds in one hour. */
+/** Milliseconds in one hour. */
 const HOURS_IN_MS = 60 * MINUTES_IN_MS;
 
 /**
