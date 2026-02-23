@@ -4,7 +4,7 @@
 
 This is an overview of the helper functions available in the package. These utilities are designed to simplify working with `AbortSignal`, `debouncing`, `timeouts`, and time conversions.
 
-The functions below are based on the [AbortError](./abort-error.md) class. It is used to provide consistent and informative error objects when an operation is aborted.
+The functions below are based on the [AbortError](./errors.md#aborterror) class. It is used to provide consistent and informative error objects when an operation is aborted.
 
 ## 🔧 API
 

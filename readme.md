@@ -276,7 +276,7 @@ You can either write `.json()` or not write it from the `fetch` function. You ca
 > If you return `fetch()`, the result type will be `Response`, to override it, just explicitly specify the new type (eg `User[]`) in generic.
 
 ```javascript
-const result = await aborter.try<User[]>((signal) => {
+const users = await aborter.try<User[]>((signal) => {
   return fetch('/api/users', { signal });
 });
 ```
@@ -285,7 +285,7 @@ const result = await aborter.try<User[]>((signal) => {
 > You cannot override typing via a generic if the callback already has a specific return type.
 
 ```javascript
-const result = await aborter.try<User[]>(async (signal) => {
+const users = await aborter.try<User[]>(async (signal) => {
   const response = await fetch('/api/users', { signal });
   // There will be a typing error!
   return await response.json() as { data: User[] }
