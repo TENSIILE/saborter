@@ -8,7 +8,7 @@ describe('catchAbortError', () => {
     jest.clearAllMocks();
   });
 
-  describe('В нестрогом режиме (strict = false по умолчанию)', () => {
+  describe('В не строгом режиме (strict = false по умолчанию)', () => {
     it('должна перебрасывать ошибку если isAbortError возвращает false', () => {
       const error = new Error('Regular error');
 
@@ -77,7 +77,7 @@ describe('catchAbortError', () => {
     it('должна вести себя одинаково для экземпляров AbortError', () => {
       const abortError = new AbortError('Aborted');
 
-      // В обоих режимах не должна перебрасывать
+      // In both modes it should not be thrown over
       expect(() => catchAbortError(abortError)).not.toThrow();
       expect(() => catchAbortError(abortError, { strict: true })).not.toThrow();
     });
@@ -89,10 +89,10 @@ describe('catchAbortError', () => {
         isAbort: true
       };
 
-      // В нестрогом режиме - не перебрасывает
+      // In non-strict mode - does not re-throw
       expect(() => catchAbortError(customAbortError)).not.toThrow();
 
-      // В строгом режиме - перебрасывает
+      // In strict mode - throws over
       expect(() => catchAbortError(customAbortError, { strict: true })).toThrow(customAbortError);
     });
   });
@@ -118,13 +118,11 @@ describe('catchAbortError', () => {
       let wasAbortError = false;
       let otherError = null;
 
-      // Тест 1: abort error должна быть поймана и не переброшена
       try {
         try {
           throw abortError;
         } catch (error) {
           catchAbortError(error);
-          // Этот код должен выполниться для abort error
           wasAbortError = true;
         }
       } catch (error) {
@@ -134,7 +132,6 @@ describe('catchAbortError', () => {
       expect(wasAbortError).toBe(true);
       expect(otherError).toBeNull();
 
-      // Тест 2: другие ошибки должны быть переброшены
       const regularError = new Error('Network error');
       wasAbortError = false;
       otherError = null;
@@ -158,12 +155,10 @@ describe('catchAbortError', () => {
       const abortError = new AbortError('Aborted');
       const regularError = new Error('Network error');
 
-      // Симуляция асинхронной операции
-      const simulateAsync = async (errorToThrow) => {
+      const simulateAsync = async (errorToThrow: Error) => {
         throw errorToThrow;
       };
 
-      // Test 1: abort error должна быть проигнорирована
       await expect(
         simulateAsync(abortError).catch((error) => {
           catchAbortError(error);
@@ -208,14 +203,13 @@ describe('catchAbortError', () => {
       const processWithSignal = (signal: AbortSignal) => {
         for (let i = 0; i < 5; i++) {
           try {
-            // Симуляция операции, которая может выбросить abort error
             if (signal.aborted) {
               throw new AbortError('Operation aborted');
             }
             results.push(`item-${i}`);
           } catch (error) {
             catchAbortError(error);
-            break; // Выходим из цикла если операция отменена
+            break;
           }
         }
       };
@@ -223,11 +217,9 @@ describe('catchAbortError', () => {
       processWithSignal(controller.signal);
       expect(results).toEqual(['item-0', 'item-1', 'item-2', 'item-3', 'item-4']);
 
-      // Сбросим и попробуем с отменой
       results.length = 0;
       const controller2 = new AbortController();
 
-      // Симуляция отмены после 2 итераций
       let iteration = 0;
       const processWithAbort = () => {
         for (let i = 0; i < 5; i++) {

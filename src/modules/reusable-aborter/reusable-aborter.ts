@@ -33,7 +33,7 @@ export class ReusableAborter {
    * Stores the original `addEventListener` and `removeEventListener` methods
    * of the initial `AbortSignal` to call them after overriding.
    *
-   * @private
+   * @protected
    */
   protected originalSignalApi = {} as Types.OriginalSignalApi;
 

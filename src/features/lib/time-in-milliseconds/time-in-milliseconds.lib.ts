@@ -42,14 +42,10 @@ const throwErrorIfValuesNotMatchTyping = (values: (number | undefined)[]): never
   }
 };
 
-// Time conversion constants
-/** Milliseconds in one second. */
 const SECOND_IN_MS = 1000;
 
-/** Milliseconds in one minute. */
 const MINUTES_IN_MS = 60 * SECOND_IN_MS;
 
-/** Milliseconds in one hour. */
 const HOURS_IN_MS = 60 * MINUTES_IN_MS;
 
 /**

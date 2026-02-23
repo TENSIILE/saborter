@@ -25,13 +25,25 @@ import { logger } from '../../shared';
  * );
  */
 export class Aborter {
-  /** @protected Internal abort controller for the current request. */
+  /**
+   * Internal abort controller for the current request.
+   *
+   * @protected
+   */
   protected abortController = new AbortController();
 
-  /** @protected Flag indicating whether a request is currently in progress. */
+  /**
+   * Flag indicating whether a request is currently in progress.
+   *
+   * @protected
+   */
   protected isRequestInProgress = false;
 
-  /** @protected Timeout instance for request timeout management. */
+  /**
+   * Timeout instance for request timeout management.
+   *
+   * @protected
+   */
   protected timeout = new Timeout();
 
   /**
