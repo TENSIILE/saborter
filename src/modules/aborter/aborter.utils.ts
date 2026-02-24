@@ -1,5 +1,4 @@
 import { AbortError } from '../../features/abort-error';
-import { Utils } from '../../shared';
 import { ErrorMessage } from './aborter.constants';
 
 export const getAbortErrorByReason = (reason?: any): AbortError => {
@@ -7,7 +6,7 @@ export const getAbortErrorByReason = (reason?: any): AbortError => {
     return reason;
   }
 
-  return new AbortError(Utils.get(reason, 'message') || ErrorMessage.AbortedSignalWithoutMessage, {
+  return new AbortError(ErrorMessage.AbortedSignalWithoutMessage, {
     reason,
     type: 'aborted',
     initiator: 'user'

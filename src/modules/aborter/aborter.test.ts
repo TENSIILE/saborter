@@ -5,6 +5,30 @@ import { EventListener } from '../../features/event-listener';
 import { emitMethodSymbol } from '../../features/state-observer/state-observer.constants';
 import { ErrorMessage } from './aborter.constants';
 
+class MockResponse {
+  public body: any;
+
+  public status: number;
+
+  public ok: boolean;
+
+  constructor(body: any, init: any) {
+    this.body = body;
+    this.status = init?.status || 200;
+    this.ok = this.status >= 200 && this.status < 300;
+  }
+
+  json() {
+    return Promise.resolve(JSON.parse(this.body));
+  }
+
+  text() {
+    return Promise.resolve(this.body);
+  }
+}
+
+(global as any).Response = MockResponse;
+
 describe('Aborter', () => {
   let aborter: Aborter;
   let mockRequest: jest.Mock;
@@ -45,13 +69,6 @@ describe('Aborter', () => {
     });
   });
 
-  describe('Статические свойства', () => {
-    it('должен иметь статический метод isError', () => {
-      expect(Aborter.isError).toBeDefined();
-      expect(typeof Aborter.isError).toBe('function');
-    });
-  });
-
   describe('Метод try', () => {
     it('должен выполнять запрос и возвращать результат', async () => {
       const expectedResult = { data: 'test' };
@@ -89,7 +106,7 @@ describe('Aborter', () => {
     });
 
     it('должен обрабатывать AbortError c отклонением промиса', async () => {
-      const abortError = new AbortError('Aborted', { signal: mockSignal });
+      const abortError = new AbortError('Aborted');
       mockRequest.mockRejectedValue(abortError);
 
       const promise = aborter.try(mockRequest);

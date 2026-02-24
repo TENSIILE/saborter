@@ -19,7 +19,7 @@
     "import/prefer-default-export": ["off"],
     "class-methods-use-this": ["off"],
     "func-names": ["off"],
-    "no-plusplus": ["error"],
+    "no-plusplus": ["off"],
     "prefer-spread": ["off"],
     "consistent-return": ["off"],
     "newline-before-return": "warn",

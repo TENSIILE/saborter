@@ -25,7 +25,7 @@ const checkErrorCause = (error: unknown) =>
  * @example
  * // Object with correct name
  * const fakeAbort = { name: 'AbortError', message: 'Cancelled' };
- * isAbortError(fakeAbort); // true (if ABORT_ERROR_NAME === 'AbortError')
+ * isAbortError(fakeAbort); // true
  *
  * @example
  * // Error with message containing 'abort'
@@ -36,9 +36,9 @@ const checkErrorCause = (error: unknown) =>
  * // Error with cause chain
  * const inner = new AbortError('Inner abort');
  * const outer = new Error('Wrapper', { cause: inner });
- * isAbortError(outer); // true (if checkErrorCause traverses the cause)
+ * isAbortError(outer); // true
  */
-export const isError = (error: any): error is Error => {
+export const isAbortError = (error: any): error is Error => {
   if (error instanceof AbortError) {
     return true;
   }

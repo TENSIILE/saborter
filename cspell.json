@@ -1,7 +1,7 @@
 {
   "version": "0.2",
   "language": "en,ru",
-  "words": ["Saborter", "saborter", "Laptev", "Vladislav", "tgz"],
+  "words": ["Saborter", "saborter", "Laptev", "Vladislav", "tgz", "Сalls"],
   "flagWords": [],
   "ignorePaths": [
     "node_modules/**",

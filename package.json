@@ -1,6 +1,6 @@
 {
   "name": "saborter",
-  "version": "1.5.1",
+  "version": "2.0.0",
   "description": "A simple and efficient library for canceling asynchronous requests using AbortController",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
@@ -30,22 +30,59 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.es.js",
       "require": "./dist/index.cjs.js"
+    },
+    "./lib": {
+      "types": "./dist/lib.d.ts",
+      "import": "./dist/lib.es.js",
+      "require": "./dist/lib.cjs.js"
+    },
+    "./dev": {
+      "types": "./dist/dev.d.ts",
+      "import": "./dist/dev.es.js",
+      "require": "./dist/dev.cjs.js"
+    },
+    "./errors": {
+      "types": "./dist/errors.d.ts",
+      "import": "./dist/errors.es.js",
+      "require": "./dist/errors.cjs.js"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.cjs.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "lib": [
+        "./dist/lib.d.ts"
+      ],
+      "dev": [
+        "./dist/dev.d.ts"
+      ],
+      "errors": [
+        "./dist/errors.d.ts"
+      ],
+      "types": [
+        "./dist/types.d.ts"
+      ]
     }
   },
+  "sideEffects": false,
   "files": [
     "dist"
   ],
   "scripts": {
-    "prepublishOnly": "npm run build",
     "build": "npm run clean:dist && tsc && vite build",
     "clean:dist": "rimraf dist",
     "typecheck": "tsc --pretty --noEmit --skipLibCheck",
     "verify:prettier": "npx prettier . --check",
     "verify:eslint": "npx eslint \"./**/*.{js,jsx,ts,tsx}\" --max-warnings=0",
     "verify": "npm run typecheck && npm run verify:prettier && npm run verify:eslint && npm run spellcheck",
-    "fix:eslint": "npx eslint \"./**/*.{js,jsx,ts,tsx}\" --fix",
-    "fix:prettier": "npx prettier --write .",
-    "fix": "npm run fix:eslint && npm run fix:prettier",
+    "format:eslint": "npx eslint \"./**/*.{js,jsx,ts,tsx}\" --fix",
+    "format:prettier": "npx prettier --write .",
+    "format": "npm run format:eslint && npm run format:prettier",
     "test": "jest --colors --coverage test --passWithNoTests",
     "spellcheck": "cspell \"**/*.{js,ts,jsx,tsx,md,json}\"",
     "prepare": "husky"
