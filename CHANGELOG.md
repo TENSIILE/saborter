@@ -12,21 +12,21 @@
 
 ### New Features
 
-- Added a `ReusableAborter`.
+- Added a `ReusableAborter`. [#45](https://github.com/TENSIILE/saborter/pull/45)
 - Added the ability to automatically unpack data from `fetch()`.
-- Added `metadata` field for `AbortError` and `TimeoutError`.
-- Added utility functions:
-  - isAbortError
-  - debounce
-  - catchAbortError
-  - isAbortSignal
-  - rethrowAbortSignal
-  - setTimeoutAsync
-  - throwIfAborted
-  - timeInMilliseconds
-  - dispose
-  - setLoggerMode
-  - setDebugErrorStackMode
+- Added `metadata` field for `AbortError` and `TimeoutError`. [#45](https://github.com/TENSIILE/saborter/pull/45/changes/12a8e6013d6fe451ac529dea04390d5d38164f0d)
+- Added utility functions: [#43](https://github.com/TENSIILE/saborter/pull/43)
+  - `isAbortError` - a type guard function that determines whether a given error is an `AbortError`.
+  - `debounce` - creates a debounced function that delays invoking the provided handler until after a specified timeout has elapsed since the last call.
+  - `catchAbortError`- this function catches errors that are `AbortError`'s and ignores them, while re‑throwing any other error.
+  - `isAbortSignal` - a type guard that checks whether a given value is an instance of `AbortSignal`.
+  - `rethrowAbortSignal` - this function is the complement of `catchAbortError`. It re‑throws the error only if it is an `AbortError`; otherwise, it does nothing.
+  - `setTimeoutAsync` - schedules the execution of a handler after a specified delay.
+  - `throwIfAborted` - a utility that checks whether an `AbortSignal` has been aborted. If the signal is aborted, it throws an `AbortError`.
+  - `timeInMilliseconds` - converts a configuration object containing time components (hours, minutes, seconds, milliseconds) into a total number of milliseconds.
+  - `dispose` - a function that allows you to clear an object's data, if the object supports this feature.
+  - `setLoggerMode` - sets the global `Saborter` logging mode for the application.
+  - `setDebugErrorStackMode` - changes the error stack mode, enabling or disabling debug information.
 
 ## v1.5.1 (February 11th, 2026)
 
