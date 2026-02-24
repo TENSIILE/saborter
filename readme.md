@@ -1,12 +1,16 @@
 ![Logo](./assets/logo.png)
 
+<div style='text-align:center;'>
+
 [![Npm package](https://img.shields.io/npm/v/saborter?color=red&label=npm%20package)](https://www.npmjs.com/package/saborter)
 [![Npm downloads](https://img.shields.io/npm/dm/saborter.svg)](https://www.npmjs.com/package/saborter)
 [![Release](https://github.com/TENSIILE/saborter/actions/workflows/publish.yml/badge.svg)](https://www.npmjs.com/package/saborter)
-![Static Badge](https://img.shields.io/badge/coverage-90%25-orange)
+![Static Badge](https://img.shields.io/badge/coverage-90%25-green)
 ![Static Badge](https://img.shields.io/badge/license-MIT-blue)
 [![Github](https://img.shields.io/badge/repository-github-color)](https://github.com/TENSIILE/saborter)
 [![CodeSandbox](https://img.shields.io/badge/Open%20in%20CodeSandbox-151515?logo=codesandbox&logoColor=fff)](https://codesandbox.io/p/sandbox/2dn8tn)
+
+</div>
 
 **Saborter** is a lightweight, dependency-free, simple, yet incredibly powerful JavaScript/TypeScript library for managing asynchronous cancellation.
 It builds on top of its own `AbortController` but fully exploits its shortcomings, providing a clean, inexpensive, and convenient API.
