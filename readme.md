@@ -1,12 +1,21 @@
 ![Logo](./assets/logo.png)
 
-[![Npm package](https://img.shields.io/npm/v/saborter?color=red&label=npm%20package)](https://www.npmjs.com/package/saborter)
-[![Npm downloads](https://img.shields.io/npm/dm/saborter.svg)](https://www.npmjs.com/package/saborter)
-[![Release](https://github.com/TENSIILE/saborter/actions/workflows/publish.yml/badge.svg)](https://www.npmjs.com/package/saborter)
-![Static Badge](https://img.shields.io/badge/coverage-90%25-orange)
-![Static Badge](https://img.shields.io/badge/license-MIT-blue)
-[![Github](https://img.shields.io/badge/repository-github-color)](https://github.com/TENSIILE/saborter)
-[![CodeSandbox](https://img.shields.io/badge/Open%20in%20CodeSandbox-151515?logo=codesandbox&logoColor=fff)](https://codesandbox.io/p/sandbox/2dn8tn)
+<p  align='center'>
+<a href="https://www.npmjs.com/package/saborter" alt="Npm package">
+        <img src="https://img.shields.io/npm/v/saborter?color=red&label=npm%20package" /></a>
+<a href="https://www.npmjs.com/package/saborter" alt="Npm downloads">
+        <img src="https://img.shields.io/npm/dm/saborter.svg" /></a>
+<a href="https://github.com/TENSIILE/saborter/actions/workflows/publish.yml" alt="Release">
+        <img src="https://github.com/TENSIILE/saborter/actions/workflows/publish.yml/badge.svg" /></a>
+<a href="https://www.npmjs.com/package/saborter" alt="Tests">
+        <img src="https://img.shields.io/badge/coverage-90%25-green" /></a>
+<a href="https://github.com/TENSIILE/saborter/blob/develop/LICENSE" alt="License">
+        <img src="https://img.shields.io/badge/license-MIT-blue" /></a>
+<a href="https://github.com/TENSIILE/saborter" alt="Github">
+        <img src="https://img.shields.io/badge/repository-github-color" /></a>
+<a href="https://codesandbox.io/p/sandbox/2dn8tn" alt="CodeSandbox">
+        <img src="https://img.shields.io/badge/Open%20in%20CodeSandbox-151515?logo=codesandbox&logoColor=fff" /></a>
+</p>
 
 **Saborter** is a lightweight, dependency-free, simple, yet incredibly powerful JavaScript/TypeScript library for managing asynchronous cancellation.
 It builds on top of its own `AbortController` but fully exploits its shortcomings, providing a clean, inexpensive, and convenient API.
