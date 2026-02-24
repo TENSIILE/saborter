@@ -6,7 +6,7 @@ describe('rethrowAbortError', () => {
     jest.clearAllMocks();
   });
 
-  describe('В нестрогом режиме (isStrict = false по умолчанию)', () => {
+  describe('В нестрогом режиме (strict = false по умолчанию)', () => {
     it('не должна выбрасывать ошибку если isAbortError возвращает false', () => {
       const error = new Error('Regular error');
 
@@ -37,17 +37,17 @@ describe('rethrowAbortError', () => {
     });
   });
 
-  describe('В строгом режиме (isStrict = true)', () => {
+  describe('В строгом режиме (strict = true)', () => {
     it('должна выбрасывать ошибку если это экземпляр AbortError', () => {
       const abortError = new AbortError('Aborted');
 
-      expect(() => rethrowAbortError(abortError, { isStrict: true })).toThrow(abortError);
+      expect(() => rethrowAbortError(abortError, { strict: true })).toThrow(abortError);
     });
 
     it('не должна выбрасывать ошибку если это не экземпляр AbortError', () => {
       const error = new Error('Regular error');
 
-      expect(() => rethrowAbortError(error, { isStrict: true })).not.toThrow();
+      expect(() => rethrowAbortError(error, { strict: true })).not.toThrow();
     });
 
     it('должна использовать instanceof проверку а не isAbortError', () => {
@@ -56,21 +56,21 @@ describe('rethrowAbortError', () => {
         message: 'Custom abort'
       };
 
-      expect(() => rethrowAbortError(customError, { isStrict: true })).not.toThrow();
+      expect(() => rethrowAbortError(customError, { strict: true })).not.toThrow();
     });
 
     it('должна корректно обрабатывать null и undefined в строгом режиме', () => {
-      rethrowAbortError(null, { isStrict: true });
+      rethrowAbortError(null, { strict: true });
 
-      expect(() => rethrowAbortError(null, { isStrict: true })).not.toThrow();
-      expect(() => rethrowAbortError(undefined, { isStrict: true })).not.toThrow();
+      expect(() => rethrowAbortError(null, { strict: true })).not.toThrow();
+      expect(() => rethrowAbortError(undefined, { strict: true })).not.toThrow();
     });
 
     it('должна вести себя одинаково для экземпляров AbortError', () => {
       const abortError = new AbortError('Aborted');
 
       expect(() => rethrowAbortError(abortError)).toThrow(abortError);
-      expect(() => rethrowAbortError(abortError, { isStrict: true })).toThrow(abortError);
+      expect(() => rethrowAbortError(abortError, { strict: true })).toThrow(abortError);
     });
   });
 
@@ -152,7 +152,7 @@ describe('rethrowAbortError', () => {
 
       const customError = new CustomAbortError('Custom abort');
 
-      expect(() => rethrowAbortError(customError, { isStrict: true })).toThrow(customError);
+      expect(() => rethrowAbortError(customError, { strict: true })).toThrow(customError);
 
       expect(() => rethrowAbortError(customError)).toThrow(customError);
     });

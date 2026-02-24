@@ -85,7 +85,6 @@ export class AbortError extends ExtendedStackError {
    *
    * @override
    * @returns {Record<string, any>} An object containing serializable debug data.
-   *
    * @protected
    */
   protected override get debugStackInfo(): Record<string, any> {

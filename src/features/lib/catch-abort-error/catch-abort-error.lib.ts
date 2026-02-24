@@ -7,7 +7,7 @@ import { isAbortError, AbortError } from '../../abort-error';
  *
  * @param {any} error - The error to check and potentially re-throw.
  * @param {Object} [options] - Configuration options.
- * @param {boolean} [options.isStrict=false] - When true, only catches errors
+ * @param {boolean} [options.strict=false] - When true, only catches errors
  *        that are direct instances of AbortError (using instanceof check).
  *        When false, uses the more lenient isAbortError check.
  * @returns {void}
@@ -28,12 +28,12 @@ import { isAbortError, AbortError } from '../../abort-error';
  * try {
  *   await someOperation(signal);
  * } catch (error) {
- *   catchAbortError(error, { isStrict: true });
+ *   catchAbortError(error, { strict: true });
  *   // Handle or ignore the abort
  * }
  */
-export const catchAbortError = (error: any, { isStrict = false }: { isStrict?: boolean } = {}): never | void => {
-  if (isStrict) {
+export const catchAbortError = (error: any, { strict = false }: { strict?: boolean } = {}): never | void => {
+  if (strict) {
     if (error instanceof AbortError) {
       return;
     }

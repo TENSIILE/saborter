@@ -25,7 +25,7 @@ import { logger } from '../../../shared/logger';
  *
  * try {
  *   const data = await setTimeoutAsync(
- *     (signal) => fetch('/api/data', { signal }),
+ *     (signal) => fetch('/api/data', { signal }).then(res => res.json()),
  *     5000,
  *     { signal: controller.signal }
  *   )
@@ -62,7 +62,7 @@ export const setTimeoutAsync = <T>(
       clearTimeout(timeoutId);
 
       if (signal.reason instanceof AbortError) {
-        signal.reason.cause = new AbortError(signal.reason.message, { ...signal.reason });
+        signal.reason.cause = new AbortError(signal.reason.message, { ...signal.reason, cause: signal.reason });
         signal.reason.initiator = setTimeoutAsync.name;
 
         return reject(signal.reason);
