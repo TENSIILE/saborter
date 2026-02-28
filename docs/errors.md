@@ -52,6 +52,12 @@ import { AbortError } from 'saborter/errors';
 - **Type:** `string`
 - **Description:** The default stack field is 'Error' without extended information. To enable extended information, [see here](#🎯-usage-examples).
 
+`metadata?`
+
+- **Type:** `any`
+- **Description:** Interrupt-related data. The best way to pass any data inside the error. This field will not be overridden in any way.
+- **Optional:** `true`
+
 `initiator`
 
 - **Type:** `'timeout' | 'user' | 'system'`
@@ -76,7 +82,7 @@ new AbortError(message, options?)
 - `options?: Object`
   - `type?: 'cancelled' | 'aborted'` (Default is `aborted`) - Abort type.
   - `reason?: any` - Additional reason for interruption.
-  - `signal?: AbortSignal` - AbortSignal that was just interrupted.
+  - `metadata?: any` - Interrupt-related data. The best way to pass any data inside the error.
 
 ## 🎯 Usage Examples
 
@@ -89,28 +95,16 @@ console.error(error.message); // 'The operation was interrupted'
 console.error(error.type); // 'aborted'
 ```
 
-### Creation with type and reason
+### Creation with type and metadata
 
 ```javascript
 const error = new AbortError('Request cancelled', {
   type: 'cancelled',
-  reason: { requestId: '123', userId: 'user_456' }
+  metadata: { requestId: '123', userId: 'user_456' }
 });
 
 console.error(error.type); // 'cancelled'
-console.error(error.reason); // { requestId: '123', userId: 'user_456' }
-```
-
-### Creation with signal
-
-```javascript
-const aborter = new Aborter(); // You can also use AbortController
-
-const error = new AbortError('The operation was interrupted', {
-  signal: aborter.signal
-});
-
-console.log(error.signal); // The signal that was transmitted
+console.error(error.metadata); // { requestId: '123', userId: 'user_456' }
 ```
 
 ### Active additional debug information in the error stack

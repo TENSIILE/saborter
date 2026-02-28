@@ -206,12 +206,11 @@ try {
 
 ### `setTimeoutAsync`
 
-Schedules the execution of a handler (either a function or a string of code) after a specified delay. The operation can be cancelled using an `AbortSignal`. This function returns a promise that resolves with the handler's result or rejects if the timeout is aborted or if the handler throws an error.
+Schedules the execution of a handler after a specified delay. The operation can be cancelled using an `AbortSignal`. This function returns a promise that resolves with the handler's result or rejects if the timeout is aborted or if the handler throws an error.
 
 **Parameters:**
 
-- `handler: string | ((signal: AbortSignal) => T | Promise<T>)`: Can be either:
-  - A string of code to evaluate (similar to the first argument of `setTimeout`).
+- `handler: ((signal: AbortSignal) => T | Promise<T>)`:
   - A function that accepts an `AbortSignal` and returns a value or a `Promise`. This function will be called with the signal to allow cleanup on abort.
 - `delay?: number` - The time in milliseconds to wait before executing the handler. If omitted, the handler is scheduled without a delay (i.e., as soon as possible).
 - `options?: Object`:
@@ -232,11 +231,15 @@ Schedules the execution of a handler (either a function or a string of code) aft
 
 ```typescript
 const controller = new AbortController();
-setTimeoutAsync((signal) => {
-    return fetch('/api/data', { signal }).then((res) => res.json();
-}), 5000, {
-  signal: controller.signal
-})
+setTimeoutAsync(
+  (signal) => {
+    return fetch('/api/data', { signal }).then((res) => res.json());
+  },
+  5000,
+  {
+    signal: controller.signal
+  }
+)
   .then((data) => console.log(data))
   .catch((error) => console.log(error.name)); // 'AbortError' if aborted
 ```
@@ -248,7 +251,7 @@ const controller = new AbortController();
 try {
   const data = await setTimeoutAsync(
     async (signal) => {
-      const response = fetch('/api/data', { signal });
+      const response = await fetch('/api/data', { signal });
       return await response.json();
     },
     5000,
@@ -262,7 +265,7 @@ try {
 #### The `setTimeoutAsync` function can be used as a delay function if you need it:
 
 ```typescript
-const delay = (ms: number) => setTimeoutAsync('', ms);
+const delay = (ms: number) => setTimeoutAsync(() => null, ms);
 
 console.log('Hello');
 await delay(2000);
