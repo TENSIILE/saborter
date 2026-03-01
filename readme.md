@@ -117,7 +117,7 @@ The `Aborter` class makes it easy to cancel running requests after a period of t
 const aborter = new Aborter();
 
 // Start a long-running request and cancel the request after 2 seconds
-const longRequest = aborter.try(
+const results = aborter.try(
   (signal) => {
     return fetch('/api/long-task', { signal });
   },
@@ -125,7 +125,24 @@ const longRequest = aborter.try(
 );
 ```
 
-### 3. Multiple request aborts through a single `ReusableAborter` instance
+### 3. Built-in debounce functionality
+
+The `Aborter` class allows integration with the debounce utility:
+
+```javascript
+import { debounce } from 'saborter/lib';
+
+const aborter = new Aborter();
+
+// The request will be delayed for 2 seconds and then executed.
+const results = aborter.try(
+  debounce((signal) => {
+    return fetch('/api/long-task', { signal });
+  }, 2000)
+);
+```
+
+### 4. Multiple request aborts through a single `ReusableAborter` instance
 
 The `ReusableAborter` class allows you to easily cancel requests an unlimited number of times while preserving all listeners:
 
@@ -146,7 +163,7 @@ reusableAborter.abort(); // call of the listener -> console.log('aborted', e)
 reusableAborter.abort(); // listener recall -> console.log('aborted', e)
 ```
 
-### 4. Working with Multiple Requests
+### 5. Working with Multiple Requests
 
 You can create separate instances for different groups of requests:
 
