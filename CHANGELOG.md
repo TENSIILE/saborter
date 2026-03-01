@@ -1,6 +1,12 @@
 # Saborter Changelog
 
-## v2.0.0
+## v2.0.1 (March 1th, 2026)
+
+### Bug Fixes
+
+- Fixed argument injection in `setTimeoutAsync` and `debounce` functions [#54](https://github.com/TENSIILE/saborter/pull/54)
+
+## v2.0.0 (February 24th, 2026)
 
 ### Breaking Changes
 

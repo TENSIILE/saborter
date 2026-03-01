@@ -48,8 +48,8 @@ import { AbortError } from '../../abort-error';
 export const debounce = <R>(
   handler: Parameters<typeof setTimeoutAsync<R, unknown[]>>['0'],
   delay?: number
-): ((signal: AbortSignal, args: unknown[]) => Promise<R>) => {
-  return (signal: AbortSignal, args: unknown[]) => {
+): ((signal: AbortSignal, args?: unknown[]) => Promise<R>) => {
+  return (signal: AbortSignal, args?: unknown[]) => {
     try {
       return setTimeoutAsync(handler, delay, { signal, args });
     } catch (error) {

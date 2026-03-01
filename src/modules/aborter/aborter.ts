@@ -87,7 +87,7 @@ export class Aborter {
    * @param options an object that receives a set of settings for performing a request attempt
    * @returns Promise
    */
-  public try<R = Response>(request: Types.AbortableRequest<Response>, options?: Types.FnTryOptions): Promise<Response>;
+  public try<R = Response>(request: Types.AbortableRequest<Response>, options?: Types.FnTryOptions): Promise<R>;
 
   public try<R>(request: Types.AbortableRequest<R>, options?: Types.FnTryOptions): Promise<R>;
 
