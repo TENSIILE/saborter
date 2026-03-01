@@ -134,6 +134,10 @@ export class Aborter {
           this.setRequestState('fulfilled');
 
           if (unpackData && response instanceof Response) {
+            if (!response.ok) {
+              logger.warn('Request failed, something went wrong', response);
+            }
+
             return response.json().then(resolve).catch(reject);
           }
 
