@@ -7,7 +7,9 @@ interface User {
 }
 
 const getUsers = async (signal: AbortSignal) => {
-  return fetch('https://apimocker.com/users?_delay=3000', { signal });
+  const response = await fetch('https://apimocker.com/users?_delay=3000', { signal });
+
+  return (await response.json()) as { data: User[] };
 };
 
 export const App = () => {
@@ -21,9 +23,9 @@ export const App = () => {
       setLoading(true);
       setUsers([]);
 
-      const data = await aborterRef.current.try<{ data: User[] }>(getUsers);
+      const users = await aborterRef.current.try(getUsers);
 
-      setUsers(data.data);
+      setUsers(users.data);
     } catch (error) {
       console.log(error);
     } finally {
