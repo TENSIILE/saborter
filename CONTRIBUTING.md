@@ -140,6 +140,14 @@ feat(aborter): adds a new method
 
 ## Additional Notes
 
+### Pull Request
+
+Before you create a Pull Request, you need to make sure that:
+
+- Tests for your changes or new functionality have been written.
+- Documentation for your new features has been updated or written.
+- A quality text has been written for your Pull Request, with a description, usage examples, and justification for why this update is needed.
+
 ### Issue and Pull Request Labels
 
 This section lists the labels we use to help us track and manage issues and pull requests.

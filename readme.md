@@ -5,8 +5,12 @@
         <img src="https://img.shields.io/npm/v/saborter?color=red&label=npm%20package" /></a>
 <a href="https://www.npmjs.com/package/saborter" alt="Npm downloads">
         <img src="https://img.shields.io/npm/dm/saborter.svg" /></a>
+<a href="https://www.codefactor.io/repository/github/tensiile/saborter" alt="CodeFactor">
+        <img src="https://www.codefactor.io/repository/github/tensiile/saborter/badge" /></a>
 <a href="https://github.com/TENSIILE/saborter/actions/workflows/publish.yml" alt="Release">
         <img src="https://github.com/TENSIILE/saborter/actions/workflows/publish.yml/badge.svg" /></a>
+<a href="https://github.com/TENSIILE/saborter/actions/workflows/ci.yml" alt="CI">
+        <img src="https://github.com/TENSIILE/saborter/actions/workflows/ci.yml/badge.svg" /></a>
 <a href="https://www.npmjs.com/package/saborter" alt="Tests">
         <img src="https://img.shields.io/badge/coverage-90%25-green" /></a>
 <a href="https://github.com/TENSIILE/saborter/blob/develop/LICENSE" alt="License">
@@ -18,7 +22,7 @@
 </p>
 
 **Saborter** is a lightweight, dependency-free, simple, yet incredibly powerful JavaScript/TypeScript library for managing asynchronous cancellation.
-It builds on top of its own `AbortController` but fully exploits its shortcomings, providing a clean, inexpensive, and convenient API.
+It builds on top of its own [AbortController](https://developer.mozilla.org/en-US/docs/Web/API/AbortController) but fully exploits its shortcomings, providing a clean, inexpensive, and convenient API.
 
 ## 📚 Documentation
 
