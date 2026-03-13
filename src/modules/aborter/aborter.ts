@@ -110,9 +110,7 @@ export class Aborter {
     const promise: Promise<R> = new Promise<R>((resolve, reject) => {
       this.isRequestInProgress = true;
 
-      const timeoutMs = typeof timeout === 'number' ? timeout : timeout?.ms;
-      const timeoutOptions =
-        timeout === undefined ? undefined : { ms: timeoutMs!, ...(typeof timeout !== 'number' ? timeout : {}) };
+      const { timeoutMs, timeoutOptions } = Utils.getTimeoutOptions(timeout);
 
       this.timeout.setTimeout(timeoutMs, () => {
         const abortError = new AbortError(ErrorMessage.RequestTimedout, {
@@ -126,7 +124,12 @@ export class Aborter {
 
       queueMicrotask(() => this.setRequestState('pending'));
 
-      request(this.abortController.signal)
+      Promise.race([
+        request(this.abortController.signal),
+        ...(!request.length
+          ? [Utils.createAbortablePromise(this.abortController.signal, { isErrorNativeBehavior })]
+          : [])
+      ])
         .then((response) => {
           if (!this.isRequestInProgress)
             return logger.info('While the request is being executed, the request will not be resolved');
@@ -138,7 +141,7 @@ export class Aborter {
               logger.warn('Request failed, something went wrong', response);
             }
 
-            return response.json().then(resolve).catch(reject);
+            return response.json().then(resolve, reject);
           }
 
           resolve(response);
@@ -153,6 +156,9 @@ export class Aborter {
 
             reject(error);
           }
+        })
+        .finally(() => {
+          Utils.createAbortablePromise.removeAbortListener();
         });
     });
 
