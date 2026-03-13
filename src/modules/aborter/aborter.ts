@@ -126,9 +126,7 @@ export class Aborter {
 
       Promise.race([
         request(this.abortController.signal),
-        ...(!request.length
-          ? [Utils.createAbortablePromise(this.abortController.signal, { isErrorNativeBehavior })]
-          : [])
+        Utils.createAbortablePromise(this.abortController.signal, { isErrorNativeBehavior })
       ])
         .then((response) => {
           if (!this.isRequestInProgress)
@@ -176,7 +174,7 @@ export class Aborter {
    * Calling this method sets the AbortSignal flag of this object and signals all observers that the associated action should be aborted.
    */
   public abort = (reason?: any): void => {
-    if (!this.isRequestInProgress) return logger.info('Until a request is executed, it cannot be interrupted');
+    if (!this.isRequestInProgress) return logger.info('Until a request is started, it cannot be interrupted');
 
     const error = Utils.getAbortErrorByReason(reason);
 
