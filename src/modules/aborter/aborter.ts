@@ -141,6 +141,13 @@ export class Aborter {
               logger.warn('Request failed, something went wrong', response);
             }
 
+            if (!request.length) {
+              logger.warn(
+                'A call to the fetch() function was detected and you forgot to pass it a signal. We recommend passing a signal to correctly cancel the request',
+                response
+              );
+            }
+
             return response.json().then(resolve, reject);
           }
 
