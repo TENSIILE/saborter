@@ -114,7 +114,7 @@ handleSearch('ab'); // The first request is canceled, a new one is started
 handleSearch('abc'); // The second request is canceled, a new one is started
 ```
 
-### 2. Automatic cancellation of requests
+### 2. Automatic cancellation of requests by timer
 
 The `Aborter` class makes it easy to cancel running requests after a period of time:
 
@@ -167,7 +167,7 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 const results = aborter.try(
   async () => {
     await delay(2000);
-    return Promise.resolve({done: true});
+    return Promise.resolve({ done: true });
   }
 );
 ```
