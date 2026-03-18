@@ -5,8 +5,12 @@
         <img src="https://img.shields.io/npm/v/saborter?color=red&label=npm%20package" /></a>
 <a href="https://www.npmjs.com/package/saborter" alt="Npm downloads">
         <img src="https://img.shields.io/npm/dm/saborter.svg" /></a>
+<a href="https://www.codefactor.io/repository/github/tensiile/saborter" alt="CodeFactor">
+        <img src="https://www.codefactor.io/repository/github/tensiile/saborter/badge" /></a>
 <a href="https://github.com/TENSIILE/saborter/actions/workflows/publish.yml" alt="Release">
         <img src="https://github.com/TENSIILE/saborter/actions/workflows/publish.yml/badge.svg" /></a>
+<a href="https://github.com/TENSIILE/saborter/actions/workflows/ci.yml" alt="CI">
+        <img src="https://github.com/TENSIILE/saborter/actions/workflows/ci.yml/badge.svg" /></a>
 <a href="https://www.npmjs.com/package/saborter" alt="Tests">
         <img src="https://img.shields.io/badge/coverage-90%25-green" /></a>
 <a href="https://github.com/TENSIILE/saborter/blob/develop/LICENSE" alt="License">
@@ -18,7 +22,7 @@
 </p>
 
 **Saborter** is a lightweight, dependency-free, simple, yet incredibly powerful JavaScript/TypeScript library for managing asynchronous cancellation.
-It builds on top of its own `AbortController` but fully exploits its shortcomings, providing a clean, inexpensive, and convenient API.
+It builds on top of its own [AbortController](https://developer.mozilla.org/en-US/docs/Web/API/AbortController) but fully exploits its shortcomings, providing a clean, inexpensive, and convenient API.
 
 ## 📚 Documentation
 
@@ -67,6 +71,7 @@ We constantly encounter situations where an incipient request needs to be cancel
 | The signal will always be new. It's no coincidence that a previously disabled signal can appear from outside, which breaks all logic. | ✅       | ❌              |
 | Built-in debounce functionality.                                                                                                      | ✅       | ❌              |
 | Availability of ponyfills in the set.                                                                                                 | ✅       | ❌              |
+| Interrupting promises.                                                                                                                | ✅       | ❌              |
 
 ## 🚀 Quick Start
 
@@ -109,11 +114,12 @@ handleSearch('ab'); // The first request is canceled, a new one is started
 handleSearch('abc'); // The second request is canceled, a new one is started
 ```
 
-### 2. Automatic cancellation of requests
+### 2. Automatic cancellation of requests by timer
 
 The `Aborter` class makes it easy to cancel running requests after a period of time:
 
 ```javascript
+// Create an Aborter instance
 const aborter = new Aborter();
 
 // Start a long-running request and cancel the request after 2 seconds
@@ -132,6 +138,7 @@ The `Aborter` class allows integration with the debounce utility:
 ```javascript
 import { debounce } from 'saborter/lib';
 
+// Create an Aborter instance
 const aborter = new Aborter();
 
 // The request will be delayed for 2 seconds and then executed.
@@ -142,11 +149,35 @@ const results = aborter.try(
 );
 ```
 
-### 4. Multiple request aborts through a single `ReusableAborter` instance
+### 4. Interrupting promises without a signal
+
+If you want to cancel a task with a promise:
+
+```javascript
+import { Aborter } from 'saborter';
+
+// Create an Aborter instance
+const aborter = new Aborter();
+
+// Create a helper function for delay
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// The callback function can be restarted each time (by calling .try() again), which will interrupt the previous call and start it again.
+// Or the `.abort()` method can be used to abort the callback function entirely.
+const results = aborter.try(
+  async () => {
+    await delay(2000);
+    return Promise.resolve({ done: true });
+  }
+);
+```
+
+### 5. Multiple request aborts through a single `ReusableAborter` instance
 
 The `ReusableAborter` class allows you to easily cancel requests an unlimited number of times while preserving all listeners:
 
 ```javascript
+// Create an ReusableAborter instance
 const reusableAborter = new ReusableAborter();
 
 // Adding a subscription to an interrupt event
@@ -155,7 +186,6 @@ reusableAborter.addEventListener('abort', (e) => console.log('aborted', e));
 // Start a long-running request and cancel the request after 2 seconds
 const fetchPosts = async () => {
   const response = await fetch('/api/posts', { signal: reusableAborter.signal });
-
   return await response.json();
 };
 
@@ -163,7 +193,7 @@ reusableAborter.abort(); // call of the listener -> console.log('aborted', e)
 reusableAborter.abort(); // listener recall -> console.log('aborted', e)
 ```
 
-### 5. Working with Multiple Requests
+### 6. Working with Multiple Requests
 
 You can create separate instances for different groups of requests:
 
@@ -297,6 +327,8 @@ const result = await aborter.try(async (signal) => {
 });
 ```
 
+**Automatic response unpacking:**
+
 You can either write `.json()` or not write it from the `fetch` function. You can immediately return the `fetch` result.
 
 > [!NOTE]
@@ -311,11 +343,11 @@ const users = await aborter.try<User[]>((signal) => {
 > [!WARNING]
 > You cannot override typing via a generic if the callback already has a specific return type.
 
-```javascript
+```typescript
 const users = await aborter.try<User[]>(async (signal) => {
   const response = await fetch('/api/users', { signal });
   // There will be a typing error!
-  return await response.json() as { data: User[] }
+  return (await response.json()) as { data: User[] };
 });
 ```
 
@@ -333,6 +365,42 @@ const response = await aborter.try(
 // Getting data from JSON
 const data = await response.json();
 ```
+
+**Calling a method without a signal:**
+
+The `.try()` method can be called without removing the `signal` from the callback argument if you don't need it.
+For example, if there's a promise you want to break, you can call it inside the callback.
+
+```typescript
+const results = aborter.try(async () => {
+  await delay(2000);
+  return Promise.resolve({ done: true });
+});
+```
+
+It is also possible to abort requests (the same `fetch()`, for example) without transmitting a `signal`, but this is highly discouraged.
+However, if it is not possible to transmit a `signal`, the aborter will abort its promise.
+
+```typescript
+// We create a wrapper around the request without being able to pass the signal
+const requestPosts = async () => {
+  const response = await fetch('/api/posts');
+  return response.json();
+};
+
+try {
+  // We launch an HTTP request, after 1.5 seconds it will automatically terminate
+  const posts = await aborter.try(requestPosts, { timeout: 1500 });
+  setPosts(posts);
+} catch (error) {
+  if (error instanceof AbortError) {
+    // We get an interrupt error and the setPosts setter won't be called
+  }
+}
+```
+
+> [!NOTE]
+> In this case, the wait for the request to be executed will be interrupted, but the request itself will still be executed.
 
 **Examples using automatic cancellation after a time:**
 
