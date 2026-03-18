@@ -1,5 +1,11 @@
 # Saborter Changelog
 
+## v2.1.0 (March 18th, 2026)
+
+### New Features
+
+- Added break promises without signal [#56](https://github.com/TENSIILE/saborter/pull/56)
+
 ## v2.0.1 (March 1th, 2026)
 
 ### Bug Fixes
