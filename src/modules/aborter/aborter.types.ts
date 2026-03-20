@@ -20,4 +20,26 @@ export interface FnTryOptions {
   unpackData?: boolean;
 }
 
-export interface AborterOptions extends Pick<EventListenerConstructorOptions, 'onAbort' | 'onStateChange'> {}
+export interface AbortableFetcherContext {
+  save: (data: any) => void;
+  signal: AbortSignal;
+  headers?: HeadersInit;
+}
+
+export interface AbortableMeta {
+  headers?: HeadersInit;
+  response?: Response;
+}
+
+export type FetcherFactory<Args extends any[], Return = unknown> = (
+  ...args: Args
+) => (context: AbortableFetcherContext) => Return;
+
+export type DefaultFetcherFactoryArgs = [url: string, init?: RequestInit];
+
+export interface AborterOptions<Args extends any[], Return> extends Pick<
+  EventListenerConstructorOptions,
+  'onAbort' | 'onStateChange'
+> {
+  fetcher?: FetcherFactory<Args, Return>;
+}

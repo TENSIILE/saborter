@@ -24,7 +24,7 @@ import { logger } from '../../shared';
  *   { timeout: 5000 }
  * );
  */
-export class Aborter {
+export class Aborter<Args extends any[] = Types.DefaultFetcherFactoryArgs, Return = unknown> {
   /**
    * Internal abort controller for the current request.
    *
@@ -51,8 +51,14 @@ export class Aborter {
    */
   public listeners: EventListener;
 
-  constructor(options?: Types.AborterOptions) {
+  protected fetcherFactory: Types.FetcherFactory<Args, Return>;
+
+  protected meta: Types.AbortableMeta = {};
+
+  constructor(options?: Types.AborterOptions<Args, Return>) {
     this.listeners = new EventListener(options);
+
+    this.fetcherFactory = (options?.fetcher ?? Utils.defaultFetcher) as Types.FetcherFactory<Args, Return>;
 
     this.try = this.try.bind(this);
   }
@@ -81,6 +87,23 @@ export class Aborter {
     }
   };
 
+  public fetcher = <Result = false>(...args: Args): Result extends false ? Return : Promise<Result> => {
+    const innerFn = this.fetcherFactory(...args);
+    const context = this.createContext();
+
+    return innerFn(context) as any;
+  };
+
+  protected createContext = (): Types.AbortableFetcherContext => {
+    return {
+      save: (data: any) => {
+        this.meta.response = data;
+      },
+      headers: this.meta.headers,
+      signal: this.signal
+    };
+  };
+
   /**
    * Performs an asynchronous request with cancellation of the previous request, preventing the call of the catch block when the request is canceled and the subsequent finally block.
    * @param request callback function
@@ -107,7 +130,7 @@ export class Aborter {
 
     this.abortController = new AbortController();
 
-    const promise: Promise<R> = new Promise<R>((resolve, reject) => {
+    const promise = new Promise<R>((resolve, reject) => {
       this.isRequestInProgress = true;
 
       const timeoutMs = typeof timeout === 'number' ? timeout : timeout?.ms;
