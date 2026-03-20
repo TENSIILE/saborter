@@ -2,6 +2,11 @@
 import { RequestState, emitRequestState } from '../../features/state-observer';
 import { AbortError, isAbortError } from '../../features/abort-error';
 import { EventListener, clearEventListeners } from '../../features/event-listener';
+import { FetcherFactory } from '../../features/fetcher-factory';
+import {
+  FetcherFactory as IFetcherFactory,
+  DefaultFetcherFactoryArgs
+} from '../../features/fetcher-factory/fetcher-factory.types';
 import { Timeout, TimeoutError } from '../../features/timeout';
 import { ErrorMessage, disposeSymbol } from './aborter.constants';
 import * as Utils from './aborter.utils';
@@ -24,7 +29,7 @@ import { logger } from '../../shared';
  *   { timeout: 5000 }
  * );
  */
-export class Aborter<Args extends any[] = Types.DefaultFetcherFactoryArgs, Return = unknown> {
+export class Aborter<Factory extends IFetcherFactory<[any?, ...any[]]> = IFetcherFactory<DefaultFetcherFactoryArgs>> {
   /**
    * Internal abort controller for the current request.
    *
@@ -51,14 +56,12 @@ export class Aborter<Args extends any[] = Types.DefaultFetcherFactoryArgs, Retur
    */
   public listeners: EventListener;
 
-  protected fetcherFactory: Types.FetcherFactory<Args, Return>;
+  protected fetcherFactory: FetcherFactory<Factory>;
 
-  protected meta: Types.AbortableMeta = {};
-
-  constructor(options?: Types.AborterOptions<Args, Return>) {
+  constructor(options?: Types.AborterOptions<Factory>) {
     this.listeners = new EventListener(options);
 
-    this.fetcherFactory = (options?.fetcher ?? Utils.defaultFetcher) as Types.FetcherFactory<Args, Return>;
+    this.fetcherFactory = new FetcherFactory<Factory>({ fetcher: options?.fetcher, signal: this.signal });
 
     this.try = this.try.bind(this);
   }
@@ -78,6 +81,10 @@ export class Aborter<Args extends any[] = Types.DefaultFetcherFactoryArgs, Retur
     return this.abortController?.signal;
   }
 
+  public get fetcher() {
+    return this.fetcherFactory.fetcher;
+  }
+
   private setRequestState = (state: RequestState): void => {
     emitRequestState(this.listeners.state, state);
 
@@ -85,23 +92,6 @@ export class Aborter<Args extends any[] = Types.DefaultFetcherFactoryArgs, Retur
       this.timeout.clearTimeout();
       this.isRequestInProgress = false;
     }
-  };
-
-  public fetcher = <Result = false>(...args: Args): Result extends false ? Return : Promise<Result> => {
-    const innerFn = this.fetcherFactory(...args);
-    const context = this.createContext();
-
-    return innerFn(context) as any;
-  };
-
-  protected createContext = (): Types.AbortableFetcherContext => {
-    return {
-      save: (data: any) => {
-        this.meta.response = data;
-      },
-      headers: this.meta.headers,
-      signal: this.signal
-    };
   };
 
   /**
@@ -129,6 +119,7 @@ export class Aborter<Args extends any[] = Types.DefaultFetcherFactoryArgs, Retur
     }
 
     this.abortController = new AbortController();
+    this.fetcherFactory.setAbortSignal(this.abortController.signal);
 
     const promise = new Promise<R>((resolve, reject) => {
       this.isRequestInProgress = true;
