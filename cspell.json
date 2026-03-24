@@ -1,7 +1,15 @@
 {
   "version": "0.2",
   "language": "en,ru",
-  "words": ["Saborter", "saborter", "Laptev", "Vladislav", "tgz", "Сalls"],
+  "words": [
+    "Сalls",
+    "Laptev",
+    "saborter",
+    "Saborter",
+    "tgz",
+    "Vladislav",
+    "yxxx"
+  ],
   "flagWords": [],
   "ignorePaths": [
     "node_modules/**",
@@ -15,7 +23,13 @@
     "./cspell.json",
     "./integrations"
   ],
-  "dictionaries": ["typescript", "node", "softwareTerms", "en_US", "ru_RU"],
+  "dictionaries": [
+    "typescript",
+    "node",
+    "softwareTerms",
+    "en_US",
+    "ru_RU"
+  ],
   "useGitignore": true,
   "patterns": [
     {
@@ -29,7 +43,12 @@
       "description": "Ignore HTML entities"
     }
   ],
-  "ignoreRegExpList": ["/\\[.*\\]\\(.*\\)/g", "/&[a-z]+;/g", "/0x[a-fA-F0-9]+/g", "/\\$[^{][\\w.]+/g"],
+  "ignoreRegExpList": [
+    "/\\[.*\\]\\(.*\\)/g",
+    "/&[a-z]+;/g",
+    "/0x[a-fA-F0-9]+/g",
+    "/\\$[^{][\\w.]+/g"
+  ],
   "caseSensitive": false,
   "allowCompoundWords": true,
   "minWordLength": 3
