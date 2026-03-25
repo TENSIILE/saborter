@@ -1,6 +1,6 @@
 import { EventListenerConstructorOptions } from '../../features/event-listener/event-listener.types';
 import { TimeoutErrorOptions } from '../../features/timeout';
-import { FetcherFactory } from '../../features/fetcher-factory/fetcher-factory.types';
+import { FetcherFactory, InterruptionsOnServer } from '../../features/fetcher-factory/fetcher-factory.types';
 
 export type AbortableRequest<T> = (signal: AbortSignal) => Promise<T>;
 
@@ -25,5 +25,12 @@ export interface AborterOptions<Fetcher extends FetcherFactory<[any?, ...any[]]>
   EventListenerConstructorOptions,
   'onAbort' | 'onStateChange'
 > {
+  /**
+   * The fetcher factory to use. Defaults to the built-in `defaultFetcher`.
+   */
   fetcher?: Fetcher;
+  /**
+   * Configuration for server interruption notifications.
+   */
+  interruptionsOnServer?: InterruptionsOnServer;
 }

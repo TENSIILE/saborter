@@ -56,12 +56,20 @@ export class Aborter<Factory extends IFetcherFactory<[any?, ...any[]]> = IFetche
    */
   public listeners: EventListener;
 
-  protected fetcherFactory: FetcherFactory<Factory>;
+  /**
+   * A factory that creates abortable fetchers with support for request cancellation,
+   * notification of request interruptions on the server, and automatic request ID generation.
+   */
+  protected masterFetcher: FetcherFactory<Factory>;
 
   constructor(options?: Types.AborterOptions<Factory>) {
     this.listeners = new EventListener(options);
 
-    this.fetcherFactory = new FetcherFactory<Factory>({ fetcher: options?.fetcher, signal: this.signal });
+    this.masterFetcher = new FetcherFactory<Factory>({
+      fetcher: options?.fetcher,
+      signal: this.signal,
+      listeners: this.listeners
+    });
 
     this.try = this.try.bind(this);
   }
@@ -81,8 +89,11 @@ export class Aborter<Factory extends IFetcherFactory<[any?, ...any[]]> = IFetche
     return this.abortController?.signal;
   }
 
+  /**
+   * Returns the abortable fetcher function.
+   */
   public get fetcher() {
-    return this.fetcherFactory.fetcher;
+    return this.masterFetcher.fetcher;
   }
 
   private setRequestState = (state: RequestState): void => {
@@ -119,7 +130,7 @@ export class Aborter<Factory extends IFetcherFactory<[any?, ...any[]]> = IFetche
     }
 
     this.abortController = new AbortController();
-    this.fetcherFactory.setAbortSignal(this.abortController.signal);
+    this.masterFetcher.setAbortSignal(this.abortController.signal);
 
     const promise = new Promise<R>((resolve, reject) => {
       this.isRequestInProgress = true;
@@ -184,6 +195,8 @@ export class Aborter<Factory extends IFetcherFactory<[any?, ...any[]]> = IFetche
     this.listeners.dispatchEvent(error.type!, error);
 
     this.abortController.abort(error);
+
+    this.masterFetcher.notifyServerOfInterruption();
 
     this.setRequestState(error.type!);
   };
