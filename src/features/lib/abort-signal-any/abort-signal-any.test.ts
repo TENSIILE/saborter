@@ -13,7 +13,7 @@ describe('abortSignalAny', () => {
   });
 
   describe('basic behavior', () => {
-    it('должен создавать новый AbortSignal', () => {
+    it('must create a new AbortSignal', () => {
       const signal = abortSignalAny(controller1.signal);
 
       expect(signal).toBeInstanceOf(AbortSignal);
