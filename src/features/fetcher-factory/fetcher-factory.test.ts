@@ -1,13 +1,7 @@
 import { FetcherFactory } from './fetcher-factory';
 import { defaultFetcher } from './fetcher-factory.lib';
 import { overrideSymbol } from './fetcher-factory.constants';
-import { Utils } from '../../shared';
-
-jest.mock('../../shared', () => ({
-  Utils: {
-    generateUuid: jest.fn().mockReturnValue('mock-uuid')
-  }
-}));
+import { createHeaders } from './fetcher-factory.utils';
 
 jest.mock('./fetcher-factory.lib', () => ({
   defaultFetcher: jest.fn()
@@ -45,37 +39,34 @@ describe('FetcherFactory', () => {
   describe('конструктор', () => {
     it('должен использовать defaultFetcher, если fetcher не передан', () => {
       const factory = new FetcherFactory({ signal: mockSignal });
+
       expect(factory['fetcherFactory']).toBe(defaultFetcher);
     });
 
     it('должен сохранять переданный fetcher', () => {
       const customFetcher = jest.fn();
       const factory = new FetcherFactory({ fetcher: customFetcher, signal: mockSignal });
+
       expect(factory['fetcherFactory']).toBe(customFetcher);
     });
 
     it('должен сохранять переданный сигнал', () => {
       const factory = new FetcherFactory({ signal: mockSignal });
-      expect(factory['signal']).toBe(mockSignal);
+
+      expect(factory['meta']['signal']).toBe(mockSignal);
     });
 
     it('должен устанавливать interruptionsOnServer с дефолтными значениями, если options.interruptionsOnServer не передан', () => {
       const factory = new FetcherFactory({ signal: mockSignal });
+
       expect(factory['interruptionsOnServer']).not.toHaveProperty('hasInterruptRequests');
     });
   });
 
-  describe('метод createHeaders', () => {
-    it('должен генерировать уникальный x-request-id', () => {
-      const factory = new FetcherFactory({ signal: mockSignal });
-      const headers = factory['createHeaders']();
-      expect(Utils.generateUuid).toHaveBeenCalled();
-      expect(headers['x-request-id']).toBe('mock-uuid');
-    });
-
+  describe('функция createHeaders', () => {
     it('должен устанавливать Cache-Control и Pragma', () => {
-      const factory = new FetcherFactory({ signal: mockSignal });
-      const headers = factory['createHeaders']();
+      const headers = createHeaders();
+
       expect(headers['Cache-Control']).toBe('no-cache');
       expect(headers.Pragma).toBe('no-cache');
     });
@@ -84,10 +75,8 @@ describe('FetcherFactory', () => {
   describe('метод createContext', () => {
     it('должен вызывать createHeaders и сохранять их в meta.headers', () => {
       const factory = new FetcherFactory({ signal: mockSignal });
-      const createHeadersSpy = jest.spyOn(factory as any, 'createHeaders');
       const context = factory['createContext']();
 
-      expect(createHeadersSpy).toHaveBeenCalled();
       expect(factory['meta'].headers).toBeDefined();
       expect(context.headers).toBe(factory['meta'].headers);
     });
@@ -106,7 +95,9 @@ describe('FetcherFactory', () => {
       const factory = new FetcherFactory({ signal: mockSignal });
       const context = factory['createContext']();
       const testUrl = 'https://';
+
       context.save({ url: testUrl, method: 'post' });
+
       expect(factory['meta'].url).toBe(testUrl);
     });
   });
@@ -114,10 +105,14 @@ describe('FetcherFactory', () => {
   describe('метод setAbortSignal', () => {
     it('должен обновлять сигнал', () => {
       const factory = new FetcherFactory({ signal: mockSignal });
+
       const newController = new AbortController();
+
       const newSignal = newController.signal;
+
       factory.setAbortSignal(newSignal);
-      expect(factory['signal']).toBe(newSignal);
+
+      expect(factory['meta']['signal']).toBe(newSignal);
     });
   });
 
@@ -180,6 +175,9 @@ describe('FetcherFactory', () => {
         basePath: 'https://example.com'
       };
       factory['meta'].headers = { 'x-request-id': 'test-uuid', 'Cache-Control': 'no-cache', Pragma: 'no-cache' };
+      factory['requestsMetaMap'] = new Map([
+        ['http://', { headers: factory['meta'].headers, signal: mockSignal, url: 'http://', method: 'get' }]
+      ]);
 
       sendBeaconMock = jest.fn().mockReturnValue(true);
       fetchMock = jest.fn().mockResolvedValue({} as Response);
@@ -197,14 +195,18 @@ describe('FetcherFactory', () => {
         factory['interruptionsOnServer'].hasInterruptRequests = false;
       }
       factory.notifyServerOfInterruption();
+
       expect(sendBeaconMock).not.toHaveBeenCalled();
       expect(fetchMock).not.toHaveBeenCalled();
     });
 
     it('должен использовать navigator.sendBeacon, если доступен', () => {
       factory.notifyServerOfInterruption();
+
       expect(sendBeaconMock).toHaveBeenCalledWith('https://example.com/api/cancel', expect.any(Blob));
+
       const blobArg = sendBeaconMock.mock.calls[0][1];
+
       expect(blobArg.type).toBe('text/plain');
       expect(blobArg).toBeInstanceOf(Blob);
       expect(fetchMock).not.toHaveBeenCalled();
@@ -213,11 +215,14 @@ describe('FetcherFactory', () => {
     it('должен использовать fetch, если sendBeacon недоступен', async () => {
       delete (global.navigator as any).sendBeacon;
       factory.notifyServerOfInterruption();
+
       expect(fetchMock).toHaveBeenCalledWith('https://example.com/api/cancel', {
         method: 'POST',
         body: expect.any(Blob)
       });
+
       const blobArg = fetchMock.mock.calls[0][1].body;
+
       expect(blobArg).toBeInstanceOf(Blob);
     });
 
@@ -225,8 +230,11 @@ describe('FetcherFactory', () => {
       Reflect.deleteProperty(factory['meta'].headers ?? {}, 'x-request-id');
 
       factory.notifyServerOfInterruption();
+
       expect(sendBeaconMock).toHaveBeenCalledWith('https://example.com/api/cancel', expect.any(Blob));
+
       const blobArg = sendBeaconMock.mock.calls[0][1];
+
       expect(blobArg).toBeInstanceOf(Blob);
     });
   });
