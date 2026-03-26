@@ -135,9 +135,7 @@ export class Aborter<Factory extends IFetcherFactory<[any?, ...any[]]> = IFetche
     const promise = new Promise<R>((resolve, reject) => {
       this.isRequestInProgress = true;
 
-      const timeoutMs = typeof timeout === 'number' ? timeout : timeout?.ms;
-      const timeoutOptions =
-        timeout === undefined ? undefined : { ms: timeoutMs!, ...(typeof timeout !== 'number' ? timeout : {}) };
+      const { timeoutMs, timeoutOptions } = Utils.getTimeoutOptions(timeout);
 
       this.timeout.setTimeout(timeoutMs, () => {
         const abortError = new AbortError(ErrorMessage.RequestTimedout, {
@@ -151,7 +149,10 @@ export class Aborter<Factory extends IFetcherFactory<[any?, ...any[]]> = IFetche
 
       queueMicrotask(() => this.setRequestState('pending'));
 
-      request(this.abortController.signal)
+      Promise.race([
+        request(this.abortController.signal),
+        Utils.createAbortablePromise(this.abortController.signal, { isErrorNativeBehavior })
+      ])
         .then((response) => {
           if (!this.isRequestInProgress)
             return logger.info('While the request is being executed, the request will not be resolved');
@@ -163,7 +164,14 @@ export class Aborter<Factory extends IFetcherFactory<[any?, ...any[]]> = IFetche
               logger.warn('Request failed, something went wrong', response);
             }
 
-            return response.json().then(resolve).catch(reject);
+            if (!request.length) {
+              logger.warn(
+                'A call to the fetch() function was detected and you forgot to pass it a signal. We recommend passing a signal to correctly cancel the request',
+                response
+              );
+            }
+
+            return response.json().then(resolve, reject);
           }
 
           resolve(response);
@@ -178,6 +186,9 @@ export class Aborter<Factory extends IFetcherFactory<[any?, ...any[]]> = IFetche
 
             reject(error);
           }
+        })
+        .finally(() => {
+          Utils.createAbortablePromise.removeAbortListener();
         });
     });
 
@@ -188,7 +199,7 @@ export class Aborter<Factory extends IFetcherFactory<[any?, ...any[]]> = IFetche
    * Calling this method sets the AbortSignal flag of this object and signals all observers that the associated action should be aborted.
    */
   public abort = (reason?: any): void => {
-    if (!this.isRequestInProgress) return logger.info('Until a request is executed, it cannot be interrupted');
+    if (!this.isRequestInProgress) return logger.info('Until a request is started, it cannot be interrupted');
 
     const error = Utils.getAbortErrorByReason(reason);
 
