@@ -13,8 +13,7 @@
         <img src="https://github.com/TENSIILE/saborter/actions/workflows/ci.yml/badge.svg" /></a>
 <a href="https://github.com/TENSIILE/saborter/actions/workflows/tests.yml" alt="Tests">
         <img src="https://github.com/TENSIILE/saborter/actions/workflows/tests.yml/badge.svg" /></a>
-<a href="https://coveralls.io/github/TENSIILE/saborter" alt="Coverage Status">
-        <img src="https://coveralls.io/repos/github/TENSIILE/saborter/badge.svg" /></a>
+<a href='https://coveralls.io/github/TENSIILE/saborter?branch=master'><img src='https://coveralls.io/repos/github/TENSIILE/saborter/badge.svg?branch=master' alt='Coverage Status' /></a>
 <a href="https://bundlejs.com/?q=saborter#sharing" alt="Size">
         <img src="https://deno.bundlejs.com/badge?q=saborter" /></a>
 <a href="https://github.com/TENSIILE/saborter/blob/develop/LICENSE" alt="License">
