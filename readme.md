@@ -7,8 +7,12 @@
         <img src="https://img.shields.io/npm/dm/saborter.svg" /></a>
 <a href="https://github.com/TENSIILE/saborter/actions/workflows/publish.yml" alt="Release">
         <img src="https://github.com/TENSIILE/saborter/actions/workflows/publish.yml/badge.svg" /></a>
-<a href="https://www.npmjs.com/package/saborter" alt="Tests">
-        <img src="https://img.shields.io/badge/coverage-90%25-green" /></a>
+<a href="https://github.com/TENSIILE/saborter/actions/workflows/tests.yml" alt="Tests">
+        <img src="https://github.com/TENSIILE/saborter/actions/workflows/tests.yml/badge.svg" /></a>
+<a href="https://coveralls.io/github/TENSIILE/saborter" alt="Coverage Status">
+        <img src="https://coveralls.io/repos/github/TENSIILE/saborter/badge.svg" /></a>
+<a href="https://bundlejs.com/?q=saborter#sharing" alt="Size">
+        <img src="https://deno.bundlejs.com/badge?q=saborter" /></a>
 <a href="https://github.com/TENSIILE/saborter/blob/develop/LICENSE" alt="License">
         <img src="https://img.shields.io/badge/license-MIT-blue" /></a>
 <a href="https://github.com/TENSIILE/saborter" alt="Github">
