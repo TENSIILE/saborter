@@ -2,11 +2,7 @@
 import { RequestState, emitRequestState } from '../../features/state-observer';
 import { AbortError, isAbortError } from '../../features/abort-error';
 import { EventListener, clearEventListeners } from '../../features/event-listener';
-import { FetcherFactory } from '../../features/fetcher-factory';
-import {
-  FetcherFactory as IFetcherFactory,
-  DefaultFetcherFactoryArgs
-} from '../../features/fetcher-factory/fetcher-factory.types';
+import { ServerBreaker } from '../../features/server-breaker';
 import { Timeout, TimeoutError } from '../../features/timeout';
 import { ErrorMessage, disposeSymbol } from './aborter.constants';
 import * as Utils from './aborter.utils';
@@ -29,7 +25,7 @@ import { logger } from '../../shared';
  *   { timeout: 5000 }
  * );
  */
-export class Aborter<Factory extends IFetcherFactory<[any?, ...any[]]> = IFetcherFactory<DefaultFetcherFactoryArgs>> {
+export class Aborter {
   /**
    * Internal abort controller for the current request.
    *
@@ -57,19 +53,14 @@ export class Aborter<Factory extends IFetcherFactory<[any?, ...any[]]> = IFetche
   public listeners: EventListener;
 
   /**
-   * A factory that creates abortable fetchers with support for request cancellation,
-   * notification of request interruptions on the server, and automatic request ID generation.
+   * Manages server‑side interruption notification for abortable requests.
    */
-  protected masterFetcher: FetcherFactory<Factory>;
+  protected serverBreaker: ServerBreaker;
 
-  constructor(options?: Types.AborterOptions<Factory>) {
+  constructor(options?: Types.AborterOptions) {
     this.listeners = new EventListener(options);
 
-    this.masterFetcher = new FetcherFactory<Factory>({
-      fetcher: options?.fetcher,
-      signal: this.signal,
-      listeners: this.listeners
-    });
+    this.serverBreaker = new ServerBreaker({ interruptionsOnServer: options?.interruptionsOnServer });
 
     this.try = this.try.bind(this);
   }
@@ -90,10 +81,22 @@ export class Aborter<Factory extends IFetcherFactory<[any?, ...any[]]> = IFetche
   }
 
   /**
-   * Returns the abortable fetcher function.
+   * Returns the request options to be used when making an abortable request.
+   *
+   * Currently, this includes only the `headers` property retrieved from the
+   * `serverBreaker` instance. If `serverBreaker.headers` is `undefined`,
+   * the returned object will have an empty `headers` property.
+   *
+   * @returns {Types.AbortableRequestOptions} An object containing the request options,
+   *          specifically the headers for the request.
+   *
+   * @example
+   * // Inside a class that uses this getter
+   * const options = this.requestOptions;
+   * // options = { headers: { 'x-request-id': '...' } }
    */
-  public get fetcher() {
-    return this.masterFetcher.fetcher;
+  protected get requestOptions(): Types.AbortableRequestOptions {
+    return { headers: this.serverBreaker.headers };
   }
 
   private setRequestState = (state: RequestState): void => {
@@ -130,7 +133,6 @@ export class Aborter<Factory extends IFetcherFactory<[any?, ...any[]]> = IFetche
     }
 
     this.abortController = new AbortController();
-    this.masterFetcher.setAbortSignal(this.abortController.signal);
 
     const promise = new Promise<R>((resolve, reject) => {
       this.isRequestInProgress = true;
@@ -150,7 +152,7 @@ export class Aborter<Factory extends IFetcherFactory<[any?, ...any[]]> = IFetche
       queueMicrotask(() => this.setRequestState('pending'));
 
       Promise.race([
-        request(this.abortController.signal),
+        request(this.abortController.signal, this.requestOptions),
         Utils.createAbortablePromise(this.abortController.signal, { isErrorNativeBehavior })
       ])
         .then((response) => {
@@ -205,9 +207,11 @@ export class Aborter<Factory extends IFetcherFactory<[any?, ...any[]]> = IFetche
 
     this.listeners.dispatchEvent(error.type!, error);
 
-    this.abortController.abort(error);
+    if (error.type === 'aborted') {
+      this.serverBreaker.notifyServerOfInterruption();
+    }
 
-    this.masterFetcher.notifyServerOfInterruption();
+    this.abortController.abort(error);
 
     this.setRequestState(error.type!);
   };

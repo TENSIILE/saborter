@@ -27,6 +27,8 @@
 **Saborter** is a lightweight, dependency-free, simple, yet incredibly powerful JavaScript/TypeScript library for managing asynchronous cancellation.
 It builds on top of its own [AbortController](https://developer.mozilla.org/en-US/docs/Web/API/AbortController) but fully exploits its shortcomings, providing a clean, inexpensive, and convenient API.
 
+Add a 🌟 and follow me to support the project!
+
 ## 📚 Documentation
 
 The documentation is divided into several sections:
