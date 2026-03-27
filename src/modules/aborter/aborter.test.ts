@@ -4,6 +4,7 @@ import { AbortError } from '../../features/abort-error';
 import { EventListener } from '../../features/event-listener';
 import { emitMethodSymbol } from '../../features/state-observer/state-observer.constants';
 import { ErrorMessage } from './aborter.constants';
+import { createHeaders } from '../../features/server-breaker/server-breaker.utils';
 
 class MockResponse {
   public body: any;
@@ -33,12 +34,15 @@ describe('Aborter', () => {
   let aborter: Aborter;
   let mockRequest: jest.Mock;
   let mockSignal: AbortSignal;
+  let headers;
 
   beforeEach(() => {
     jest.clearAllMocks();
 
+    headers = createHeaders();
     aborter = new Aborter();
     mockRequest = jest.fn();
+    aborter['serverBreaker']['meta']['headers'] = headers;
 
     mockSignal = {
       aborted: false,
@@ -72,11 +76,12 @@ describe('Aborter', () => {
   describe('Метод try', () => {
     it('должен выполнять запрос и возвращать результат', async () => {
       const expectedResult = { data: 'test' };
+
       mockRequest.mockResolvedValue(expectedResult);
 
       const result = await aborter.try(mockRequest);
 
-      expect(mockRequest).toHaveBeenCalledWith(mockSignal);
+      expect(mockRequest).toHaveBeenCalledWith(mockSignal, { headers });
       expect(result).toEqual(expectedResult);
     });
 
