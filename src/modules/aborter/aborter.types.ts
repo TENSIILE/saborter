@@ -1,6 +1,6 @@
 import { EventListenerConstructorOptions } from '../../features/event-listener/event-listener.types';
 import { TimeoutErrorOptions } from '../../features/timeout';
-import { RequestHeaders, ServerBreakerOptions } from '../../features/server-breaker/server-breaker.types';
+import { RequestHeaders } from '../../features/server-breaker/server-breaker.types';
 
 /**
  * Options that can be passed to an abortable request.
@@ -59,9 +59,5 @@ export interface FnTryOptions {
 
 /**
  * Configuration options for creating an `Aborter` instance.
- * Combines options from `EventListenerConstructorOptions` and `ServerBreakerOptions`.
  */
-export interface AborterOptions
-  extends
-    Pick<EventListenerConstructorOptions, 'onAbort' | 'onStateChange'>,
-    Pick<ServerBreakerOptions, 'interruptionsOnServer'> {}
+export interface AborterOptions extends Pick<EventListenerConstructorOptions, 'onAbort' | 'onStateChange'> {}

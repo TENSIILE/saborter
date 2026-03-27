@@ -55,12 +55,10 @@ export class Aborter {
   /**
    * Manages server‑side interruption notification for abortable requests.
    */
-  protected serverBreaker: ServerBreaker;
+  protected serverBreaker: ServerBreaker = new ServerBreaker();
 
   constructor(options?: Types.AborterOptions) {
     this.listeners = new EventListener(options);
-
-    this.serverBreaker = new ServerBreaker({ interruptionsOnServer: options?.interruptionsOnServer });
 
     this.try = this.try.bind(this);
   }
@@ -206,10 +204,6 @@ export class Aborter {
     const error = Utils.getAbortErrorByReason(reason);
 
     this.listeners.dispatchEvent(error.type!, error);
-
-    if (error.type === 'aborted') {
-      this.serverBreaker.notifyServerOfInterruption();
-    }
 
     this.abortController.abort(error);
 
