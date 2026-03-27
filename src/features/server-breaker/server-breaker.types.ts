@@ -26,25 +26,3 @@ export interface RequestMeta {
    */
   headers?: RequestHeaders;
 }
-
-/**
- * Configuration for notifying the server when a request is interrupted.
- */
-export interface InterruptionsOnServer {
-  /**
-   *  Base path of the server (e.g., `window.location.origin`).
-   */
-  baseURL?: string;
-  /**
-   * Endpoint path where the interruption notification is sent.
-   * @default "api/@cancel"
-   */
-  endpointName?: string;
-}
-
-export interface ServerBreakerOptions {
-  /**
-   * Configuration for server interruption notifications.
-   */
-  interruptionsOnServer?: boolean | InterruptionsOnServer;
-}
