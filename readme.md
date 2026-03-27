@@ -11,8 +11,11 @@
         <img src="https://github.com/TENSIILE/saborter/actions/workflows/publish.yml/badge.svg" /></a>
 <a href="https://github.com/TENSIILE/saborter/actions/workflows/ci.yml" alt="CI">
         <img src="https://github.com/TENSIILE/saborter/actions/workflows/ci.yml/badge.svg" /></a>
-<a href="https://www.npmjs.com/package/saborter" alt="Tests">
-        <img src="https://img.shields.io/badge/coverage-90%25-green" /></a>
+<a href="https://github.com/TENSIILE/saborter/actions/workflows/tests.yml" alt="Tests">
+        <img src="https://github.com/TENSIILE/saborter/actions/workflows/tests.yml/badge.svg" /></a>
+<a href='https://coveralls.io/github/TENSIILE/saborter?branch=master'><img src='https://coveralls.io/repos/github/TENSIILE/saborter/badge.svg?branch=master' alt='Coverage Status' /></a>
+<a href="https://bundlejs.com/?q=saborter#sharing" alt="Size">
+        <img src="https://deno.bundlejs.com/badge?q=saborter" /></a>
 <a href="https://github.com/TENSIILE/saborter/blob/develop/LICENSE" alt="License">
         <img src="https://img.shields.io/badge/license-MIT-blue" /></a>
 <a href="https://github.com/TENSIILE/saborter" alt="Github">
@@ -23,6 +26,8 @@
 
 **Saborter** is a lightweight, dependency-free, simple, yet incredibly powerful JavaScript/TypeScript library for managing asynchronous cancellation.
 It builds on top of its own [AbortController](https://developer.mozilla.org/en-US/docs/Web/API/AbortController) but fully exploits its shortcomings, providing a clean, inexpensive, and convenient API.
+
+Add a 🌟 and follow me to support the project!
 
 ## 📚 Documentation
 
