@@ -334,6 +334,93 @@ const processItems = (items: unknown[], signal: AbortSignal) => {
 };
 ```
 
+### `abortSignalAny`
+
+Combines multiple abort signals into a single signal that aborts when any of the input signals aborts. This is useful when you need to cancel an operation if any of several independent signals (e.g., from different sources) become aborted.
+
+**Signature:**
+
+```typescript
+export const abortSignalAny = <T extends AbortSignalLike | AbortSignalLike[]>(...args: T[]): AbortSignal
+```
+
+Where `AbortSignalLike = AbortSignal | null | undefined`.
+
+**Parameters:**
+
+- `...args` – A rest parameter that accepts any number of arguments. Each argument can be:
+  - A single `AbortSignal` (or `null`/`undefined` – these are ignored).
+  - An array of `AbortSignalLike`.
+
+This function accepts either an unlimited number of signals or an array of signals.
+
+**Returns:**
+
+A new `AbortController.signal` that will be aborted when `any` of the input signals aborts. If any input signal is already aborted when the function is called, the returned signal is immediately aborted.
+
+**Description:**
+
+The function works as follows:
+
+1. Flattens the provided arguments into a single array of signals (ignoring `null` or `undefined`).
+2. Creates a new `AbortController`.
+3. For each signal in the flattened list:
+
+- If the signal is already aborted, the controller is aborted immediately with a custom `AbortError` (see error handling below) and no further listeners are attached.
+- Otherwise, it attaches a one‑time `'abort'` event listener to that signal. When the signal aborts, the handler is called, which:
+  - Aborts the controller using the same `AbortError` created from the aborting signal.
+  - Cleans up all listeners from all other signals (removes the `'abort'` event handlers) to prevent memory leaks.
+
+The function ensures that the controller is aborted only once, even if multiple signals abort simultaneously or in quick succession.
+
+**Error Handling:**
+
+The function creates a consistent `AbortError` object when aborting the controller. It uses the helper `createAbortError`, which:
+
+- If the signal’s `reason` is already an `AbortError`, that error is reused.
+- If the signal’s `reason` is a `DOMException` with the name `'AbortError'` (as in browser‑native abort), it stores the original reason under a `cause` property.
+- Otherwise, it creates a new `AbortError` with the message `'The operation was aborted'` and attaches the original reason under a `reason` property.
+
+In all cases, the resulting error has an `initiator` property set to `'abortSignalAny'` to help trace the source of the abort.
+
+**Examples:**
+
+#### Basic usage with two signals:
+
+```typescript
+import { abortSignalAny } from '.saborter/lib';
+
+const ac1 = new AbortController();
+const ac2 = new AbortController();
+const combined = abortSignalAny(ac1.signal, ac2.signal);
+
+combined.addEventListener('abort', () => console.log('Combined signal aborted!'));
+ac1.abort(); // triggers combined abort
+```
+
+#### Using arrays:
+
+```typescript
+const signals = [ac1.signal, ac2.signal];
+const combined = abortSignalAny(signals);
+```
+
+#### Handling already aborted signals:
+
+```typescript
+const ac = new AbortController();
+ac.abort(); // signal is already aborted
+
+const combined = abortSignalAny(ac.signal); // returns an already aborted signal
+combined.aborted; // true
+```
+
+#### Ignoring `null` or `undefined`:
+
+```typescript
+const combined = abortSignalAny(null, undefined, ac.signal); // only ac.signal is considered
+```
+
 ### `timeInMilliseconds`
 
 Converts a configuration object containing time components (hours, minutes, seconds, milliseconds) into a total number of milliseconds. All components are optional and default to `0` if not provided.
