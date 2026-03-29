@@ -53,3 +53,36 @@ export const isAbortError = (error: any): error is Error => {
 
   return !!checkErrorCause(error);
 };
+
+/**
+ * Creates a new `AbortError` instance that is a copy of the original,
+ * allowing selective override of its properties.
+ *
+ * The original error is set as the `cause` of the new error, preserving
+ * the error chain. This is useful when you need to augment or transform
+ * an abort error without losing the original context.
+ *
+ * @param abortError - The original `AbortError` to copy.
+ * @param override - An object with properties to override on the new error.
+ *                   The following properties cannot be overridden:
+ *                   - `cause` – always set to the original error.
+ *                   - `timestamp` – always the creation time of the new error.
+ *                   - `stack` – automatically generated.
+ *                   - `name` – always `'AbortError'`.
+ *                   All other properties of `AbortError` can be overridden.
+ * @returns A new `AbortError` instance with the same properties as the original,
+ *          except those specified in `override`.
+ *
+ * @example
+ * const original = new AbortError('Operation aborted', { type: 'cancelled', initiator: 'user' });
+ * const copy = copyAbortError(original, { message: 'Custom message', metadata: { retry: false } });
+ * console.log(copy.message); // 'Custom message'
+ * console.log(copy.type);    // 'cancelled' (from original)
+ * console.log(copy.cause);   // original (the original error)
+ */
+export const copyAbortError = (
+  abortError: AbortError,
+  override?: Omit<{ [key in keyof AbortError]?: AbortError[key] }, 'cause' | 'timestamp' | 'stack' | 'name'>
+) => {
+  return new AbortError(override?.message ?? abortError.message, { ...abortError, ...override, cause: abortError });
+};
