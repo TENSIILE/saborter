@@ -142,28 +142,15 @@ describe('isAbortError', () => {
     it('should create a new AbortError with the original message when no override provided', () => {
       const copy = copyAbortError(originalError);
 
-      expect(AbortError).toHaveBeenCalledWith(
-        'Original message',
-        expect.objectContaining({
-          ...originalError,
-          cause: originalError
-        })
-      );
-
-      expect(copy.cause).toBe(originalError);
+      expect(copy.message).toEqual(originalError.message);
+      expect(copy.cause).toEqual(originalError);
     });
 
     it('should override the message when provided', () => {
       const copy = copyAbortError(originalError, { message: 'New message' });
 
-      expect(AbortError).toHaveBeenCalledWith(
-        'New message',
-        expect.objectContaining({
-          ...originalError,
-          cause: originalError,
-          message: 'New message'
-        })
-      );
+      expect(copy.message).toEqual('New message');
+      expect(copy.cause).toEqual(originalError);
     });
 
     it('should override other properties when provided', () => {
@@ -176,14 +163,12 @@ describe('isAbortError', () => {
 
       const copy = copyAbortError(originalError, override);
 
-      expect(AbortError).toHaveBeenCalledWith(
-        'Original message',
-        expect.objectContaining({
-          ...originalError,
-          ...override,
-          cause: originalError
-        })
-      );
+      expect(copy.message).toEqual(originalError.message);
+      expect(copy.cause).toEqual(originalError);
+      expect(copy.type).toEqual(override.type);
+      expect(copy.initiator).toEqual(override.initiator);
+      expect(copy.metadata).toEqual(override.metadata);
+      expect(copy.reason).toEqual(override.reason);
     });
 
     it('should not allow overriding cause, timestamp, stack, or name', () => {
@@ -212,24 +197,16 @@ describe('isAbortError', () => {
 
       const copy = copyAbortError(minimalError);
 
-      expect(AbortError).toHaveBeenCalledWith(
-        'Minimal',
-        expect.objectContaining({
-          cause: minimalError
-        })
-      );
+      expect(copy.message).toEqual(minimalError.message);
+      expect(copy.cause).toEqual(minimalError);
     });
 
     it('should handle undefined override', () => {
       const copy = copyAbortError(originalError, undefined);
 
-      expect(AbortError).toHaveBeenCalledWith(
-        'Original message',
-        expect.objectContaining({
-          ...originalError,
-          cause: originalError
-        })
-      );
+      expect(copy.cause).toEqual(originalError);
+      expect(copy.message).toEqual(originalError.message);
+      expect(copy.type).toEqual(originalError.type);
     });
   });
 });

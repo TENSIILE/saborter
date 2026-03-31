@@ -51,8 +51,9 @@ describe('debounce', () => {
       expect((error as any).initiator).toBeUndefined();
     });
 
-    it('должна обогащать AbortError: устанавливать cause и initiator = "debounce"', async () => {
-      const originalAbortError = new AbortError('Signal aborted');
+    it('должна возвращать новый AbortError: initiator = "debounce" и сохранение истории ошибок в cause', async () => {
+      const originalAbortError = new AbortError('Signal aborted', { initiator: setTimeoutAsync.name });
+
       (setTimeoutAsync as jest.Mock).mockImplementation(() => {
         throw originalAbortError;
       });
@@ -60,36 +61,55 @@ describe('debounce', () => {
       const debouncedFn = debounce(jest.fn(), 100);
       const { signal } = new AbortController();
 
-      expect(() => debouncedFn(signal)).toThrow(AbortError);
+      const fn = () => {
+        try {
+          debouncedFn(signal);
+        } catch (error) {
+          return error;
+        }
+      };
 
-      // We check that the original error has been modified
-      expect(originalAbortError.cause).toBeInstanceOf(AbortError);
-      expect((originalAbortError.cause as Error).message).toBe('Signal aborted');
-      expect(originalAbortError.cause).not.toBe(originalAbortError); // there must be a new copy
-      expect(originalAbortError.initiator).toBe('debounce');
+      expect(fn()).toEqual(
+        new AbortError('Signal aborted', {
+          initiator: debounce.name,
+          cause: originalAbortError
+        })
+      );
     });
 
-    it('должна корректно обогащать AbortError с дополнительными полями (reason, metadata и т.д.)', async () => {
+    it('должна возвращать новый AbortError с дополнительными полями (reason, metadata и т.д.)', async () => {
       const originalAbortError = new AbortError('Timeout', {
         reason: 'User cancelled',
         metadata: { id: 42 }
       });
+
       (setTimeoutAsync as jest.Mock).mockImplementation(() => {
         throw originalAbortError;
       });
 
       const debouncedFn = debounce(jest.fn(), 100);
-      expect(() => debouncedFn(new AbortController().signal)).toThrow(AbortError);
 
-      expect(originalAbortError.cause).toBeInstanceOf(AbortError);
-      expect((originalAbortError.cause as AbortError).reason).toBe('User cancelled');
-      expect((originalAbortError.cause as AbortError).metadata).toEqual({ id: 42 });
-      expect(originalAbortError.initiator).toBe('debounce');
+      const fn = () => {
+        try {
+          debouncedFn(new AbortController().signal);
+        } catch (error) {
+          return error;
+        }
+      };
+
+      expect(fn()).toEqual(
+        new AbortError('Timeout', {
+          initiator: debounce.name,
+          reason: originalAbortError.reason,
+          metadata: originalAbortError.metadata,
+          cause: originalAbortError
+        })
+      );
     });
   });
 
   describe('синхронные ошибки из setTimeoutAsync', () => {
-    it('должна перехватывать синхронно выброшенный AbortError и обогащать его', () => {
+    it('должна перехватывать синхронно выброшенный AbortError и возращать новый экземпляр', () => {
       const originalAbortError = new AbortError('sync abort');
 
       (setTimeoutAsync as jest.Mock).mockImplementation(() => {
@@ -99,9 +119,20 @@ describe('debounce', () => {
       const debouncedFn = debounce(jest.fn(), 100);
       const { signal } = new AbortController();
 
-      expect(() => debouncedFn(signal)).toThrow(AbortError);
-      expect(originalAbortError.cause).toBeInstanceOf(AbortError);
-      expect(originalAbortError.initiator).toBe('debounce');
+      const fn = () => {
+        try {
+          debouncedFn(signal);
+        } catch (error) {
+          return error;
+        }
+      };
+
+      expect(fn()).toEqual(
+        new AbortError('sync abort', {
+          initiator: debounce.name,
+          cause: originalAbortError
+        })
+      );
     });
 
     it('должна пробрасывать синхронную ошибку, не являющуюся AbortError', () => {
