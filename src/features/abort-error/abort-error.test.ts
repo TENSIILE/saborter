@@ -1,6 +1,6 @@
 /* eslint-disable dot-notation */
 /* eslint-disable no-import-assign */
-import { isAbortError } from './abort-error.lib';
+import { isAbortError, copyAbortError } from './abort-error.lib';
 import { AbortError } from './abort-error';
 import { ABORT_ERROR_NAME } from './abort-error.constants';
 
@@ -123,6 +123,113 @@ describe('isAbortError', () => {
       expect(isAbortError('string')).toBe(false);
       expect(isAbortError(true)).toBe(false);
       expect(isAbortError(Symbol('sym'))).toBe(false);
+    });
+  });
+
+  describe('copyAbortError', () => {
+    let originalError: AbortError;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      originalError = new AbortError('Original message', {
+        type: 'cancelled',
+        initiator: 'user',
+        metadata: { id: 1 },
+        reason: 'test reason'
+      });
+    });
+
+    it('should create a new AbortError with the original message when no override provided', () => {
+      const copy = copyAbortError(originalError);
+
+      expect(AbortError).toHaveBeenCalledWith(
+        'Original message',
+        expect.objectContaining({
+          ...originalError,
+          cause: originalError
+        })
+      );
+
+      expect(copy.cause).toBe(originalError);
+    });
+
+    it('should override the message when provided', () => {
+      const copy = copyAbortError(originalError, { message: 'New message' });
+
+      expect(AbortError).toHaveBeenCalledWith(
+        'New message',
+        expect.objectContaining({
+          ...originalError,
+          cause: originalError,
+          message: 'New message'
+        })
+      );
+    });
+
+    it('should override other properties when provided', () => {
+      const override = {
+        type: 'aborted',
+        initiator: 'timeout',
+        metadata: { new: true },
+        reason: 'new reason'
+      } as const;
+
+      const copy = copyAbortError(originalError, override);
+
+      expect(AbortError).toHaveBeenCalledWith(
+        'Original message',
+        expect.objectContaining({
+          ...originalError,
+          ...override,
+          cause: originalError
+        })
+      );
+    });
+
+    it('should not allow overriding cause, timestamp, stack, or name', () => {
+      const override = {
+        cause: new Error('fake cause'),
+        timestamp: 12345,
+        stack: 'fake stack',
+        name: 'FakeError'
+      };
+
+      expect(() => copyAbortError(originalError, override as any)).toThrow(TypeError);
+    });
+
+    it('should preserve all original properties not overridden', () => {
+      const copy = copyAbortError(originalError, { metadata: { new: true } });
+
+      expect(copy.type).toBe(originalError.type);
+      expect(copy.initiator).toBe(originalError.initiator);
+      expect(copy.reason).toBe(originalError.reason);
+      expect(copy.metadata).toEqual({ new: true });
+      expect(copy.cause).toBe(originalError);
+    });
+
+    it('should work with minimal AbortError (no extra properties)', () => {
+      const minimalError = new AbortError('Minimal');
+
+      const copy = copyAbortError(minimalError);
+
+      expect(AbortError).toHaveBeenCalledWith(
+        'Minimal',
+        expect.objectContaining({
+          cause: minimalError
+        })
+      );
+    });
+
+    it('should handle undefined override', () => {
+      const copy = copyAbortError(originalError, undefined);
+
+      expect(AbortError).toHaveBeenCalledWith(
+        'Original message',
+        expect.objectContaining({
+          ...originalError,
+          cause: originalError
+        })
+      );
     });
   });
 });
