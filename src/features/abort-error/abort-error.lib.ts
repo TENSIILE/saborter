@@ -54,6 +54,8 @@ export const isAbortError = (error: any): error is Error => {
   return !!checkErrorCause(error);
 };
 
+const CANNOT_BE_OVERRIDDEN = ['cause', 'timestamp', 'stack', 'name'] satisfies Array<keyof AbortError>;
+
 /**
  * Creates a new `AbortError` instance that is a copy of the original,
  * allowing selective override of its properties.
@@ -82,7 +84,13 @@ export const isAbortError = (error: any): error is Error => {
  */
 export const copyAbortError = (
   abortError: AbortError,
-  override?: Omit<{ [key in keyof AbortError]?: AbortError[key] }, 'cause' | 'timestamp' | 'stack' | 'name'>
+  override: Omit<{ [key in keyof AbortError]?: AbortError[key] }, (typeof CANNOT_BE_OVERRIDDEN)[any]> = {}
 ) => {
+  const foundOverriddenField = CANNOT_BE_OVERRIDDEN.find((key) => Object.prototype.hasOwnProperty.call(override, key));
+
+  if (foundOverriddenField) {
+    throw new TypeError(`The '${foundOverriddenField}' field cannot be overridden!`);
+  }
+
   return new AbortError(override?.message ?? abortError.message, { ...abortError, ...override, cause: abortError });
 };
