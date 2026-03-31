@@ -1,5 +1,6 @@
 import { setTimeoutAsync } from '../set-timeout-async';
 import { AbortError } from '../../abort-error';
+import { copyAbortError } from '../../abort-error/abort-error.lib';
 
 /**
  * Creates a debounced function that delays invoking the provided handler
@@ -54,10 +55,7 @@ export const debounce = <R>(
       return setTimeoutAsync(handler, delay, { signal, args });
     } catch (error) {
       if (error instanceof AbortError) {
-        error.cause = new AbortError(error.message, { ...error, cause: error });
-        error.initiator = debounce.name;
-
-        throw error;
+        throw copyAbortError(error, { initiator: debounce.name });
       }
 
       throw error;

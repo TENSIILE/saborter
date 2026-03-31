@@ -128,7 +128,7 @@ The `Aborter` class makes it easy to cancel running requests after a period of t
 const aborter = new Aborter();
 
 // Start a long-running request and cancel the request after 2 seconds
-const results = aborter.try(
+const results = await aborter.try(
   (signal) => {
     return fetch('/api/long-task', { signal });
   },
@@ -147,14 +147,29 @@ import { debounce } from 'saborter/lib';
 const aborter = new Aborter();
 
 // The request will be delayed for 2 seconds and then executed.
-const results = aborter.try(
+const results = await aborter.try(
   debounce((signal) => {
     return fetch('/api/long-task', { signal });
   }, 2000)
 );
 ```
 
-### 4. Interrupting promises without a signal
+### 4. Canceling a request on the server
+
+For the server to support interrupts via the `saborter`, it is necessary to use the [@saborter/server](https://github.com/TENSIILE/saborter-server) package on the server side:
+
+```javascript
+// Create an Aborter instance
+const aborter = new Aborter();
+
+// The request will be cancelled on the server side
+// if the request fails to complete either successfully or with an error.
+const results = await aborter.try((signal, { headers }) => {
+  return fetch('/api/posts', { signal, headers });
+});
+```
+
+### 5. Interrupting promises without a signal
 
 If you want to cancel a task with a promise:
 
@@ -169,7 +184,7 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // The callback function can be restarted each time (by calling .try() again), which will interrupt the previous call and start it again.
 // Or the `.abort()` method can be used to abort the callback function entirely.
-const results = aborter.try(
+const results = await aborter.try(
   async () => {
     await delay(2000);
     return Promise.resolve({ done: true });
@@ -177,7 +192,7 @@ const results = aborter.try(
 );
 ```
 
-### 5. Multiple request aborts through a single `ReusableAborter` instance
+### 6. Multiple request aborts through a single `ReusableAborter` instance
 
 The `ReusableAborter` class allows you to easily cancel requests an unlimited number of times while preserving all listeners:
 
@@ -198,7 +213,7 @@ reusableAborter.abort(); // call of the listener -> console.log('aborted', e)
 reusableAborter.abort(); // listener recall -> console.log('aborted', e)
 ```
 
-### 6. Working with Multiple Requests
+### 7. Working with Multiple Requests
 
 You can create separate instances for different groups of requests:
 
@@ -407,6 +422,24 @@ try {
 > [!NOTE]
 > In this case, the wait for the request to be executed will be interrupted, but the request itself will still be executed.
 
+**Canceling a request on the server:**
+
+To automatically abort a server-side operation when a client aborts a request,
+you must use [@saborter/server](https://github.com/TENSIILE/saborter-server) on the server and pass headers on the client.
+
+```typescript
+try {
+  const users = await aborter.try(async (signal, { headers }) => {
+    const response = await fetch('/api/users', { signal, headers });
+    return response.json();
+  });
+} catch (error) {
+  if (error instanceof AbortError) {
+    console.log('interrupt error handling');
+  }
+}
+```
+
 **Examples using automatic cancellation after a time:**
 
 ```javascript
@@ -546,6 +579,7 @@ fetchData();
 The `saborter` package contains additional features out of the box that can help you:
 
 - [**@saborter/react**](https://github.com/TENSIILE/saborter-react) - a standalone library with `Saborter` and `React` integration.
+- [**@saborter/server**](https://github.com/TENSIILE/saborter-server) - library that automatically cancels server-side operations when the client aborts a request.
 - [**saborter/lib**](./docs/libs.md) - auxiliary functions.
 - [**saborter/errors**](./docs/errors.md) - package errors.
   - [**AbortError**](./docs/errors.md#aborterror) - custom error for working with Aborter.
