@@ -2,6 +2,7 @@
 import { RequestState, emitRequestState } from '../../features/state-observer';
 import { AbortError, isAbortError } from '../../features/abort-error';
 import { EventListener, clearEventListeners } from '../../features/event-listener';
+import { ServerBreaker } from '../../features/server-breaker';
 import { Timeout, TimeoutError } from '../../features/timeout';
 import { ErrorMessage, disposeSymbol } from './aborter.constants';
 import * as Utils from './aborter.utils';
@@ -51,6 +52,11 @@ export class Aborter {
    */
   public listeners: EventListener;
 
+  /**
+   * Manages server‑side interruption notification for abortable requests.
+   */
+  protected serverBreaker: ServerBreaker = new ServerBreaker();
+
   constructor(options?: Types.AborterOptions) {
     this.listeners = new EventListener(options);
 
@@ -70,6 +76,25 @@ export class Aborter {
    */
   public get signal(): AbortSignal {
     return this.abortController?.signal;
+  }
+
+  /**
+   * Returns the request options to be used when making an abortable request.
+   *
+   * Currently, this includes only the `headers` property retrieved from the
+   * `serverBreaker` instance. If `serverBreaker.headers` is `undefined`,
+   * the returned object will have an empty `headers` property.
+   *
+   * @returns {Types.AbortableRequestOptions} An object containing the request options,
+   *          specifically the headers for the request.
+   *
+   * @example
+   * // Inside a class that uses this getter
+   * const options = this.requestOptions;
+   * // options = { headers: { 'x-request-id': '...' } }
+   */
+  protected get requestOptions(): Types.AbortableRequestOptions {
+    return { headers: this.serverBreaker.headers };
   }
 
   private setRequestState = (state: RequestState): void => {
@@ -107,7 +132,7 @@ export class Aborter {
 
     this.abortController = new AbortController();
 
-    const promise: Promise<R> = new Promise<R>((resolve, reject) => {
+    const promise = new Promise<R>((resolve, reject) => {
       this.isRequestInProgress = true;
 
       const { timeoutMs, timeoutOptions } = Utils.getTimeoutOptions(timeout);
@@ -125,7 +150,7 @@ export class Aborter {
       queueMicrotask(() => this.setRequestState('pending'));
 
       Promise.race([
-        request(this.abortController.signal),
+        request(this.abortController.signal, this.requestOptions),
         Utils.createAbortablePromise(this.abortController.signal, { isErrorNativeBehavior })
       ])
         .then((response) => {

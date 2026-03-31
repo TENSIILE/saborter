@@ -1,6 +1,6 @@
 /* eslint-disable dot-notation */
 /* eslint-disable no-import-assign */
-import { isAbortError } from './abort-error.lib';
+import { isAbortError, copyAbortError } from './abort-error.lib';
 import { AbortError } from './abort-error';
 import { ABORT_ERROR_NAME } from './abort-error.constants';
 
@@ -9,35 +9,35 @@ describe('isAbortError', () => {
     jest.clearAllMocks();
   });
 
-  describe('Проверка через instanceof AbortError', () => {
-    it('должна возвращать true для экземпляра AbortError', () => {
+  describe('Checking via instanceof AbortError', () => {
+    it('must return true for an AbortError instance', () => {
       const abortError = new AbortError('test abort');
       expect(isAbortError(abortError)).toBe(true);
     });
 
-    it('должна возвращать false для обычной ошибки', () => {
+    it('should return false for a normal error', () => {
       const error = new Error('regular error');
       expect(isAbortError(error)).toBe(false);
     });
   });
 
-  describe('Проверка через Utils.isObject и совпадение имени', () => {
-    it('должна возвращать true для объекта с правильным name', () => {
+  describe('checking via Utils.isObject and name matching', () => {
+    it('should return true for an object with the correct name', () => {
       const fakeAbort = { name: 'AbortError', message: 'fake' };
       expect(isAbortError(fakeAbort)).toBe(true);
     });
 
-    it('должна возвращать false, если у объекта нет свойства name', () => {
+    it('should return false if the object does not have a name property', () => {
       const fakeAbort = { message: 'no name' };
       expect(isAbortError(fakeAbort)).toBe(false);
     });
 
-    it('должна возвращать false, если name не совпадает с ABORT_ERROR_NAME', () => {
+    it('should return false if name does not match ABORT_ERROR_NAME', () => {
       const fakeAbort = { name: 'NotAbortError' };
       expect(isAbortError(fakeAbort)).toBe(false);
     });
 
-    it('должна использовать глобальную константу ABORT_ERROR_NAME', () => {
+    it('must use the global constant ABORT_ERROR_NAME', () => {
       const fakeAbort = { name: 'CustomAbort' };
 
       const originalName = ABORT_ERROR_NAME;
@@ -51,8 +51,8 @@ describe('isAbortError', () => {
     });
   });
 
-  describe('Проверка через подстроку', () => {
-    it('должна возвращать true, если в error.message есть подстрока "abort"', () => {
+  describe('Checking via substring', () => {
+    it('should return true if the error.message contains the substring "abort"', () => {
       const errorWithShortMessage = new Error(' aborting ');
       expect(isAbortError(errorWithShortMessage)).toBeTruthy();
 
@@ -63,7 +63,7 @@ describe('isAbortError', () => {
       expect(isAbortError(error)).toBeTruthy();
     });
 
-    it('должна возвращать false, если error.message отсутствует "abort"', () => {
+    it('should return false if error.message is missing "abort"', () => {
       const error = { message: undefined };
       expect(isAbortError(error)).toBe(false);
 
@@ -75,24 +75,24 @@ describe('isAbortError', () => {
     });
   });
 
-  describe('Проверка через checkErrorCause', () => {
-    it('должна возвращать результат checkErrorCause, если предыдущие проверки не сработали', () => {
+  describe('Checking via checkErrorCause', () => {
+    it('should return the result of checkErrorCause if the previous checks failed', () => {
       const error = new Error('some error');
       error['cause'] = new Error('abort');
       expect(isAbortError(error)).toBe(true);
     });
 
-    it('должна возвращать false, если checkErrorCause возвращает false', () => {
+    it('should return false if checkErrorCause returns false', () => {
       const error = new Error('some error');
       expect(isAbortError(error)).toBe(false);
     });
 
-    it('должна возвращать false, если error.message содержит часть слова "abort"', () => {
+    it('should return false if error.message contains part of the word "abort"', () => {
       const error = new Error('abo');
       expect(isAbortError(error)).toBe(false);
     });
 
-    it('не должна вызывать checkErrorCause, если одна из предыдущих проверок уже вернула true', () => {
+    it('should not call checkErrorCause if one of the previous checks has already returned true', () => {
       const abortError = new AbortError('abort');
       isAbortError(abortError);
 
@@ -104,18 +104,18 @@ describe('isAbortError', () => {
     });
   });
 
-  describe('Интеграционные тесты (комбинации)', () => {
-    it('должна корректно обрабатывать объекты, проходящие несколько проверок', () => {
+  describe('Integration tests', () => {
+    it('should correctly handle objects passing multiple checks', () => {
       const abortError = new AbortError('test');
       expect(isAbortError(abortError)).toBe(true);
     });
 
-    it('должна обрабатывать null и undefined без ошибок', () => {
+    it('should handle null and undefined without errors', () => {
       expect(isAbortError(null)).toBe(false);
       expect(isAbortError(undefined)).toBe(false);
     });
 
-    it('должна обрабатывать примитивные значения', () => {
+    it('primitive values ​​must be processed', () => {
       expect(isAbortError({})).toBe(false);
       expect(isAbortError([])).toBe(false);
       expect(isAbortError(() => {})).toBe(false);
@@ -123,6 +123,90 @@ describe('isAbortError', () => {
       expect(isAbortError('string')).toBe(false);
       expect(isAbortError(true)).toBe(false);
       expect(isAbortError(Symbol('sym'))).toBe(false);
+    });
+  });
+
+  describe('copyAbortError', () => {
+    let originalError: AbortError;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      originalError = new AbortError('Original message', {
+        type: 'cancelled',
+        initiator: 'user',
+        metadata: { id: 1 },
+        reason: 'test reason'
+      });
+    });
+
+    it('should create a new AbortError with the original message when no override provided', () => {
+      const copy = copyAbortError(originalError);
+
+      expect(copy.message).toEqual(originalError.message);
+      expect(copy.cause).toEqual(originalError);
+    });
+
+    it('should override the message when provided', () => {
+      const copy = copyAbortError(originalError, { message: 'New message' });
+
+      expect(copy.message).toEqual('New message');
+      expect(copy.cause).toEqual(originalError);
+    });
+
+    it('should override other properties when provided', () => {
+      const override = {
+        type: 'aborted',
+        initiator: 'timeout',
+        metadata: { new: true },
+        reason: 'new reason'
+      } as const;
+
+      const copy = copyAbortError(originalError, override);
+
+      expect(copy.message).toEqual(originalError.message);
+      expect(copy.cause).toEqual(originalError);
+      expect(copy.type).toEqual(override.type);
+      expect(copy.initiator).toEqual(override.initiator);
+      expect(copy.metadata).toEqual(override.metadata);
+      expect(copy.reason).toEqual(override.reason);
+    });
+
+    it('should not allow overriding cause, timestamp, stack, or name', () => {
+      const override = {
+        cause: new Error('fake cause'),
+        timestamp: 12345,
+        stack: 'fake stack',
+        name: 'FakeError'
+      };
+
+      expect(() => copyAbortError(originalError, override as any)).toThrow(TypeError);
+    });
+
+    it('should preserve all original properties not overridden', () => {
+      const copy = copyAbortError(originalError, { metadata: { new: true } });
+
+      expect(copy.type).toBe(originalError.type);
+      expect(copy.initiator).toBe(originalError.initiator);
+      expect(copy.reason).toBe(originalError.reason);
+      expect(copy.metadata).toEqual({ new: true });
+      expect(copy.cause).toBe(originalError);
+    });
+
+    it('should work with minimal AbortError (no extra properties)', () => {
+      const minimalError = new AbortError('Minimal');
+
+      const copy = copyAbortError(minimalError);
+
+      expect(copy.message).toEqual(minimalError.message);
+      expect(copy.cause).toEqual(minimalError);
+    });
+
+    it('should handle undefined override', () => {
+      const copy = copyAbortError(originalError, undefined);
+
+      expect(copy.cause).toEqual(originalError);
+      expect(copy.message).toEqual(originalError.message);
+      expect(copy.type).toEqual(originalError.type);
     });
   });
 });

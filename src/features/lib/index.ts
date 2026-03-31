@@ -5,3 +5,4 @@ export * from './set-timeout-async';
 export * from './throw-if-aborted';
 export * from './time-in-milliseconds';
 export * from './debounce';
+export * from './abort-signal-any';

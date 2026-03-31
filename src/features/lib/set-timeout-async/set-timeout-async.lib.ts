@@ -1,4 +1,5 @@
 import { AbortError } from '../../abort-error';
+import { copyAbortError } from '../../abort-error/abort-error.lib';
 import { logger } from '../../../shared/logger';
 
 /**
@@ -60,10 +61,7 @@ export const setTimeoutAsync = <T, A extends [unknown?, ...unknown[]] = []>(
       clearTimeout(timeoutId);
 
       if (signal.reason instanceof AbortError) {
-        signal.reason.cause = new AbortError(signal.reason.message, { ...signal.reason, cause: signal.reason });
-        signal.reason.initiator = setTimeoutAsync.name;
-
-        return reject(signal.reason);
+        return reject(copyAbortError(signal.reason, { initiator: setTimeoutAsync.name }));
       }
 
       const error = new AbortError(`${setTimeoutAsync.name} was interrupted`, {
