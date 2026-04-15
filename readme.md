@@ -15,7 +15,7 @@
         <img src="https://github.com/TENSIILE/saborter/actions/workflows/tests.yml/badge.svg" /></a>
 <a href='https://coveralls.io/github/TENSIILE/saborter?branch=master'><img src='https://coveralls.io/repos/github/TENSIILE/saborter/badge.svg?branch=master' alt='Coverage Status' /></a>
 <a href="https://bundlejs.com/?q=saborter#sharing" alt="Size">
-        <img src="https://deno.bundlejs.com/badge?q=saborter" /></a>
+        <img src="https://deno.bundlejs.com/badge?q=saborter" alt='Size'/></a>
 <a href="https://github.com/TENSIILE/saborter/blob/develop/LICENSE" alt="License">
         <img src="https://img.shields.io/badge/license-MIT-blue" /></a>
 <a href="https://github.com/TENSIILE/saborter" alt="Github">
@@ -269,6 +269,20 @@ const aborter = new Aborter(options?: AborterOptions);
     Can be overridden via `aborter.listeners.state.onstatechange`
   */
   onStateChange?: OnStateChangeCallback;
+
+ /**
+   * Callback invoked immediately after the `Aborter` instance is created.
+   *
+   * @param instance - The newly created `Aborter` instance.
+   *
+   * @example
+   * const options: AborterOptions<Aborter> = {
+   *   onInit: (instance) => {
+   *     console.log('Aborter created', instance);
+   *   }
+   * };
+   */
+  onInit?: (instance: Aborter) => void;
 }
 ```
 
