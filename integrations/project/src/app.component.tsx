@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { Aborter } from 'saborter';
 
 interface User {
@@ -7,33 +7,50 @@ interface User {
 }
 
 const getUsers = async (signal: AbortSignal) => {
-  const response = await fetch('https://apimocker.com/users?_delay=3000', { signal });
+  const response = await fetch('https://jsonplaceholder.typicode.com/users', { signal });
 
   return (await response.json()) as { data: User[] };
 };
 
-export const App = () => {
-  const [users, setUsers] = useState<User[]>([]);
+const useAborter = <D,>() => {
+  const [data, setData] = useState<D | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
-  const aborterRef = useRef(new Aborter());
+  const [aborter] = useState(
+    () =>
+      new Aborter({
+        onInit: (aborter) => {
+          console.log('state:', aborter.listeners.state.value);
+
+          aborter.listeners.addEventListener('fulfilled', (d) => {
+            setData(d);
+          });
+
+          aborter.listeners.addEventListener('rejected', (er) => {
+            setError(er);
+          });
+
+          aborter.listeners.state.subscribe((s) => {
+            setLoading(s === 'pending');
+            setError(null);
+            setData(null);
+          });
+        }
+      })
+  );
+
+  return { aborter, data, loading, error };
+};
+
+export const App = () => {
+  const { aborter, data, error, loading } = useAborter<User[]>();
 
   const handleLoad = async () => {
-    try {
-      setLoading(true);
-      setUsers([]);
-
-      const users = await aborterRef.current.try(getUsers);
-
-      setUsers(users.data);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
+    aborter.try(getUsers);
   };
 
-  const handleCancel = () => aborterRef.current.abort();
+  const handleCancel = () => aborter.abort();
 
   return (
     <>
@@ -45,8 +62,9 @@ export const App = () => {
         </div>
 
         {loading && <p>Loading...</p>}
+        {error && <p>{String(error)}</p>}
         <ul>
-          {users?.map((user) => {
+          {data?.map((user) => {
             return <li key={user.id}>{user.name}</li>;
           })}
         </ul>

@@ -1,15 +1,16 @@
 # Saborter Changelog
 
-## v2.3.0
+## v2.3.0 (April 15th, 2026)
 
 ### New Features
 
-- Added `onInit` initialization handler for `Aborter`
-- Added new events `fulfilled` and `rejected` for `EventListener`
+- Added `onInit` initialization handler for `Aborter` [#76](https://github.com/TENSIILE/saborter/pull/77/changes/f7f9546afdacccbc02693b467f970868464813a7)
+- Added new events `fulfilled` and `rejected` for `EventListener` [#75](https://github.com/TENSIILE/saborter/pull/77/changes/3d78741b0bdca9ce73a176546d05d926a17d1310)
 
 ### Other changes
 
-- Debug mode for the error stack is enabled by default
+- Debug mode for the error stack is enabled by default [#76](https://github.com/TENSIILE/saborter/pull/77/changes/1fd0ed7f304eb0324d36fe210df812ed61ac1cfa)
+- Added more logs to `Aborter` [#77](https://github.com/TENSIILE/saborter/pull/77/changes/40210fcc922153f4135fc56daeabe87b35c0433a)
 
 ## v2.2.0 (Match 31th, 2026)
 
