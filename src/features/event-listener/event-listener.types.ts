@@ -4,6 +4,8 @@ import { OnStateChangeCallback } from '../state-observer';
 export interface EventMap {
   aborted: AbortError;
   cancelled: AbortError;
+  fullfilled: any;
+  rejected: Error;
 }
 
 export type EventListenerType = keyof EventMap;

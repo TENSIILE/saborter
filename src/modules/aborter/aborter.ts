@@ -171,9 +171,13 @@ export class Aborter {
               );
             }
 
-            return response.json().then(resolve, reject);
+            return response.json().then((data) => {
+              this.listeners.dispatchEvent('fullfilled', data);
+              resolve(data);
+            }, reject);
           }
 
+          this.listeners.dispatchEvent('fullfilled', response);
           resolve(response);
         })
         .catch((error: Error) => {
@@ -183,6 +187,7 @@ export class Aborter {
 
           if (isErrorNativeBehavior || !isAbortError(error)) {
             this.setRequestState('rejected');
+            this.listeners.dispatchEvent('rejected', error);
 
             reject(error);
           }
