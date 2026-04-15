@@ -10,6 +10,7 @@
 ### Other changes
 
 - Debug mode for the error stack is enabled by default
+- Added more logs to `Aborter`
 
 ## v2.2.0 (Match 31th, 2026)
 
