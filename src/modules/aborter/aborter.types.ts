@@ -60,4 +60,21 @@ export interface FnTryOptions {
 /**
  * Configuration options for creating an `Aborter` instance.
  */
-export interface AborterOptions extends Pick<EventListenerConstructorOptions, 'onAbort' | 'onStateChange'> {}
+export interface AborterOptions<AborterInstance> extends Pick<
+  EventListenerConstructorOptions,
+  'onAbort' | 'onStateChange'
+> {
+  /**
+   * Callback invoked immediately after the `Aborter` instance is created.
+   *
+   * @param instance - The newly created `Aborter` instance.
+   *
+   * @example
+   * const options: AborterOptions<Aborter> = {
+   *   onInit: (instance) => {
+   *     console.log('Aborter created', instance);
+   *   }
+   * };
+   */
+  onInit?: (instance: AborterInstance) => void;
+}

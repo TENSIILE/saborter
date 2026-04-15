@@ -57,10 +57,12 @@ export class Aborter {
    */
   protected serverBreaker: ServerBreaker = new ServerBreaker();
 
-  constructor(options?: Types.AborterOptions) {
+  constructor(options?: Types.AborterOptions<Aborter>) {
     this.listeners = new EventListener(options);
 
     this.try = this.try.bind(this);
+
+    options?.onInit?.(this);
   }
 
   /**
@@ -172,12 +174,12 @@ export class Aborter {
             }
 
             return response.json().then((data) => {
-              this.listeners.dispatchEvent('fullfilled', data);
+              this.listeners.dispatchEvent('fulfilled', data);
               resolve(data);
             }, reject);
           }
 
-          this.listeners.dispatchEvent('fullfilled', response);
+          this.listeners.dispatchEvent('fulfilled', response);
           resolve(response);
         })
         .catch((error: Error) => {

@@ -66,15 +66,15 @@ describe('Aborter', () => {
     jest.restoreAllMocks();
   });
 
-  describe('Конструктор', () => {
-    it('должен создавать экземпляр Aborter', () => {
+  describe('Constructor', () => {
+    it('must create an instance of Aborter', () => {
       expect(aborter).toBeInstanceOf(Aborter);
       expect(aborter.listeners).toBeInstanceOf(EventListener);
     });
   });
 
-  describe('Метод try', () => {
-    it('должен выполнять запрос и возвращать результат', async () => {
+  describe('try method', () => {
+    it('must execute the query and return the result', async () => {
       const expectedResult = { data: 'test' };
 
       mockRequest.mockResolvedValue(expectedResult);
@@ -85,7 +85,7 @@ describe('Aborter', () => {
       expect(result).toEqual(expectedResult);
     });
 
-    it('должен отменять предыдущий запрос при новом вызове', async () => {
+    it('should cancel the previous request when a new call is made', async () => {
       const slowRequest = jest.fn().mockImplementation(() => new Promise(() => {}));
       const fastRequest = jest.fn().mockResolvedValue('fast');
 
@@ -96,7 +96,7 @@ describe('Aborter', () => {
       await expect(fastPromise).resolves.toBe('fast');
     });
 
-    it('должен поймать ошибку отмены к блоке catch при флаге isErrorNativeBehavior', async () => {
+    it('must catch the cancellation error in the catch block with the isErrorNativeBehavior flag', async () => {
       const slowRequest = jest.fn().mockImplementation(() => new Promise(() => {}));
       const fastRequest = jest.fn().mockResolvedValue('fast');
 
@@ -110,7 +110,7 @@ describe('Aborter', () => {
       }
     });
 
-    it('должен обрабатывать AbortError c отклонением промиса', async () => {
+    it('must handle AbortError with promise rejection', async () => {
       const abortError = new AbortError('Aborted');
       mockRequest.mockRejectedValue(abortError);
 
@@ -123,7 +123,7 @@ describe('Aborter', () => {
       await expect(Promise.race([promise, timeoutPromise])).rejects.toThrow('Aborted');
     });
 
-    it('должен устанавливать таймаут', async () => {
+    it('must set a timeout', async () => {
       const timeoutMock = {
         setTimeout: jest.fn(),
         clearTimeout: jest.fn()
@@ -140,8 +140,8 @@ describe('Aborter', () => {
     });
   });
 
-  describe('Метод abort', () => {
-    it('должен прерывать текущий запрос', () => {
+  describe('abort method', () => {
+    it('must abort the current request', () => {
       const abortSpy = jest.spyOn(aborter['abortController']!, 'abort');
       aborter['isRequestInProgress'] = true;
 
@@ -157,7 +157,7 @@ describe('Aborter', () => {
       expect(aborter['isRequestInProgress']).toBe(false);
     });
 
-    it('должен очищать таймаут при прерывании', () => {
+    it('should clear timeout on interrupt', () => {
       const timeoutMock = {
         clearTimeout: jest.fn()
       };
@@ -170,7 +170,7 @@ describe('Aborter', () => {
       expect(timeoutMock.clearTimeout).toHaveBeenCalled();
     });
 
-    it('Вызов коллбека onAbort при прерывании запроса', async () => {
+    it('calling the onAbort callback when a request is aborted', async () => {
       const firstRequest = jest.fn().mockImplementation(() => new Promise(() => {}));
       const secondRequest = jest.fn().mockResolvedValue('second');
 
@@ -186,8 +186,8 @@ describe('Aborter', () => {
     });
   });
 
-  describe('Метод abortWithRecovery', () => {
-    it('должен прерывать текущий запрос и создавать новый контроллер', () => {
+  describe('abortWithRecovery method', () => {
+    it('should abort the current request and create a new controller', () => {
       const originalController = aborter['abortController'];
       const abortSpy = jest.spyOn(aborter, 'abort');
 
@@ -199,8 +199,8 @@ describe('Aborter', () => {
     });
   });
 
-  describe('Состояния и события', () => {
-    it('должен излучать состояние pending при начале запроса', async () => {
+  describe('States and events', () => {
+    it('must emit a pending state when a request starts', async () => {
       const emitSpy = jest.spyOn(aborter.listeners.state, emitMethodSymbol);
 
       mockRequest.mockResolvedValue('result');
@@ -210,7 +210,7 @@ describe('Aborter', () => {
       expect(emitSpy).toHaveBeenCalledWith('pending');
     });
 
-    it('должен излучать состояние fulfilled при успешном завершении', async () => {
+    it('must emit a fulfilled state upon successful completion', async () => {
       const emitSpy = jest.spyOn(aborter.listeners.state, emitMethodSymbol);
 
       mockRequest.mockResolvedValue('result');
@@ -220,7 +220,7 @@ describe('Aborter', () => {
       expect(emitSpy).toHaveBeenCalledWith('fulfilled');
     });
 
-    it('должен излучать состояние rejected при ошибке', async () => {
+    it('must emit a rejected state on error', async () => {
       const emitSpy = jest.spyOn(aborter.listeners.state, emitMethodSymbol);
 
       mockRequest.mockRejectedValue(new Error('test'));
@@ -228,13 +228,13 @@ describe('Aborter', () => {
       try {
         await aborter.try(mockRequest);
       } catch {
-        // Игнорируем ошибку
+        // Ignore the error
       }
 
       expect(emitSpy).toHaveBeenCalledWith('rejected');
     });
 
-    it('должен излучать состояние cancelled при отмене предыдущего запроса', async () => {
+    it('must emit a canceled state when the previous request is canceled', async () => {
       const slowRequest = () => new Promise(() => {});
       const fastRequest = jest.fn().mockResolvedValue('fast');
 
@@ -250,8 +250,8 @@ describe('Aborter', () => {
     });
   });
 
-  describe('Поведение при повторных вызовах', () => {
-    it('должен корректно обрабатывать несколько последовательных запросов', async () => {
+  describe('Behavior on repeated calls', () => {
+    it('should handle multiple consecutive requests correctly', async () => {
       const results = ['result1', 'result2', 'result3'];
       let callCount = 0;
 
@@ -266,7 +266,7 @@ describe('Aborter', () => {
       }
     });
 
-    it('не должен позволять множественные одновременные запросы', async () => {
+    it('should not allow multiple simultaneous requests', async () => {
       const requestPromises: Promise<unknown>[] = [];
 
       // eslint-disable-next-line no-plusplus
@@ -275,6 +275,48 @@ describe('Aborter', () => {
       }
 
       expect(aborter['isRequestInProgress']).toBe(true);
+    });
+  });
+
+  describe('AborterOptions', () => {
+    it('should allow creating an options object with onInit, onAbort, onStateChange', () => {
+      const onInitMock = jest.fn();
+      const onAbortMock = jest.fn();
+      const onStateChangeMock = jest.fn();
+
+      const options = {
+        onInit: onInitMock,
+        onAbort: onAbortMock,
+        onStateChange: onStateChangeMock
+      };
+
+      expect(options.onInit).toBe(onInitMock);
+      expect(options.onAbort).toBe(onAbortMock);
+      expect(options.onStateChange).toBe(onStateChangeMock);
+    });
+
+    it('should allow empty options', () => {
+      const options = {};
+      expect(options).toBeDefined();
+    });
+
+    it('should allow only onInit without onAbort/onStateChange', () => {
+      const onInitMock = jest.fn();
+      const options = { onInit: onInitMock };
+      expect(options.onInit).toBe(onInitMock);
+      expect(options['onAbort']).toBeUndefined();
+      expect(options['onStateChange']).toBeUndefined();
+    });
+
+    it('should work with a concrete Aborter instance', () => {
+      const aborterInstance = new Aborter();
+
+      const onInit = jest.fn((instance) => {
+        expect(instance).toBe(aborterInstance);
+      });
+
+      onInit(aborterInstance);
+      expect(onInit).toHaveBeenCalledWith(aborterInstance);
     });
   });
 });

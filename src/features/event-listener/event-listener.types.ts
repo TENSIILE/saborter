@@ -10,7 +10,7 @@ export interface EventMap {
   /** Event triggered when an operation is cancelled. */
   cancelled: AbortError;
   /** Event triggered when an operation completes successfully. */
-  fullfilled: any;
+  fulfilled: any;
   /** Event triggered when an operation fails with an error. */
   rejected: Error;
 }

@@ -1,5 +1,16 @@
 # Saborter Changelog
 
+## v2.3.0
+
+### New Features
+
+- Added `onInit` initialization handler for `Aborter`
+- Added new events `fulfilled` and `rejected` for `EventListener`
+
+### Other changes
+
+- Debug mode for the error stack is enabled by default
+
 ## v2.2.0 (Match 31th, 2026)
 
 ### New Features
