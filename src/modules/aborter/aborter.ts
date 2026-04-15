@@ -174,12 +174,12 @@ export class Aborter {
             }
 
             return response.json().then((data) => {
-              this.listeners.dispatchEvent('fullfilled', data);
+              this.listeners.dispatchEvent('fulfilled', data);
               resolve(data);
             }, reject);
           }
 
-          this.listeners.dispatchEvent('fullfilled', response);
+          this.listeners.dispatchEvent('fulfilled', response);
           resolve(response);
         })
         .catch((error: Error) => {

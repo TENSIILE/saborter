@@ -12,7 +12,7 @@ Two event types are supported:
   - `listener: (error: AbortError): void`
 - **`cancelled`** - operation was cancelled
   - `listener: (error: AbortError): void`
-- **`fullfilled`** - event triggered when an operation completes successfully
+- **`fulfilled`** - event triggered when an operation completes successfully
   - `listener: (data: TData): void`
 - **`rejected`** - event triggered when an operation fails with an error
   - `listener: (error: Error): void`
@@ -27,7 +27,7 @@ Adds an event listener for the specified event type.
 
 **Parameters:**
 
-- `type: 'aborted' | 'cancelled' | 'fullfilled' | 'rejected'` - event type
+- `type: 'aborted' | 'cancelled' | 'fulfilled' | 'rejected'` - event type
 - `listener: (error: AbortError | Error | TData): void` - event handler function
 
 **Returns:** A function to remove the event listener (unsubscribe)
@@ -49,7 +49,7 @@ Removes an event listener for the specified event type.
 
 **Parameters:**
 
-- `type: 'aborted' | 'cancelled' | 'fullfilled' | 'rejected'` - event type
+- `type: 'aborted' | 'cancelled' | 'fulfilled' | 'rejected'` - event type
 - `listener: (error: AbortError | Error | TData): void` - event handler function to remove
 
 `dispatchEvent(type, error): void`
@@ -58,7 +58,7 @@ Dispatches an event of the specified type, calling all registered handlers.
 
 **Parameters:**
 
-- `type: 'aborted' | 'cancelled' | 'fullfilled' | 'rejected'` - event type to dispatch
+- `type: 'aborted' | 'cancelled' | 'fulfilled' | 'rejected'` - event type to dispatch
 - `event: AbortError | Error | TData` - event data passed to handlers
 
 **Special Note:** When dispatching `'aborted'` or `'cancelled'` events, the global `onabort` handler is also called.
