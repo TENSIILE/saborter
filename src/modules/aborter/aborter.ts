@@ -57,10 +57,12 @@ export class Aborter {
    */
   protected serverBreaker: ServerBreaker = new ServerBreaker();
 
-  constructor(options?: Types.AborterOptions) {
+  constructor(options?: Types.AborterOptions<Aborter>) {
     this.listeners = new EventListener(options);
 
     this.try = this.try.bind(this);
+
+    options?.onInit?.(this);
   }
 
   /**
