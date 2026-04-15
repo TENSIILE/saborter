@@ -3,4 +3,4 @@ export type { OnAbortCallback } from './features/event-listener/event-listener.t
 export type { RequestState, OnStateChangeCallback } from './features/state-observer/state-observer.types';
 export type { ReusableAborterProps, AttractListeners } from './modules/reusable-aborter/reusable-aborter.types';
 export type { RequestHeaders } from './features/server-breaker/server-breaker.types';
-export type { AbortableRequest, AbortableRequestOptions } from './modules/aborter/aborter.types';
+export type { AbortableRequest, AbortableRequestOptions, AborterOptions } from './modules/aborter/aborter.types';
