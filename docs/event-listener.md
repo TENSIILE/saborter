@@ -9,7 +9,13 @@ The `EventListener` class provides an event management system for handling opera
 Two event types are supported:
 
 - **`aborted`** - operation was aborted
+  - `listener: (error: AbortError): void`
 - **`cancelled`** - operation was cancelled
+  - `listener: (error: AbortError): void`
+- **`fullfilled`** - event triggered when an operation completes successfully
+  - `listener: (data: TData): void`
+- **`rejected`** - event triggered when an operation fails with an error
+  - `listener: (error: Error): void`
 
 ## 🔧 API
 
@@ -21,8 +27,8 @@ Adds an event listener for the specified event type.
 
 **Parameters:**
 
-- `type: 'aborted' | 'cancelled'` - event type
-- `listener: (error: AbortError): void` - event handler function
+- `type: 'aborted' | 'cancelled' | 'fullfilled' | 'rejected'` - event type
+- `listener: (error: AbortError | Error | TData): void` - event handler function
 
 **Returns:** A function to remove the event listener (unsubscribe)
 
@@ -43,8 +49,8 @@ Removes an event listener for the specified event type.
 
 **Parameters:**
 
-- `type: 'aborted' | 'cancelled'` - event type
-- `listener: (error: AbortError): void` - event handler function to remove
+- `type: 'aborted' | 'cancelled' | 'fullfilled' | 'rejected'` - event type
+- `listener: (error: AbortError | Error | TData): void` - event handler function to remove
 
 `dispatchEvent(type, error): void`
 
@@ -52,8 +58,8 @@ Dispatches an event of the specified type, calling all registered handlers.
 
 **Parameters:**
 
-- `type: 'aborted' | 'cancelled'` - event type to dispatch
-- `event: AbortError` - event data passed to handlers
+- `type: 'aborted' | 'cancelled' | 'fullfilled' | 'rejected'` - event type to dispatch
+- `event: AbortError | Error | TData` - event data passed to handlers
 
 **Special Note:** When dispatching `'aborted'` or `'cancelled'` events, the global `onabort` handler is also called.
 
