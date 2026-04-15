@@ -1,6 +1,6 @@
 import * as Utils from './extended-stack-error.utils';
 
-let isDebugErrorStackEnabled = false;
+let isDebugErrorStackEnabled = true;
 
 /**
  * Changes the error stack mode, enabling or disabling debug information.

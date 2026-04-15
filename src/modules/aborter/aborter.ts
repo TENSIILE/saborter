@@ -57,10 +57,12 @@ export class Aborter {
    */
   protected serverBreaker: ServerBreaker = new ServerBreaker();
 
-  constructor(options?: Types.AborterOptions) {
+  constructor(options?: Types.AborterOptions<Aborter>) {
     this.listeners = new EventListener(options);
 
     this.try = this.try.bind(this);
+
+    options?.onInit?.(this);
   }
 
   /**
@@ -171,18 +173,26 @@ export class Aborter {
               );
             }
 
-            return response.json().then(resolve, reject);
+            return response.json().then((data) => {
+              this.listeners.dispatchEvent('fulfilled', data);
+              resolve(data);
+            }, reject);
           }
 
+          this.listeners.dispatchEvent('fulfilled', response);
           resolve(response);
+          logger.info('Aborter successfully executed the callback', response);
         })
         .catch((error: Error) => {
           if (error instanceof AbortError && error.type === 'aborted') {
             reject(error);
+            logger.info('An Aborter termination error was detected', error);
           }
 
           if (isErrorNativeBehavior || !isAbortError(error)) {
             this.setRequestState('rejected');
+            this.listeners.dispatchEvent('rejected', error);
+            logger.info('A native error was caught', error);
 
             reject(error);
           }
