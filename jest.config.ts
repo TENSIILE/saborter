@@ -10,6 +10,7 @@ const config = {
     '^.+\\.tsx?$': 'ts-jest',
     '^.+\\.ts?$': 'ts-jest'
   },
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   transformIgnorePatterns: ['node_modules'],
   testPathIgnorePatterns: ['/node_modules/', '/dist/'],
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.[jt]sx?$',
