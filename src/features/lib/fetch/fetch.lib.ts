@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 import { abortSignalAny } from '../abort-signal-any';
 import { AborterType } from '../../../modules/aborter/aborter.types';
 
