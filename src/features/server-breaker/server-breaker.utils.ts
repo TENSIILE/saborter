@@ -7,6 +7,6 @@ import { generateUuid } from '../../shared/utils';
  *
  * @returns {RequestHeaders} The headers object.
  */
-export const createHeaders = (): RequestHeaders => {
+export const createAbortableHeaders = (): RequestHeaders => {
   return { 'x-request-id': generateUuid(), 'Cache-Control': 'no-cache', Pragma: 'no-cache' };
 };

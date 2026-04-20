@@ -2,19 +2,19 @@
  * Headers sent with every abortable fetch request.
  * Includes a unique request ID and cache-control headers.
  */
-export interface RequestHeaders extends Record<string, string> {
+export interface RequestHeaders extends Record<string, string | undefined> {
   /**
    * Unique identifier for the request, generated on the client.
    */
-  'x-request-id': string;
+  'x-request-id'?: string;
   /**
    * Disables caching.
    */
-  'Cache-Control': 'no-cache';
+  'Cache-Control'?: 'no-cache';
   /**
    * Disables caching for HTTP/1.0.
    */
-  Pragma: 'no-cache';
+  Pragma?: 'no-cache';
 }
 
 /**
