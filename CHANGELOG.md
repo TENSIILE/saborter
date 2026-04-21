@@ -1,5 +1,11 @@
 # Saborter Changelog
 
+## v2.4.0
+
+## New Features
+
+- Added `isTimeoutError` function to determine whether the given error is a timeout error.
+
 ## v2.3.0 (April 15th, 2026)
 
 ### New Features
