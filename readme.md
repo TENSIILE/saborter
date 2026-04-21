@@ -513,6 +513,25 @@ try {
 }
 ```
 
+**A short example of checking for TimeoutError:**
+
+```javascript
+import { isTimeoutError } from 'saborter/lib';
+
+try {
+  const result = await aborter.try((signal) => fetch('/api/data', { signal }), {
+    timeout: { ms: 2000, reason: 'any reason', metadata: { userId: 1 } }
+  });
+} catch (error) {
+  if (isTimeoutError(error)) {
+    console.log(error.cause); // `error.cause` — TimeoutError
+    console.log(error.cause.ms); // 2000
+    console.log(error.cause.reason); // 'any reason'
+    console.log(error.cause.metadata); //  { userId: 1 }
+  }
+}
+```
+
 If you want to catch a [timeout error through events or subscriptions](./docs/event-listener.md#catching-an-error-by-timeout), you can do that.
 
 `abort(reason?): void`
