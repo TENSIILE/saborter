@@ -156,9 +156,7 @@ export class Aborter implements Types.AborterType {
 
       queueMicrotask(() => this.setRequestState('pending'));
 
-      if (!request.length) {
-        saveRunningAborterToContext(this);
-      }
+      saveRunningAborterToContext(this);
 
       Promise.race([
         request(this.abortController.signal, this.requestOptions),
