@@ -126,7 +126,7 @@ Creates a debounced function that delays invoking the provided handler until aft
 
 **Returns:**
 
-`(signal: AbortSignal) => R | Promise<R>`
+`(signal: AbortSignal) => Promise<R>`
 
 A function that accepts an `AbortSignal` and returns a `Promise<R>`, where `R` is the return type of the handler.
 
@@ -210,7 +210,7 @@ Schedules the execution of a handler after a specified delay. The operation can 
 
 **Parameters:**
 
-- `handler: ((signal: AbortSignal) => T | Promise<T>)`:
+- `handler: ((signal: AbortSignal, requestOptions: AbortableRequestOptions) => T | Promise<T>)`:
   - A function that accepts an `AbortSignal` and returns a value or a `Promise`. This function will be called with the signal to allow cleanup on abort.
 - `delay?: number` - The time in milliseconds to wait before executing the handler. If omitted, the handler is scheduled without a delay (i.e., as soon as possible).
 - `options?: Object`:

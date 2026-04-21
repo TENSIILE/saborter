@@ -1,6 +1,8 @@
 import { AbortError } from '../../abort-error';
 import { copyAbortError } from '../../abort-error/abort-error.lib';
 import { logger } from '../../../shared/logger';
+import { requestOptionsSymbol } from './set-timeout-async.constants';
+import { SetTimeoutAsyncAbortableRequestOptions } from './set-timeout-async.types';
 
 /**
  * Executes a handler function or evaluates a code string with a timeout,
@@ -33,14 +35,16 @@ import { logger } from '../../../shared/logger';
  * }
  */
 export const setTimeoutAsync = <T, A extends [unknown?, ...unknown[]] = []>(
-  handler: (signal: AbortSignal, args: A extends [] ? undefined : A) => T | Promise<T>,
+  handler: (signal: AbortSignal, requestOptions: SetTimeoutAsyncAbortableRequestOptions<A>) => T | Promise<T>,
   delay?: number,
   options?: {
     signal?: AbortSignal;
     args?: A;
+    [requestOptionsSymbol]?: SetTimeoutAsyncAbortableRequestOptions<A>;
   }
 ): Promise<T> => {
-  const { args, signal = new AbortController().signal } = options ?? {};
+  const { args = [], signal = new AbortController().signal } = options ?? {};
+  const requestOptions = options?.[requestOptionsSymbol];
 
   return new Promise<T>((resolve, reject) => {
     let timeoutId: NodeJS.Timeout | undefined;
@@ -74,7 +78,8 @@ export const setTimeoutAsync = <T, A extends [unknown?, ...unknown[]] = []>(
 
     timeoutId = setTimeout(() => {
       try {
-        const promise = handler(signal, args as A extends [] ? undefined : A);
+        const mergeArgs = [...(requestOptions?.args ?? []), ...args];
+        const promise = handler(signal, { ...requestOptions, args: mergeArgs as never });
 
         if (promise instanceof Promise) {
           return promise.then(resolve).catch(reject);
