@@ -82,6 +82,28 @@ We constantly encounter situations where an incipient request needs to be cancel
 
 ### Basic Usage
 
+```typescript
+import { Aborter } from 'saborter';
+
+// Create an Aborter instance
+const aborter = new Aborter();
+
+// Use for the request
+const fetchData = async () => {
+  try {
+    const result = await aborter.try<Data>(async () => {
+      const response = await fetch('/api/data');
+      return response.json();
+    });
+    console.log('Data received:', result);
+  } catch (error) {
+    console.error('Request error:', error);
+  }
+};
+```
+
+### Interrupting requests through direct signal transmission
+
 ```javascript
 import { Aborter } from 'saborter';
 
@@ -332,7 +354,9 @@ Executes an asynchronous request with the ability to cancel.
 
 **Parameters:**
 
-- `request: (signal: AbortSignal) => Promise<T>` - the function that fulfills the request.
+- `request: (signal: AbortSignal, options: AbortableRequestOptions) => Promise<T>` - the function that fulfills the request.
+  - `options?: Object`
+    - `headers?: Record<string, string>` - object headers required to interrupt the execution operation on the server.
 - `options?: Object`
   - `isErrorNativeBehavior?: boolean` (Default is `false`) - a flag for controlling error handling.
   - `timeout?: number | Object`
@@ -628,6 +652,46 @@ const result = await aborter
   });
 ```
 
+### Interrupting requests without direct signal transmission
+
+If you don't want to pass `Aborter` arguments to the `Fetch API`, you don't have to unpack the callback arguments. `Aborter` will automatically retrieve the data from its context.
+
+```javascript
+import { Aborter } from 'saborter';
+
+// Create an Aborter instance
+const aborter = new Aborter();
+
+// We don't get the signal from the argument
+const result = await aborter.try(async () => {
+  const response = await fetch('/api/posts');
+  return response.json();
+});
+```
+
+If you want to transmit your signal or headers, `Aborter` will cross them together for you.
+In the example below, the request will be `aborted` if either the `AbortController` or `Aborter` is interrupted.
+
+```javascript
+import { Aborter } from 'saborter';
+
+// Create an Aborter instance
+const aborter = new Aborter();
+
+// Create an AbortController instance
+const controller = new AbortController();
+
+// We don't get the signal from the argument
+const result = await aborter.try(async () => {
+  // Crossing signals under the hood
+  const response = await fetch('/api/posts', { signal: controller.signal });
+  return response.json();
+});
+```
+
+> [!WARNING]
+> Automatic data transfer from the `Aborter` context will work exclusively with `Fetch API`!
+
 ### Resource Cleanup
 
 Always abort requests when unmounting components or closing pages:
@@ -813,7 +877,6 @@ class SearchAutocomplete {
     try {
       const results = await this.aborter.try(async (signal) => {
         const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`, { signal });
-
         return response.json();
       });
 

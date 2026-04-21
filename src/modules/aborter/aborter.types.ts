@@ -1,15 +1,21 @@
 import { EventListenerConstructorOptions } from '../../features/event-listener/event-listener.types';
+import { EventListener } from '../../features/event-listener/event-listener';
 import { TimeoutErrorOptions } from '../../features/timeout';
-import { RequestHeaders } from '../../features/server-breaker/server-breaker.types';
+import { AbortableHeaders } from '../../features/server-breaker/server-breaker.types';
+import { disposeSymbol } from './aborter.constants';
 
 /**
  * Options that can be passed to an abortable request.
  */
 export interface AbortableRequestOptions {
   /**
-   * Optional headers to include in the request.
+   * Additional headers to include in the request to interrupt server operations.
    */
-  headers?: RequestHeaders;
+  headers?: AbortableHeaders;
+  /**
+   * Arguments for the request callback.
+   */
+  args?: any[];
 }
 
 /**
@@ -77,4 +83,38 @@ export interface AborterOptions<AborterInstance> extends Pick<
    * };
    */
   onInit?: (instance: AborterInstance) => void;
+  /**
+   * Flag regulating the activation of interruption of work on the server.
+   *
+   * @example
+   * ```
+   * const aborter = new Aborter({ interruptionOnServer: true });
+   *
+   * const result = await aborter.try(async (signal, { headers }) => {
+   *    const response = await fetch('/api/', { signal, headers });
+   *    return respose.json();
+   * });
+   * ```
+   *
+   * If the value is `false`, the `headers` object will be an empty object.
+   *
+   * @default false
+   */
+  interruptionOnServer?: boolean;
+}
+
+/**
+ * Manages a single abortable asynchronous request.
+ *
+ * @internal
+ */
+export interface AborterType {
+  listeners: EventListener;
+  aborted: boolean;
+  signal: AbortSignal;
+  try<R = Response>(request: AbortableRequest<Response>, options?: FnTryOptions): Promise<R>;
+  try<R>(request: AbortableRequest<R>, options?: FnTryOptions): Promise<R>;
+  abort(reason?: any): void;
+  abortWithRecovery(reason?: any): AbortController;
+  [disposeSymbol](): void;
 }

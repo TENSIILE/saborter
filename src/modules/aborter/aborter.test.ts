@@ -4,7 +4,7 @@ import { AbortError } from '../../features/abort-error';
 import { EventListener } from '../../features/event-listener';
 import { emitMethodSymbol } from '../../features/state-observer/state-observer.constants';
 import { ErrorMessage } from './aborter.constants';
-import { createHeaders } from '../../features/server-breaker/server-breaker.utils';
+import { createAbortableHeaders } from '../../features/server-breaker/server-breaker.utils';
 
 class MockResponse {
   public body: any;
@@ -39,7 +39,7 @@ describe('Aborter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    headers = createHeaders();
+    headers = createAbortableHeaders();
     aborter = new Aborter();
     mockRequest = jest.fn();
     aborter['serverBreaker']['meta']['headers'] = headers;

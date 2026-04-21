@@ -2,6 +2,7 @@
 import { RequestState, emitRequestState } from '../../features/state-observer';
 import { AbortError, isAbortError } from '../../features/abort-error';
 import { EventListener, clearEventListeners } from '../../features/event-listener';
+import { saveRunningAborterToContext } from '../../features/lib/fetch';
 import { ServerBreaker } from '../../features/server-breaker';
 import { Timeout, TimeoutError } from '../../features/timeout';
 import { ErrorMessage, disposeSymbol } from './aborter.constants';
@@ -25,7 +26,7 @@ import { logger } from '../../shared';
  *   { timeout: 5000 }
  * );
  */
-export class Aborter {
+export class Aborter implements Types.AborterType {
   /**
    * Internal abort controller for the current request.
    *
@@ -61,6 +62,10 @@ export class Aborter {
     this.listeners = new EventListener(options);
 
     this.try = this.try.bind(this);
+
+    if (!options?.interruptionOnServer) {
+      this.serverBreaker.off();
+    }
 
     options?.onInit?.(this);
   }
@@ -151,6 +156,8 @@ export class Aborter {
 
       queueMicrotask(() => this.setRequestState('pending'));
 
+      saveRunningAborterToContext(this);
+
       Promise.race([
         request(this.abortController.signal, this.requestOptions),
         Utils.createAbortablePromise(this.abortController.signal, { isErrorNativeBehavior })
@@ -164,13 +171,6 @@ export class Aborter {
           if (unpackData && response instanceof Response) {
             if (!response.ok) {
               logger.warn('Request failed, something went wrong', response);
-            }
-
-            if (!request.length) {
-              logger.warn(
-                'A call to the fetch() function was detected and you forgot to pass it a signal. We recommend passing a signal to correctly cancel the request',
-                response
-              );
             }
 
             return response.json().then((data) => {
@@ -198,6 +198,7 @@ export class Aborter {
           }
         })
         .finally(() => {
+          saveRunningAborterToContext(null);
           Utils.createAbortablePromise.removeAbortListener();
         });
     });

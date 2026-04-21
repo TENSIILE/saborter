@@ -1,5 +1,5 @@
 import * as Types from './server-breaker.types';
-import { createHeaders } from './server-breaker.utils';
+import { createAbortableHeaders } from './server-breaker.utils';
 
 /**
  * Manages server‑side interruption notification for abortable requests.
@@ -12,16 +12,23 @@ export class ServerBreaker {
   protected meta: Types.RequestMeta = {};
 
   constructor() {
-    this.meta.headers = createHeaders();
+    this.meta.headers = createAbortableHeaders();
   }
+
+  /**
+   * Disables the operation of the interrupter on the server.
+   */
+  public off = (): void => {
+    this.meta.headers = {};
+  };
 
   /**
    * Returns the request headers that should be sent with the abortable request.
    * Headers are only created if `interruptionsOnServer` is configured.
    *
-   * @returns {Types.RequestHeaders | undefined} - The headers object, or `undefined` if interruption is disabled.
+   * @returns {Types.AbortableHeaders | undefined} - The headers object, or `undefined` if interruption is disabled.
    */
-  public get headers(): Types.RequestHeaders | undefined {
+  public get headers(): Types.AbortableHeaders | undefined {
     return this.meta.headers;
   }
 }

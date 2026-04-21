@@ -1,8 +1,8 @@
 import { ServerBreaker } from './server-breaker';
-import { createHeaders } from './server-breaker.utils';
+import { createAbortableHeaders } from './server-breaker.utils';
 
 jest.mock('./server-breaker.utils', () => ({
-  createHeaders: jest.fn()
+  createAbortableHeaders: jest.fn()
 }));
 
 describe('ServerBreaker', () => {
@@ -14,14 +14,14 @@ describe('ServerBreaker', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (createHeaders as jest.Mock).mockReturnValue(mockHeaders);
+    (createAbortableHeaders as jest.Mock).mockReturnValue(mockHeaders);
   });
 
   describe('constructor', () => {
-    it('should call createHeaders once', () => {
+    it('should call createAbortableHeaders once', () => {
       // eslint-disable-next-line no-new
       new ServerBreaker();
-      expect(createHeaders).toHaveBeenCalledTimes(1);
+      expect(createAbortableHeaders).toHaveBeenCalledTimes(1);
     });
 
     it('should store headers in meta.headers', () => {
@@ -36,17 +36,17 @@ describe('ServerBreaker', () => {
       expect(breaker.headers).toBe(mockHeaders);
     });
 
-    it('should return undefined if createHeaders returns undefined', () => {
-      (createHeaders as jest.Mock).mockReturnValue(undefined);
+    it('should return undefined if createAbortableHeaders returns undefined', () => {
+      (createAbortableHeaders as jest.Mock).mockReturnValue(undefined);
       const breaker = new ServerBreaker();
       expect(breaker.headers).toBeUndefined();
     });
   });
 
-  describe('integration with createHeaders', () => {
-    it('should keep the same object that createHeaders returned', () => {
+  describe('integration with createAbortableHeaders', () => {
+    it('should keep the same object that createAbortableHeaders returned', () => {
       const customHeaders = { 'x-request-id': 'custom' };
-      (createHeaders as jest.Mock).mockReturnValue(customHeaders);
+      (createAbortableHeaders as jest.Mock).mockReturnValue(customHeaders);
       const breaker = new ServerBreaker();
       expect(breaker.headers).toBe(customHeaders);
     });
