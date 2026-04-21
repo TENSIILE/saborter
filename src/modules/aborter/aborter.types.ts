@@ -1,7 +1,7 @@
 import { EventListenerConstructorOptions } from '../../features/event-listener/event-listener.types';
 import { EventListener } from '../../features/event-listener/event-listener';
 import { TimeoutErrorOptions } from '../../features/timeout';
-import { RequestHeaders } from '../../features/server-breaker/server-breaker.types';
+import { AbortableHeaders } from '../../features/server-breaker/server-breaker.types';
 import { disposeSymbol } from './aborter.constants';
 
 /**
@@ -9,9 +9,13 @@ import { disposeSymbol } from './aborter.constants';
  */
 export interface AbortableRequestOptions {
   /**
-   * Optional headers to include in the request.
+   * Additional headers to include in the request to interrupt server operations.
    */
-  headers?: RequestHeaders;
+  headers?: AbortableHeaders;
+  /**
+   * Arguments for the request callback.
+   */
+  args?: any[];
 }
 
 /**
