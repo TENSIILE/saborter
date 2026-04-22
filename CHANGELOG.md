@@ -5,6 +5,7 @@
 ## New Features
 
 - Added `isTimeoutError` function to determine whether the given error is a timeout error.
+- Added `Provision API` that injects the `Aborter` context into the `Http API`.
 
 ## v2.3.0 (April 15th, 2026)
 

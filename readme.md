@@ -91,7 +91,7 @@ const aborter = new Aborter();
 // Use for the request
 const fetchData = async () => {
   try {
-    const result = await aborter.try<Data>(async () => {
+    const result = await aborter.try(async () => {
       const response = await fetch('/api/data');
       return response.json();
     });
@@ -158,7 +158,29 @@ const results = await aborter.try(
 );
 ```
 
-### 3. Built-in debounce functionality
+### 3. Request interruptions via the Provision API
+
+Using the `Provision API`, an `aborter` can pass its data to either the `Fetch API` or the `XMLHttpRequest API` without passing it directly.
+This allows it to work with libraries such as [`axios`](https://www.npmjs.com/package/axios), [`wretch`](https://www.npmjs.com/package/wretch), and [`ky`](https://www.npmjs.com/package/ky):
+
+```javascript
+// Create an Aborter instance
+const aborter = new Aborter();
+
+// Minimal fetch
+const results = await aborter.try(() => fetch('/api/data'));
+
+// Fetch
+const results = await aborter.try(async () => {
+  const response = await fetch('/api/data');
+  return response.json();
+});
+
+// Axios
+const results = await aborter.try(() => axios.get('/api/users').data);
+```
+
+### 4. Built-in debounce functionality
 
 The `Aborter` class allows integration with the debounce utility:
 
@@ -176,13 +198,13 @@ const results = await aborter.try(
 );
 ```
 
-### 4. Canceling a request on the server
+### 5. Canceling a request on the server
 
 For the server to support interrupts via the `saborter`, it is necessary to use the [@saborter/server](https://github.com/TENSIILE/saborter-server) package on the server side:
 
 ```javascript
 // Create an Aborter instance
-const aborter = new Aborter();
+const aborter = new Aborter({ interruptionOnServer: true });
 
 // The request will be cancelled on the server side
 // if the request fails to complete either successfully or with an error.
@@ -191,7 +213,17 @@ const results = await aborter.try((signal, { headers }) => {
 });
 ```
 
-### 5. Interrupting promises without a signal
+If you want to use `Provision API`, you don't have to transfer anything:
+
+```javascript
+const aborter = new Aborter({ interruptionOnServer: true });
+
+const results = await aborter.try(() => {
+  return fetch('/api/posts');
+});
+```
+
+### 6. Interrupting promises without a signal
 
 If you want to cancel a task with a promise:
 
@@ -214,7 +246,7 @@ const results = await aborter.try(
 );
 ```
 
-### 6. Multiple request aborts through a single `ReusableAborter` instance
+### 7. Multiple request aborts through a single `ReusableAborter` instance
 
 The `ReusableAborter` class allows you to easily cancel requests an unlimited number of times while preserving all listeners:
 
@@ -235,7 +267,7 @@ reusableAborter.abort(); // call of the listener -> console.log('aborted', e)
 reusableAborter.abort(); // listener recall -> console.log('aborted', e)
 ```
 
-### 7. Working with Multiple Requests
+### 8. Working with Multiple Requests
 
 You can create separate instances for different groups of requests:
 
@@ -276,7 +308,7 @@ const aborter = new Aborter(options?: AborterOptions);
 
 **AborterOptions:**
 
-```typescript
+````typescript
 {
   /*
     Callback function for abort events.
@@ -305,8 +337,27 @@ const aborter = new Aborter(options?: AborterOptions);
    * };
    */
   onInit?: (instance: Aborter) => void;
+
+  /**
+   * Flag regulating the activation of interruption of work on the server.
+   *
+   * @example
+   * ```
+   * const aborter = new Aborter({ interruptionOnServer: true });
+   *
+   * const result = await aborter.try(async (signal, { headers }) => {
+   *    const response = await fetch('/api/', { signal, headers });
+   *    return respose.json();
+   * });
+   * ```
+   *
+   * If the value is `false`, the `headers` object will be an empty object.
+   *
+   * @default false
+   */
+  interruptionOnServer?: boolean;
 }
-```
+````
 
 ### Properties
 
@@ -364,6 +415,7 @@ Executes an asynchronous request with the ability to cancel.
     - `reason?: any` - A field storing the error reason.
     - `metadata?: any` - Interrupt-related data. The best way to pass any data inside the error.
   - `unpackData?: boolean` (Default is `true`) - Automatically unwraps JSON if the `try` method receives a `Response` instance, for example, returns `fetch()`.
+  - `provision?: boolean` (Default is `true`) - Enables or disables automatic injection of the `Aborter` context for `fetch` and `XMLHttpRequest` calls.
 
 **Returns:** `Promise<T>`
 
@@ -466,8 +518,13 @@ To automatically abort a server-side operation when a client aborts a request,
 you must use [@saborter/server](https://github.com/TENSIILE/saborter-server) on the server and pass headers on the client.
 
 ```typescript
+// To generate headers for interrupting the operation on the server,
+// you must enable the `interruptionOnServer` setting.
+const aborter = new Aborter({ interruptionOnServer: true });
+
 try {
   const users = await aborter.try(async (signal, { headers }) => {
+    // If `interruptionOnServer` is `false`, then the headers will be an empty object ({}).
     const response = await fetch('/api/users', { signal, headers });
     return response.json();
   });
@@ -658,7 +715,13 @@ import { Aborter } from 'saborter';
 import { AbortError } from 'saborter/errors';
 
 // Create an Aborter instance
-const aborter = new Aborter();
+const aborter = new Aborter({
+  onAbort: (error) => {
+    if (error.type === 'cancelled') {
+      // handling request cancellation via a callback
+    }
+  }
+});
 
 // The promise will be rejected even if an AbortError occurs
 const result = await aborter
@@ -671,9 +734,9 @@ const result = await aborter
   });
 ```
 
-### Interrupting requests without direct signal transmission
+### Interrupting requests without direct signal transmission (Provision API)
 
-If you don't want to pass `Aborter` arguments to the `Fetch API`, you don't have to unpack the callback arguments. `Aborter` will automatically retrieve the data from its context.
+If you don't want to pass `Aborter` arguments to the `Fetch API` or `XMLHttpRequest API`, you don't have to. `Aborter` will automatically pass data from its context.
 
 ```javascript
 import { Aborter } from 'saborter';
@@ -708,8 +771,59 @@ const result = await aborter.try(async () => {
 });
 ```
 
-> [!WARNING]
-> Automatic data transfer from the `Aborter` context will work exclusively with `Fetch API`!
+#### **Examples:**
+
+**Axios:**
+
+```typescript
+import axios from 'axios';
+
+try {
+  const users = await aborter.try(async () => {
+    const response = await axios.get<User[]>('/api/users');
+    return response.data;
+  });
+} catch (error) {
+  if (error instanceof AbortError) {
+    console.log('Aborted!');
+  }
+}
+```
+
+**Wretch:**
+
+```typescript
+import wretch from 'wretch';
+
+try {
+  const users = await aborter.try(async () => {
+    const users = await wretch('/api').get('/users').json<User[]>();
+    return users;
+  });
+} catch (error) {
+  if (error instanceof AbortError) {
+    console.log('Aborted!');
+  }
+}
+```
+
+**Ky:**
+
+```typescript
+import ky from 'ky';
+
+try {
+  const users = await aborter.try(() => {
+    return ky('/api/users', {
+      retry: { shouldRetry: () => false }
+    }).json<User[]>();
+  });
+} catch (error) {
+  if (error instanceof AbortError) {
+    console.log('Aborted!');
+  }
+}
+```
 
 ### Resource Cleanup
 
@@ -848,8 +962,8 @@ If you want to cancel a group of requests combined in `Promise.all` or `Promise.
 // ❌ Bad solution
 const fetchData = async () => {
   const [users, posts] = await Promise.all([
-    aborter.try((signal) => axios.get('/api/users', { signal })),
-    aborter.try((signal) => axios.get('/api/posts', { signal }))
+    aborter.try((signal) => axios.get('/api/users', { signal }).data),
+    aborter.try((signal) => axios.get('/api/posts', { signal }).data)
   ]);
 };
 ```
@@ -858,7 +972,7 @@ const fetchData = async () => {
 // ✅ Good solution
 const fetchData = async () => {
   const [users, posts] = await aborter.try((signal) => {
-    return Promise.all([axios.get('/api/users', { signal }), axios.get('/api/posts', { signal })]);
+    return Promise.all([axios.get('/api/users', { signal }).data, axios.get('/api/posts', { signal })]);
   });
 };
 ```
