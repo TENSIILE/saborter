@@ -61,6 +61,12 @@ export interface FnTryOptions {
    * @default true
    */
   unpackData?: boolean;
+  /**
+   * Enables or disables automatic injection of the `Aborter` context for `fetch` and `XMLHttpRequest` calls.
+   *
+   * @default true
+   */
+  provision?: boolean;
 }
 
 /**

@@ -1,3 +1,4 @@
+/* eslint-disable no-new */
 import { abortSignalAny } from '../abort-signal-any';
 
 jest.mock('../abort-signal-any', () => ({
@@ -5,9 +6,8 @@ jest.mock('../abort-signal-any', () => ({
 }));
 
 describe('Fetch lib', () => {
-  let saveRunningAborterToContext;
+  let injectAborterContextIntoHttpRequest;
   let internalFetch;
-  let setAborterContextProvisionToFetchMode;
   let mockFetch;
   let mockAborter;
   let originalFetchRef;
@@ -19,9 +19,8 @@ describe('Fetch lib', () => {
 
     const module = await import('./fetch.lib');
 
-    saveRunningAborterToContext = module.saveRunningAborterToContext;
+    injectAborterContextIntoHttpRequest = module.injectAborterContextIntoHttpRequest;
     internalFetch = module.internalFetch;
-    setAborterContextProvisionToFetchMode = module.setAborterContextProvisionToFetchMode;
   });
 
   beforeEach(() => {
@@ -32,8 +31,7 @@ describe('Fetch lib', () => {
       requestOptions: { headers: { 'X-Custom': 'from-aborter' } }
     };
 
-    setAborterContextProvisionToFetchMode(true);
-    saveRunningAborterToContext(null);
+    injectAborterContextIntoHttpRequest(null);
     jest.clearAllMocks();
   });
 
@@ -41,13 +39,13 @@ describe('Fetch lib', () => {
     globalThis.fetch = originalFetchRef;
   });
 
-  describe('saveRunningAborterToContext', () => {
+  describe('injectAborterContextIntoHttpRequest', () => {
     it('should restore original fetch when passing null and fetch is overridden', () => {
-      saveRunningAborterToContext(mockAborter);
+      injectAborterContextIntoHttpRequest(mockAborter);
 
       expect(globalThis.fetch).toBe(internalFetch);
 
-      saveRunningAborterToContext(null);
+      injectAborterContextIntoHttpRequest(null);
 
       expect(globalThis.fetch).toBe(originalFetchRef);
     });
@@ -55,7 +53,7 @@ describe('Fetch lib', () => {
     it('should not restore original fetch if it is already original', () => {
       globalThis.fetch = originalFetchRef;
 
-      saveRunningAborterToContext(null);
+      injectAborterContextIntoHttpRequest(null);
 
       expect(globalThis.fetch).toBe(originalFetchRef);
     });
@@ -63,7 +61,7 @@ describe('Fetch lib', () => {
 
   describe('internalFetch', () => {
     it('should call original fetch when no aborter is set', async () => {
-      saveRunningAborterToContext(null);
+      injectAborterContextIntoHttpRequest(null);
 
       await internalFetch('localhost');
 
@@ -71,7 +69,7 @@ describe('Fetch lib', () => {
     });
 
     it('should use aborter signal and headers when aborter exists', async () => {
-      saveRunningAborterToContext(mockAborter);
+      injectAborterContextIntoHttpRequest(mockAborter);
 
       const init = {
         method: 'POST',
