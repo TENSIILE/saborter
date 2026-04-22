@@ -48,7 +48,7 @@ export type OnAbortCallback = (error: AbortError) => void;
  * Options for constructing an `EventListener` instance.
  */
 export interface EventListenerConstructorOptions {
-  /** Callback invoked when the `aborted` event occurs. */
+  /** Callback invoked when the `aborted` and `cancelled` event occurs. */
   onAbort?: OnAbortCallback;
   /** Callback invoked when the observable state changes. */
   onStateChange?: OnStateChangeCallback;
