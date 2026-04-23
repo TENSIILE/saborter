@@ -1,6 +1,9 @@
 import { setTimeoutAsync } from '../set-timeout-async';
+import { requestOptionsSymbol } from '../set-timeout-async/set-timeout-async.constants';
+import { SetTimeoutAsyncAbortableRequestOptions } from '../set-timeout-async/set-timeout-async.types';
 import { AbortError } from '../../abort-error';
 import { copyAbortError } from '../../abort-error/abort-error.lib';
+import { AbortableRequestOptions } from '../../../modules/aborter/aborter.types';
 
 /**
  * Creates a debounced function that delays invoking the provided handler
@@ -20,7 +23,7 @@ import { copyAbortError } from '../../abort-error/abort-error.lib';
  * - Any other error is rethrown unchanged.
  *
  * @template R - The return type of the handler function.
- * @param {Parameters<typeof setTimeoutAsync<R>>['0']} handler -
+ * @param {<R>(signal: AbortSignal) => Promise<R>} handler -
  *        The function to debounce.The function will be called either without arguments
  *        or with the `AbortSignal` argument after the timeout expires.
  * @param {number | undefined} delay -
@@ -47,12 +50,15 @@ import { copyAbortError } from '../../abort-error/abort-error.lib';
  * @see setTimeoutAsync – The underlying delay mechanism.
  */
 export const debounce = <R>(
-  handler: Parameters<typeof setTimeoutAsync<R, unknown[]>>['0'],
+  handler: (signal: AbortSignal, requestOptions: AbortableRequestOptions) => R | Promise<R>,
   delay?: number
-): ((signal: AbortSignal, args?: unknown[]) => Promise<R>) => {
-  return (signal: AbortSignal, args?: unknown[]) => {
+): ((signal: AbortSignal, requestOptions?: AbortableRequestOptions) => Promise<R>) => {
+  return (signal, requestOptions) => {
     try {
-      return setTimeoutAsync(handler, delay, { signal, args });
+      return setTimeoutAsync(handler, delay, {
+        signal,
+        [requestOptionsSymbol]: requestOptions as SetTimeoutAsyncAbortableRequestOptions<any[]>
+      });
     } catch (error) {
       if (error instanceof AbortError) {
         throw copyAbortError(error, { initiator: debounce.name });

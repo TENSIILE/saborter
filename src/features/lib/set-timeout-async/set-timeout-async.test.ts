@@ -55,32 +55,6 @@ describe('setTimeoutAsync', () => {
     });
   });
 
-  describe('Работа с обработчиком-строкой', () => {
-    it('должна выполнять строку как код и возвращать результат', () => {
-      const promise = setTimeoutAsync('return 42;', 100, { args: [] });
-
-      setTimeout(async () => {
-        await expect(promise).resolves.toBe(42);
-      }, 100);
-    });
-
-    it('должна передавать аргументы в код строки', () => {
-      const promise = setTimeoutAsync('return a + b;', 100, { args: [10, 32] });
-
-      setTimeout(async () => {
-        await expect(promise).resolves.toBe(42);
-      }, 100);
-    });
-
-    it('должна отклонять промис если строка кода выбрасывает ошибку', () => {
-      const promise = setTimeoutAsync('throw new Error("Code error");', 100);
-
-      setTimeout(async () => {
-        await expect(promise).rejects.toThrow('Code error');
-      }, 100);
-    });
-  });
-
   describe('Работа с таймаутом', () => {
     it('должна вызывать обработчик без задержки если timeout не указан', () => {
       const handler = jest.fn().mockReturnValue('immediate');
@@ -181,7 +155,9 @@ describe('setTimeoutAsync', () => {
 
   describe('Краевые случаи', () => {
     it('должна корректно работать с undefined и null как аргументами', async () => {
-      const promise = setTimeoutAsync('return [a, b];', 100, { args: [undefined, null] });
+      const promise = setTimeoutAsync((_, { args: [first, second] }) => [first, second], 100, {
+        args: [undefined, null]
+      });
 
       setTimeout(async () => {
         await expect(promise).resolves.toEqual([undefined, null]);
@@ -200,7 +176,7 @@ describe('setTimeoutAsync', () => {
     });
 
     it('должна использовать пустой массив по умолчанию для args', async () => {
-      const promise = setTimeoutAsync('return arguments.length;', 100);
+      const promise = setTimeoutAsync((_, { args }) => args.length, 100);
 
       setTimeout(async () => {
         await expect(promise).resolves.toBe(0);

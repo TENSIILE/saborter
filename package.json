@@ -1,6 +1,6 @@
 {
   "name": "saborter",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "A simple and efficient library for canceling asynchronous requests using AbortController",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
@@ -110,7 +110,8 @@
     "vite": "^7.3.0",
     "vite-plugin-circular-dependency": "^0.5.0",
     "vite-plugin-clean": "^2.0.1",
-    "vite-plugin-dts": "^4.5.4"
+    "vite-plugin-dts": "^4.5.4",
+    "whatwg-fetch": "^3.6.20"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [

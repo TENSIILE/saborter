@@ -6,10 +6,21 @@ interface User {
   name: string;
 }
 
-const getUsers = async (signal: AbortSignal) => {
-  const response = await fetch('https://jsonplaceholder.typicode.com/users', { signal });
+interface Post {
+  id: number;
+  title: string;
+}
 
-  return (await response.json()) as { data: User[] };
+const getUsers = async () => {
+  const response = await fetch('https://jsonplaceholder.typicode.com/users');
+
+  return (await response.json()) as User[];
+};
+
+const getPosts = async () => {
+  const response = await fetch('https://jsonplaceholder.typicode.com/posts');
+
+  return (await response.json()) as Post[];
 };
 
 const useAborter = <D,>() => {
@@ -21,8 +32,6 @@ const useAborter = <D,>() => {
     () =>
       new Aborter({
         onInit: (aborter) => {
-          console.log('state:', aborter.listeners.state.value);
-
           aborter.listeners.addEventListener('fulfilled', (d) => {
             setData(d);
           });
@@ -31,7 +40,7 @@ const useAborter = <D,>() => {
             setError(er);
           });
 
-          aborter.listeners.state.subscribe((s) => {
+          aborter.listeners.state.subscribe((s: any) => {
             setLoading(s === 'pending');
             setError(null);
             setData(null);
@@ -44,28 +53,43 @@ const useAborter = <D,>() => {
 };
 
 export const App = () => {
-  const { aborter, data, error, loading } = useAborter<User[]>();
+  const { aborter: usersAborter, data: users, error, loading } = useAborter<User[]>();
+  const { aborter: postsAborter, data: posts, loading: postsLoading } = useAborter<Post[]>();
 
-  const handleLoad = async () => {
-    aborter.try(getUsers);
+  const handlePostsLoad = async () => {
+    postsAborter.try(getPosts, { timeout: 1000 });
   };
 
-  const handleCancel = () => aborter.abort();
+  const handleUsersLoad = async () => {
+    usersAborter.try(getUsers);
+    handlePostsLoad();
+  };
+
+  const handleCancel = () => {
+    postsAborter.abort();
+    usersAborter.abort();
+  };
 
   return (
     <>
       <h1>Saborter Check</h1>
       <div className='card'>
         <div className='gap-2'>
-          <button onClick={handleLoad}>Load</button>
+          <button onClick={handleUsersLoad}>Load</button>
           <button onClick={handleCancel}>Cancel</button>
         </div>
 
-        {loading && <p>Loading...</p>}
+        {(loading || postsLoading) && <p>Loading...</p>}
         {error && <p>{String(error)}</p>}
         <ul>
-          {data?.map((user) => {
+          {users?.map((user) => {
             return <li key={user.id}>{user.name}</li>;
+          })}
+        </ul>
+        <hr />
+        <ul>
+          {posts?.map((post) => {
+            return <li key={post.id}>{post.title}</li>;
           })}
         </ul>
       </div>

@@ -115,6 +115,37 @@ try {
 }
 ```
 
+### `isTimeoutError`
+
+This function determines whether a given error represents a timeout‑induced abort error. It checks that the error is an `AbortError`, its initiator property is exactly `'timeout'`, and its `cause` is an instance of `TimeoutError`. This is useful for distinguishing timeouts from other abort reasons (e.g., user cancellation or system aborts).
+
+**Parameters:**
+
+- `error: any` - The error object to inspect.
+
+**Returns:**
+
+`error is TimeoutError`
+
+- Returns `true` if the error is an `AbortError` with `initiator === 'timeout'` and `cause instanceof TimeoutError`.
+- Returns `false` otherwise.
+
+**Example:**
+
+```typescript
+try {
+  await abortableRequest();
+} catch (error) {
+  if (isTimeoutError(error)) {
+    console.log('Request timed out');
+    // Handle timeout gracefully
+  } else {
+    // Re‑throw other errors
+    throw error;
+  }
+}
+```
+
 ### `debounce`
 
 Creates a debounced function that delays invoking the provided handler until after a specified timeout has elapsed since the last call. This is a leading‑edge debounce – the first call in a burst schedules the execution, and subsequent calls reset the timer. The debounced function accepts an `AbortSignal` and returns a promise that resolves with the handler's result or rejects if the handler throws or the signal is aborted.
@@ -126,7 +157,7 @@ Creates a debounced function that delays invoking the provided handler until aft
 
 **Returns:**
 
-`(signal: AbortSignal) => R | Promise<R>`
+`(signal: AbortSignal) => Promise<R>`
 
 A function that accepts an `AbortSignal` and returns a `Promise<R>`, where `R` is the return type of the handler.
 
@@ -210,7 +241,7 @@ Schedules the execution of a handler after a specified delay. The operation can 
 
 **Parameters:**
 
-- `handler: ((signal: AbortSignal) => T | Promise<T>)`:
+- `handler: ((signal: AbortSignal, requestOptions: AbortableRequestOptions) => T | Promise<T>)`:
   - A function that accepts an `AbortSignal` and returns a value or a `Promise`. This function will be called with the signal to allow cleanup on abort.
 - `delay?: number` - The time in milliseconds to wait before executing the handler. If omitted, the handler is scheduled without a delay (i.e., as soon as possible).
 - `options?: Object`:
