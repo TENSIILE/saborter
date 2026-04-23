@@ -59,6 +59,8 @@ yarn add saborter
 
 ## 📈 Why Saborter ?
 
+**Saborter** is an ecosystem that provides the user with the ability to use both full-fledged modules (such as `Aborter` and `ReusableAborter`) and individual components: lib functions, error classes, and polyfills.
+
 ### Why is this necessary?
 
 We constantly encounter situations where an incipient request needs to be canceled: the user quickly types in search, switches tabs, or a component unmounts. The native `AbortController` allows this, but its use in real-world scenarios results in boilerplate code, error handling issues, and awkward `finally` blocks.
@@ -177,7 +179,7 @@ const results = await aborter.try(async () => {
 });
 
 // Axios
-const results = await aborter.try(() => axios.get('/api/users').data);
+const results = await aborter.try(() => axios.get('/api/users').then((res) => res.data));
 ```
 
 ### 4. Built-in debounce functionality
@@ -778,16 +780,10 @@ const result = await aborter.try(async () => {
 ```typescript
 import axios from 'axios';
 
-try {
-  const users = await aborter.try(async () => {
-    const response = await axios.get<User[]>('/api/users');
-    return response.data;
-  });
-} catch (error) {
-  if (error instanceof AbortError) {
-    console.log('Aborted!');
-  }
-}
+const users = await aborter.try(async () => {
+  const response = await axios.get<User[]>('/api/users');
+  return response.data;
+});
 ```
 
 **Wretch:**
@@ -795,16 +791,10 @@ try {
 ```typescript
 import wretch from 'wretch';
 
-try {
-  const users = await aborter.try(async () => {
-    const users = await wretch('/api').get('/users').json<User[]>();
-    return users;
-  });
-} catch (error) {
-  if (error instanceof AbortError) {
-    console.log('Aborted!');
-  }
-}
+const users = await aborter.try(async () => {
+  const users = await wretch('/api').get('/users').json<User[]>();
+  return users;
+});
 ```
 
 **Ky:**
@@ -812,17 +802,11 @@ try {
 ```typescript
 import ky from 'ky';
 
-try {
-  const users = await aborter.try(() => {
-    return ky('/api/users', {
-      retry: { shouldRetry: () => false }
-    }).json<User[]>();
-  });
-} catch (error) {
-  if (error instanceof AbortError) {
-    console.log('Aborted!');
-  }
-}
+const users = await aborter.try(() => {
+  return ky('/api/users', {
+    retry: { shouldRetry: () => false }
+  }).json<User[]>();
+});
 ```
 
 ### Resource Cleanup
