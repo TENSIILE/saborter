@@ -13,6 +13,13 @@ export interface EventMap {
   fulfilled: any;
   /** Event triggered when an operation fails with an error. */
   rejected: Error;
+  /** The event is triggered when the operation completes, both with an error and successfully. */
+  settled:
+    | {
+        status: 'fulfilled';
+        value: any;
+      }
+    | { status: 'rejected'; reason: Error };
 }
 
 /**
@@ -48,10 +55,22 @@ export type OnAbortCallback = (error: AbortError) => void;
  * Options for constructing an `EventListener` instance.
  */
 export interface EventListenerConstructorOptions {
-  /** Callback invoked when the `aborted` and `cancelled` event occurs. */
+  /**
+   *  Callback invoked when the `aborted` and `cancelled` event occurs.
+   */
   onAbort?: OnAbortCallback;
-  /** Callback invoked when the observable state changes. */
+  /**
+   * Callback invoked when the observable state changes.
+   */
   onStateChange?: OnStateChangeCallback;
+  /**
+   * Callback function called when 'aborted' events occur.
+   */
+  onInterrupt?: OnAbortCallback;
+  /**
+   * Callback function called when 'cancelled' events occur.
+   */
+  onCancel?: OnAbortCallback;
 }
 
 /**
