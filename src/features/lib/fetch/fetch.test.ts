@@ -21,6 +21,7 @@ describe('Fetch lib', () => {
 
     injectAborterContextIntoHttpRequest = module.injectAborterContextIntoHttpRequest;
     internalFetch = module.internalFetch;
+    module.setAborterContextProvisionMode(true);
   });
 
   beforeEach(() => {
