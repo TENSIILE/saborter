@@ -2,8 +2,16 @@
 
 ## v2.5.0
 
+### New Features
+
 - Added separate handler methods `onCancel` and `onInterrupt` for interrupting and canceling a request
 - Added a new event `settled` to `EventListener`
+- Added strict typing for the `isAbortError` function where the typeguard targets `AbortError`
+- Added `Response` exception to the `catch` block when `response.ok` is `false` when using the short `fetch` format.
+
+### Bug Fixes
+
+- Fixed unnecessary calls to the Aborter context inject in Http Request when the provider is disabled
 
 ## v2.4.0 (April 23th, 2026)
 
