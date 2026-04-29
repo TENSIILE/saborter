@@ -5,12 +5,12 @@
 - Added separate handler methods `onCancel` and `onInterrupt` for interrupting and canceling a request
 - Added a new event `settled` to `EventListener`
 
-## v2.4.0
+## v2.4.0 (April 23th, 2026)
 
-## New Features
+### New Features
 
-- Added `isTimeoutError` function to determine whether the given error is a timeout error.
-- Added `Provision API` that injects the `Aborter` context into the `Http API`.
+- Added `isTimeoutError` function to determine whether the given error is a timeout error [#80](https://github.com/TENSIILE/saborter/pull/82/changes/9adbc0237df3944b21cb60488105b0238d36d10d)
+- Added `Provision API` that injects the `Aborter` context into the `Http API` [#81](https://github.com/TENSIILE/saborter/pull/82/changes/7b9a6ce4f8050aceb6c3e1c13d93a42c41b9a497)
 
 ## v2.3.0 (April 15th, 2026)
 

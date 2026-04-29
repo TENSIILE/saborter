@@ -66,7 +66,7 @@ export const App = () => {
   };
 
   const handleCancel = () => {
-    // postsAborter.abort();
+    postsAborter.abort();
     usersAborter.abort();
   };
 
