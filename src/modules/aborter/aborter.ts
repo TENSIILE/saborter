@@ -177,6 +177,7 @@ export class Aborter implements Types.AborterType {
 
             return response.json().then((data) => {
               this.listeners.dispatchEvent('fulfilled', data);
+              this.listeners.dispatchEvent('settled', { status: 'fulfilled', value: data });
               resolve(data);
             }, reject);
           }
@@ -194,6 +195,7 @@ export class Aborter implements Types.AborterType {
           if (isErrorNativeBehavior || !isAbortError(error)) {
             this.setRequestState('rejected');
             this.listeners.dispatchEvent('rejected', error);
+            this.listeners.dispatchEvent('settled', { status: 'rejected', reason: error });
             logger.info('A native error was caught', error);
 
             reject(error);

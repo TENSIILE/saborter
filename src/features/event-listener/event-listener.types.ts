@@ -13,6 +13,13 @@ export interface EventMap {
   fulfilled: any;
   /** Event triggered when an operation fails with an error. */
   rejected: Error;
+  /** The event is triggered when the operation completes, both with an error and successfully. */
+  settled:
+    | {
+        status: 'fulfilled';
+        value: any;
+      }
+    | { status: 'rejected'; reason: Error };
 }
 
 /**

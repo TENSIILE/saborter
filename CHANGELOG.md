@@ -1,5 +1,10 @@
 # Saborter Changelog
 
+## v2.5.0
+
+- Added separate handler methods `onCancel` and `onInterrupt` for interrupting and canceling a request
+- Added a new event `settled` to `EventListener`
+
 ## v2.4.0
 
 ## New Features
