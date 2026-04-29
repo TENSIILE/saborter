@@ -4,6 +4,8 @@ import { AborterType } from '../../../modules/aborter/aborter.types';
 
 let executableAborter: AborterType | null = null;
 
+let isAborterCtxProvisionEnabled = false;
+
 const originalFetch = globalThis.fetch;
 
 const OriginalXHR = globalThis.XMLHttpRequest;
@@ -25,6 +27,10 @@ const OriginalXHR = globalThis.XMLHttpRequest;
  * // All subsequent `fetch` calls will use the aborter's signal and headers.
  */
 export function injectAborterContextIntoHttpRequest(aborter: AborterType | null): void {
+  if (!isAborterCtxProvisionEnabled) {
+    return;
+  }
+
   if (!aborter) {
     if (globalThis.fetch !== originalFetch) {
       globalThis.fetch = originalFetch;
@@ -160,3 +166,20 @@ export function internalFetch(url: RequestInfo | URL, init?: RequestInit): Promi
     headers: { ...init?.headers, ...headers }
   });
 }
+
+/**
+
+* Enables or disables automatic provisioning of the active `Aborter` context for `fetch | XMLHttpRequest` calls. 
+* If enabled, `Aborter.try` calls will override the global `fetch | XMLHttpRequest` only at the time of the call and 
+* if the user chooses to pass the context automatically. 
+*
+* After the `fetch | XMLHttpRequest` call, the context is immediately restored to the original one. 
+* The `fetch | XMLHttpRequest` override occurs only in the scope of the `Aborter.try` method. 
+*
+* If disabled, the original `fetch | XMLHttpRequest` is always used, and interception does not occur.
+
+* @param enabled - `true` to enable context provisioning, `false` to disable.
+*/
+export const setAborterContextProvisionMode = (enabled: boolean): void => {
+  isAborterCtxProvisionEnabled = enabled;
+};

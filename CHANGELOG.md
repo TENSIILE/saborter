@@ -2,8 +2,16 @@
 
 ## v2.5.0
 
-- Added separate handler methods `onCancel` and `onInterrupt` for interrupting and canceling a request
-- Added a new event `settled` to `EventListener`
+### New Features
+
+- Added separate handler methods `onCancel` and `onInterrupt` for interrupting and canceling a request [#84](https://github.com/TENSIILE/saborter/pull/84/changes/d959429fca49fd4fb5c4c0058e117a3d4f1ba6ca)
+- Added a new event `settled` to `EventListener` [#84](https://github.com/TENSIILE/saborter/pull/84/changes/34843174ea21c79f83142c328e326cd3dffff3ee)
+- Added strict typing for the `isAbortError` function where the typeguard targets `AbortError` [#85](https://github.com/TENSIILE/saborter/pull/85/changes/efb8d5faa5029e580127b447c26ec860284f2fde)
+- Added `Response` exception to the `catch` block when `response.ok` is `false` when using the short `fetch` format [#85](https://github.com/TENSIILE/saborter/pull/85/changes/d096d569aadd3ad6c7aa9e1b08a679e41fb0fe49)
+
+### Bug Fixes
+
+- Fixed unnecessary calls to the Aborter context inject in Http Request when the provider is disabled [#85](https://github.com/TENSIILE/saborter/pull/85/changes/fa7b1a192e5f94a9caa2b124efdce62e0f619a66)
 
 ## v2.4.0 (April 23th, 2026)
 

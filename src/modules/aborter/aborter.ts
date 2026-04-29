@@ -2,7 +2,7 @@
 import { RequestState, emitRequestState } from '../../features/state-observer';
 import { AbortError, isAbortError } from '../../features/abort-error';
 import { EventListener, clearEventListeners } from '../../features/event-listener';
-import { injectAborterContextIntoHttpRequest } from '../../features/lib/fetch';
+import { injectAborterContextIntoHttpRequest, setAborterContextProvisionMode } from '../../features/lib/fetch';
 import { ServerBreaker } from '../../features/server-breaker';
 import { Timeout, TimeoutError } from '../../features/timeout';
 import { ErrorMessage, disposeSymbol } from './aborter.constants';
@@ -127,6 +127,8 @@ export class Aborter implements Types.AborterType {
     request: Types.AbortableRequest<any>,
     { isErrorNativeBehavior = false, timeout, unpackData = true, provision = true }: Types.FnTryOptions = {}
   ): Promise<R> {
+    setAborterContextProvisionMode(provision);
+
     if (this.isRequestInProgress) {
       const cancelledAbortError = new AbortError(ErrorMessage.CancelRequest, {
         type: 'cancelled',
@@ -156,9 +158,7 @@ export class Aborter implements Types.AborterType {
 
       queueMicrotask(() => this.setRequestState('pending'));
 
-      if (provision) {
-        injectAborterContextIntoHttpRequest(this);
-      }
+      injectAborterContextIntoHttpRequest(this);
 
       Promise.race([
         request(this.abortController.signal, this.requestOptions),
@@ -173,6 +173,7 @@ export class Aborter implements Types.AborterType {
           if (unpackData && response instanceof Response) {
             if (!response.ok) {
               logger.warn('Request failed, something went wrong', response);
+              throw response;
             }
 
             return response.json().then((data) => {
