@@ -115,7 +115,10 @@ const aborter = new Aborter();
 // Use for the request
 const fetchData = async () => {
   try {
-    const result = await aborter.try((signal) => fetch('/api/data', { signal }));
+    const result = await aborter.try(async (signal) => {
+      const response = await fetch('/api/data', { signal });
+      return response.json();
+    });
     console.log('Data received:', result);
   } catch (error) {
     console.error('Request error:', error);
@@ -476,6 +479,18 @@ const response = await aborter.try(
 
 // Getting data from JSON
 const data = await response.json();
+```
+
+When using `fetch` briefly, `Response.OK` is also processed. `Aborter` throws the response itself into the `catch` block:
+
+```typescript
+try {
+  const data = await aborter.try(() => fetch('/api/data'));
+} catch (error) {
+  if (error instanceof Response) {
+    // Processing a case when response.ok is false
+  }
+}
 ```
 
 **Calling a method without a signal:**

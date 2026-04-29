@@ -173,6 +173,7 @@ export class Aborter implements Types.AborterType {
           if (unpackData && response instanceof Response) {
             if (!response.ok) {
               logger.warn('Request failed, something went wrong', response);
+              throw response;
             }
 
             return response.json().then((data) => {
