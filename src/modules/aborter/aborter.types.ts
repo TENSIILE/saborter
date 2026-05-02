@@ -67,6 +67,10 @@ export interface FnTryOptions {
    * @default true
    */
   provision?: boolean;
+  /**
+   * Delays the call to the `try` method in milliseconds.
+   */
+  debounce?: number;
 }
 
 /**

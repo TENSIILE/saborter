@@ -168,6 +168,8 @@ const results = await aborter.try(
 Using the `Provision API`, an `aborter` can pass its data to either the `Fetch API` or the `XMLHttpRequest API` without passing it directly.
 This allows it to work with libraries such as [`axios`](https://www.npmjs.com/package/axios), [`wretch`](https://www.npmjs.com/package/wretch), and [`ky`](https://www.npmjs.com/package/ky):
 
+[Read more](#interrupting-requests-without-direct-signal-transmission-provision-api)
+
 ```javascript
 // Create an Aborter instance
 const aborter = new Aborter();
@@ -187,19 +189,20 @@ const results = await aborter.try(() => axios.get('/api/users').then((res) => re
 
 ### 4. Built-in debounce functionality
 
-The `Aborter` class allows integration with the debounce utility:
+You can use the `debounce` option directly inside the method:
+
+[Read more](#working-with-debounce)
 
 ```javascript
-import { debounce } from 'saborter/lib';
-
 // Create an Aborter instance
 const aborter = new Aborter();
 
 // The request will be delayed for 2 seconds and then executed.
 const results = await aborter.try(
-  debounce((signal) => {
-    return fetch('/api/long-task', { signal });
-  }, 2000)
+  (signal) => {
+    return fetch('/api/data', { signal });
+  },
+  { debounce: 2000 }
 );
 ```
 
@@ -215,16 +218,6 @@ const aborter = new Aborter({ interruptionOnServer: true });
 // if the request fails to complete either successfully or with an error.
 const results = await aborter.try((signal, { headers }) => {
   return fetch('/api/posts', { signal, headers });
-});
-```
-
-If you want to use `Provision API`, you don't have to transfer anything:
-
-```javascript
-const aborter = new Aborter({ interruptionOnServer: true });
-
-const results = await aborter.try(() => {
-  return fetch('/api/posts');
 });
 ```
 
@@ -636,7 +629,7 @@ requestPromise.catch((error) => {
   }
 });
 
-// Cancel
+// Abort
 aborter.abort();
 ```
 
@@ -736,7 +729,6 @@ const aborter = new Aborter({
   onAbort: (error) => {
     if (error.type === 'cancelled') {
       // handling request cancellation via a callback
-    }
   }
 });
 
@@ -750,6 +742,48 @@ const result = await aborter
     }
   });
 ```
+
+### Working with debounce
+
+The first way is the built-in `debounce` option in the `try` method:
+
+```javascript
+// Create an Aborter instance
+const aborter = new Aborter();
+
+// The request will be delayed for 2 seconds and then executed.
+const results = await aborter.try(
+  (signal) => {
+    return fetch('/api/data', { signal });
+  },
+  { debounce: 2000 }
+);
+```
+
+> [!WARNING]
+> The difference! This option defers the entire `try` method call, without running anything in the background.
+
+> [!NOTE]
+> We recommend using the option with `debounce` setting via the option.
+
+You can use debounce in two ways, the second is through the `debounce` lib function:
+
+```javascript
+import { debounce } from 'saborter/lib';
+
+// Create an Aborter instance
+const aborter = new Aborter();
+
+// The request will be delayed for 2 seconds and then executed.
+const results = await aborter.try(
+  debounce((signal) => {
+    return fetch('/api/data', { signal });
+  }, 2000)
+);
+```
+
+> [!WARNING]
+> The difference! The function defers the callback itself, while the `try` method executes and logs all the processes that exist under the hood, such as recording an interrupt when the `timeout` expires and changing the request state to `"pending"`
 
 ### Interrupting requests without direct signal transmission (Provision API)
 
