@@ -84,28 +84,6 @@ We constantly encounter situations where an incipient request needs to be cancel
 
 ### Basic Usage
 
-```typescript
-import { Aborter } from 'saborter';
-
-// Create an Aborter instance
-const aborter = new Aborter();
-
-// Use for the request
-const fetchData = async () => {
-  try {
-    const result = await aborter.try(async () => {
-      const response = await fetch('/api/data');
-      return response.json();
-    });
-    console.log('Data received:', result);
-  } catch (error) {
-    console.error('Request error:', error);
-  }
-};
-```
-
-### Interrupting requests through direct signal transmission
-
 ```javascript
 import { Aborter } from 'saborter';
 
@@ -175,16 +153,19 @@ This allows it to work with libraries such as [`axios`](https://www.npmjs.com/pa
 const aborter = new Aborter();
 
 // Minimal fetch
-const results = await aborter.try(() => fetch('/api/data'));
+const results = await aborter.try(() => fetch('/api/data'), { provision: true });
 
 // Fetch
-const results = await aborter.try(async () => {
-  const response = await fetch('/api/data');
-  return response.json();
-});
+const results = await aborter.try(
+  async () => {
+    const response = await fetch('/api/data');
+    return response.json();
+  },
+  { provision: true }
+);
 
 // Axios
-const results = await aborter.try(() => axios.get('/api/users').then((res) => res.data));
+const results = await aborter.try(() => axios.get('/api/users').then((res) => res.data), { provision: true });
 ```
 
 ### 4. Built-in debounce functionality
@@ -316,6 +297,16 @@ const aborter = new Aborter(options?: AborterOptions);
   onAbort?: OnAbortCallback;
 
   /*
+    Callback function called when `aborted` events occur.
+  */
+  onInterrupt?: OnAbortCallback;
+
+  /*
+    Callback function called when `cancelled` events occur.
+  */
+  onCancel?: OnAbortCallback;
+
+  /*
     A function called when the request state changes.
     It takes the new state as an argument.
     Can be overridden via `aborter.listeners.state.onstatechange`
@@ -413,7 +404,7 @@ Executes an asynchronous request with the ability to cancel.
     - `reason?: any` - A field storing the error reason.
     - `metadata?: any` - Interrupt-related data. The best way to pass any data inside the error.
   - `unpackData?: boolean` (Default is `true`) - Automatically unwraps JSON if the `try` method receives a `Response` instance, for example, returns `fetch()`.
-  - `provision?: boolean` (Default is `true`) - Enables or disables automatic injection of the `Aborter` context for `fetch` and `XMLHttpRequest` calls.
+  - `provision?: boolean` - Enables or disables automatic injection of the `Aborter` context for `fetch` and `XMLHttpRequest` calls.
 
 **Returns:** `Promise<T>`
 
@@ -657,7 +648,7 @@ requestPromise.catch((error) => {
   }
 });
 
-// Cancel
+// Abort
 aborter.abort(new AbortError('Custom AbortError message', { reason: 1 }));
 ```
 
@@ -726,9 +717,8 @@ import { AbortError } from 'saborter/errors';
 
 // Create an Aborter instance
 const aborter = new Aborter({
-  onAbort: (error) => {
-    if (error.type === 'cancelled') {
-      // handling request cancellation via a callback
+  onCancel: (error) => {
+    // handling request cancellation via a callback
   }
 });
 
@@ -787,13 +777,18 @@ const results = await aborter.try(
 
 ### Interrupting requests without direct signal transmission (Provision API)
 
+> [!WARNING]
+> This `API` works exclusively with one request inside the callback of the `try` method!
+
 If you don't want to pass `Aborter` arguments to the `Fetch API` or `XMLHttpRequest API`, you don't have to. `Aborter` will automatically pass data from its context.
+
+Overriding the `Provision API` for the entire Aborter instance via the class constructor. Configuration performed by this method is applied.
 
 ```javascript
 import { Aborter } from 'saborter';
 
 // Create an Aborter instance
-const aborter = new Aborter();
+const aborter = new Aborter({ provision: true });
 
 // We don't get the signal from the argument
 const result = await aborter.try(async () => {
@@ -815,11 +810,14 @@ const aborter = new Aborter();
 const controller = new AbortController();
 
 // We don't get the signal from the argument
-const result = await aborter.try(async () => {
-  // Crossing signals under the hood
-  const response = await fetch('/api/posts', { signal: controller.signal });
-  return response.json();
-});
+const result = await aborter.try(
+  async () => {
+    // Crossing signals under the hood
+    const response = await fetch('/api/posts', { signal: controller.signal });
+    return response.json();
+  },
+  { provision: true }
+);
 ```
 
 #### **Examples:**
@@ -829,10 +827,13 @@ const result = await aborter.try(async () => {
 ```typescript
 import axios from 'axios';
 
-const users = await aborter.try(async () => {
-  const response = await axios.get<User[]>('/api/users');
-  return response.data;
-});
+const users = await aborter.try(
+  async () => {
+    const response = await axios.get<User[]>('/api/users');
+    return response.data;
+  },
+  { provision: true }
+);
 ```
 
 **Wretch:**
@@ -840,10 +841,13 @@ const users = await aborter.try(async () => {
 ```typescript
 import wretch from 'wretch';
 
-const users = await aborter.try(async () => {
-  const users = await wretch('/api').get('/users').json<User[]>();
-  return users;
-});
+const users = await aborter.try(
+  async () => {
+    const users = await wretch('/api').get('/users').json<User[]>();
+    return users;
+  },
+  { provision: true }
+);
 ```
 
 **Ky:**
@@ -851,11 +855,14 @@ const users = await aborter.try(async () => {
 ```typescript
 import ky from 'ky';
 
-const users = await aborter.try(() => {
-  return ky('/api/users', {
-    retry: { shouldRetry: () => false }
-  }).json<User[]>();
-});
+const users = await aborter.try(
+  () => {
+    return ky('/api/users', {
+      retry: { shouldRetry: () => false }
+    }).json<User[]>();
+  },
+  { provision: true }
+);
 ```
 
 ### Resource Cleanup
