@@ -68,7 +68,7 @@ export const setTimeoutAsync = <T, A extends [unknown?, ...unknown[]] = []>(
         return reject(copyAbortError(signal.reason, { initiator: setTimeoutAsync.name }));
       }
 
-      const error = new AbortError(`${setTimeoutAsync.name} was interrupted`, {
+      const error = new AbortError(`The callback was interrupted`, {
         initiator: setTimeoutAsync.name,
         reason: signal.reason
       });
