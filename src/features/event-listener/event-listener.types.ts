@@ -64,11 +64,11 @@ export interface EventListenerConstructorOptions {
    */
   onStateChange?: OnStateChangeCallback;
   /**
-   * Callback function called when 'aborted' events occur.
+   * Callback function called when `aborted` events occur.
    */
   onInterrupt?: OnAbortCallback;
   /**
-   * Callback function called when 'cancelled' events occur.
+   * Callback function called when `cancelled` events occur.
    */
   onCancel?: OnAbortCallback;
 }
