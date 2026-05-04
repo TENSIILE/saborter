@@ -2,11 +2,11 @@
 
 ## 📖 Overview
 
-The `EventListener` class provides an event management system for handling operation interruption events. It implements the observer pattern for events of types `aborted` and `cancelled`.
+The `EventListener` class provides an event management system for handling system interruptions. It implements the observer pattern for events of a certain set of types.
 
 ## 📝 Event Types
 
-Two event types are supported:
+The following event types are supported:
 
 - **`aborted`** - operation was aborted
   - `listener: (error: AbortError): void`
@@ -16,6 +16,8 @@ Two event types are supported:
   - `listener: (data: any): void`
 - **`rejected`** - event triggered when an operation fails with an error
   - `listener: (error: Error): void`
+- **`settled`** - event is triggered when the operation completes, both with an error and successfully
+  - `listener: (value: { status: 'fulfilled'; value: any; } | { status: 'rejected'; reason: Error }): void`
 
 ## 🔧 API
 
@@ -27,7 +29,7 @@ Adds an event listener for the specified event type.
 
 **Parameters:**
 
-- `type: 'aborted' | 'cancelled' | 'fulfilled' | 'rejected'` - event type
+- `type: 'aborted' | 'cancelled' | 'fulfilled' | 'rejected' | 'settled'` - event type
 - `listener: (error: AbortError | Error | any): void` - event handler function
 
 **Returns:** A function to remove the event listener (unsubscribe)
@@ -49,7 +51,7 @@ Removes an event listener for the specified event type.
 
 **Parameters:**
 
-- `type: 'aborted' | 'cancelled' | 'fulfilled' | 'rejected'` - event type
+- `type: 'aborted' | 'cancelled' | 'fulfilled' | 'rejected' | 'settled'` - event type
 - `listener: (error: AbortError | Error | any): void` - event handler function to remove
 
 `dispatchEvent(type, error): void`
@@ -58,7 +60,7 @@ Dispatches an event of the specified type, calling all registered handlers.
 
 **Parameters:**
 
-- `type: 'aborted' | 'cancelled' | 'fulfilled' | 'rejected'` - event type to dispatch
+- `type: 'aborted' | 'cancelled' | 'fulfilled' | 'rejected' | 'settled'` - event type to dispatch
 - `event: AbortError | Error | any` - event data passed to handlers
 
 **Special Note:** When dispatching `'aborted'` or `'cancelled'` events, the global `onabort` handler is also called.
