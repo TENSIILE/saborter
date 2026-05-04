@@ -3,7 +3,7 @@ import { RequestState, emitRequestState } from '../../features/state-observer';
 import { AbortError, isAbortError } from '../../features/abort-error';
 import { EventListener, clearEventListeners } from '../../features/event-listener';
 import { injectAborterContextIntoHttpRequest, setAborterContextProvisionMode } from '../../features/lib/fetch';
-import { debounce } from '../../features/lib/debounce';
+import { debounce as debounceFn } from '../../features/lib/debounce/debounce.lib';
 import { ServerBreaker } from '../../features/server-breaker';
 import { Timeout, TimeoutError } from '../../features/timeout';
 import { ErrorMessage, disposeSymbol } from './aborter.constants';
@@ -59,10 +59,18 @@ export class Aborter implements Types.AborterType {
    */
   protected serverBreaker: ServerBreaker = new ServerBreaker();
 
+  /**
+   * Overriding the `Provision API` for the entire `Aborter` instance. Configuration via the method is not applied.
+   */
+  protected provision?: boolean;
+
+  private debouncedFn?: (signal: AbortSignal) => any;
+
   constructor(options?: Types.AborterOptions<Aborter>) {
     this.listeners = new EventListener(options);
 
     this.try = this.try.bind(this);
+    this.provision = options?.provision;
 
     if (!options?.interruptionOnServer) {
       this.serverBreaker.off();
@@ -111,6 +119,7 @@ export class Aborter implements Types.AborterType {
     if ((['fulfilled', 'rejected', 'aborted'] as RequestState[]).indexOf(state) !== -1) {
       this.timeout.clearTimeout();
       this.isRequestInProgress = false;
+      this.debouncedFn = undefined;
     }
   };
 
@@ -118,7 +127,7 @@ export class Aborter implements Types.AborterType {
     request: Types.AbortableRequest<any>,
     { isErrorNativeBehavior, timeout, unpackData, provision }: Types.FnTryOptions = {}
   ): Promise<R> {
-    setAborterContextProvisionMode(!!provision);
+    setAborterContextProvisionMode(provision !== undefined ? provision : !!this.provision);
 
     if (this.isRequestInProgress) {
       const cancelledAbortError = new AbortError(ErrorMessage.CancelRequest, {
@@ -202,6 +211,20 @@ export class Aborter implements Types.AborterType {
     return promise;
   }
 
+  private async tryDebounceImpl<R>(request: Types.AbortableRequest<any>, options: Types.FnTryOptions): Promise<R> {
+    if (this.debouncedFn && this.isRequestInProgress) {
+      this.abort();
+    }
+
+    this.abortController = new AbortController();
+
+    this.isRequestInProgress = true;
+
+    this.debouncedFn = debounceFn<R>(() => this.tryImpl(request, options), options.debounce);
+
+    return this.debouncedFn(this.abortController.signal);
+  }
+
   /**
    * Performs an asynchronous request with cancellation of the previous request, preventing the call of the catch block when the request is canceled and the subsequent finally block.
    * @param request callback function
@@ -214,18 +237,12 @@ export class Aborter implements Types.AborterType {
 
   public try<R>(
     request: Types.AbortableRequest<any>,
-    {
-      isErrorNativeBehavior = false,
-      timeout,
-      unpackData = true,
-      provision = true,
-      debounce: debounceMs
-    }: Types.FnTryOptions = {}
+    { isErrorNativeBehavior = false, timeout, unpackData = true, provision, debounce }: Types.FnTryOptions = {}
   ): Promise<R> {
-    const certainOptions = { isErrorNativeBehavior, timeout, unpackData, provision };
+    const certainOptions = { isErrorNativeBehavior, timeout, unpackData, provision, debounce };
 
-    if (debounceMs) {
-      return debounce<R>(() => this.tryImpl(request, certainOptions), debounceMs)(this.signal);
+    if (debounce) {
+      return this.tryDebounceImpl(request, certainOptions);
     }
 
     return this.tryImpl(request, certainOptions);
