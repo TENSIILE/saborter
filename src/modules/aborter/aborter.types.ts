@@ -63,8 +63,6 @@ export interface FnTryOptions {
   unpackData?: boolean;
   /**
    * Enables or disables automatic injection of the `Aborter` context for `fetch` and `XMLHttpRequest` calls.
-   *
-   * @default true
    */
   provision?: boolean;
   /**
@@ -78,7 +76,7 @@ export interface FnTryOptions {
  */
 export interface AborterOptions<AborterInstance> extends Pick<
   EventListenerConstructorOptions,
-  'onAbort' | 'onStateChange'
+  'onAbort' | 'onCancel' | 'onInterrupt' | 'onStateChange'
 > {
   /**
    * Callback invoked immediately after the `Aborter` instance is created.
@@ -111,6 +109,13 @@ export interface AborterOptions<AborterInstance> extends Pick<
    * @default false
    */
   interruptionOnServer?: boolean;
+
+  /**
+   * Enables or disables automatic injection of the `Aborter` context for `fetch` and `XMLHttpRequest` calls.
+   *
+   * Overriding the `Provision API` for the entire `Aborter` instance. Configuration via the method is applied.
+   */
+  provision?: boolean;
 }
 
 /**
