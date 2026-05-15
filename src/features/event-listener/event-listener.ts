@@ -6,9 +6,19 @@ export class EventListener {
   private listeners = {} as Record<Types.EventListenerType, Set<Types.ListenerWrapper<any>>>;
 
   /**
-   * Method called when an Aborter request is cancelled
+   * The method is called when the Aborter request is cancelled and aborted.
    */
   public onabort?: Types.OnAbortCallback;
+
+  /**
+   * Method called when an Aborter request is cancelled.
+   */
+  public oncancel?: Types.OnAbortCallback;
+
+  /**
+   * Method called when an Aborter request is aborted.
+   */
+  public oninterrupt?: Types.OnAbortCallback;
 
   /**
    * Returns an `StateObserver` object for monitoring the status of requests.
@@ -17,6 +27,8 @@ export class EventListener {
 
   constructor(options?: Types.EventListenerConstructorOptions) {
     this.onabort = options?.onAbort;
+    this.oncancel = options?.onCancel;
+    this.oninterrupt = options?.onInterrupt;
     this.state.onstatechange = options?.onStateChange;
   }
 
@@ -74,6 +86,14 @@ export class EventListener {
       this.onabort?.(event);
     }
 
+    if (type === 'aborted') {
+      this.oninterrupt?.(event);
+    }
+
+    if (type === 'cancelled') {
+      this.oncancel?.(event);
+    }
+
     const listeners = [...this.getListenersByType(type)];
 
     listeners.forEach((wrapper) => {
@@ -90,6 +110,8 @@ export class EventListener {
   public [clearMethodSymbol] = (): void => {
     Object.values(this.listeners).forEach((listeners) => listeners.clear());
     this.onabort = undefined;
+    this.oncancel = undefined;
+    this.oninterrupt = undefined;
     clearStateListeners(this.state);
   };
 }

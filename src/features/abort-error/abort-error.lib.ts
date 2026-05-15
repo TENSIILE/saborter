@@ -15,7 +15,9 @@ const checkErrorCause = (error: unknown) =>
  * Determines whether a given error is an AbortError.
  *
  * @param {any} error - The value to check.
- * @returns {error is Error} `true` if the error is identified as an AbortError, otherwise `false`.
+ * @returns {error is AbortError | Error} `true` if the error is identified as an AbortError, otherwise `false`.
+ *
+ * The function returns the typeguard to `AbortError` by default. If you want the typeguard to return `Error`, pass the `'soft'` generic.
  *
  * @example
  * // Direct instance
@@ -38,7 +40,9 @@ const checkErrorCause = (error: unknown) =>
  * const outer = new Error('Wrapper', { cause: inner });
  * isAbortError(outer); // true
  */
-export const isAbortError = (error: any): error is Error => {
+export const isAbortError = <T extends 'strict' | 'soft' = 'strict'>(
+  error: any
+): error is T extends 'strict' ? AbortError : Error => {
   if (error instanceof AbortError) {
     return true;
   }
