@@ -345,6 +345,11 @@ const aborter = new Aborter(options?: AborterOptions);
    * @default false
    */
   interruptionOnServer?: boolean;
+
+  /**
+   * Delays the call to the `try` method in milliseconds.
+  */
+  debounce?: number;
 }
 ````
 
@@ -405,6 +410,7 @@ Executes an asynchronous request with the ability to cancel.
     - `metadata?: any` - Interrupt-related data. The best way to pass any data inside the error.
   - `unpackData?: boolean` (Default is `true`) - Automatically unwraps JSON if the `try` method receives a `Response` instance, for example, returns `fetch()`.
   - `provision?: boolean` - Enables or disables automatic injection of the `Aborter` context for `fetch` and `XMLHttpRequest` calls.
+  - `debounce?: number` - Delays the call to the `try` method in milliseconds.
 
 **Returns:** `Promise<T>`
 
@@ -469,7 +475,7 @@ When using `fetch` briefly, `Response.OK` is also processed. `Aborter` throws th
 
 ```typescript
 try {
-  const data = await aborter.try(() => fetch('/api/data'));
+  const data = await aborter.try((signal) => fetch('/api/data', { signal }));
 } catch (error) {
   if (error instanceof Response) {
     // Processing a case when response.ok is false

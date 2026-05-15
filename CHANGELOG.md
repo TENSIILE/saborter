@@ -1,6 +1,6 @@
 # Saborter Changelog
 
-## v2.5.0
+## v2.5.0 (May 16th, 2026)
 
 ### New Features
 
