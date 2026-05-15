@@ -36,16 +36,17 @@ const useAborter = <D,>() => {
             setData(d);
           });
 
-          aborter.listeners.addEventListener('rejected', (er) => {
-            setError(er);
+          aborter.listeners.addEventListener('rejected', (err) => {
+            setError(err);
           });
 
-          aborter.listeners.state.subscribe((s: any) => {
-            setLoading(s === 'pending');
+          aborter.listeners.state.subscribe((state) => {
+            setLoading(state === 'pending');
             setError(null);
             setData(null);
           });
-        }
+        },
+        provision: true
       })
   );
 
@@ -57,7 +58,7 @@ export const App = () => {
   const { aborter: postsAborter, data: posts, loading: postsLoading } = useAborter<Post[]>();
 
   const handlePostsLoad = async () => {
-    postsAborter.try(getPosts, { timeout: 1000 });
+    postsAborter.try(getPosts, { timeout: 1000, debounce: 2000 });
   };
 
   const handleUsersLoad = async () => {
